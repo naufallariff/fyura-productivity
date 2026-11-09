@@ -6,18 +6,21 @@ const hexKey64 = /^[0-9a-f]{64}$/i;
 const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
-  // Aplikasi
+  // Application
   APP_URL: z.string().url(),
   DEFAULT_TIMEZONE: z.string().min(1).default("Asia/Jakarta"),
 
-  // Database (Supabase Postgres, gunakan connection pooler)
+  // Database
+  // Runtime connection: role app_runtime, transaction pooler (port 6543)
   DATABASE_URL: z.string().min(1),
+  // Migration connection: role postgres, session pooler (port 5432). Optional at runtime.
+  DATABASE_URL_MIGRATE: z.string().min(1).optional(),
 
-  // Auth.js dan Google OAuth (dipakai di batch B)
-  AUTH_SECRET: z.string().min(32, "AUTH_SECRET minimal 32 karakter"),
+  // Auth.js and Google OAuth
+  AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
   AUTH_GOOGLE_ID: z.string().min(1),
   AUTH_GOOGLE_SECRET: z.string().min(1),
-  // Daftar email yang diizinkan login, dipisah koma
+  // Comma-separated list of emails allowed to sign in
   ALLOWED_EMAILS: z
     .string()
     .min(3)
@@ -27,16 +30,20 @@ const EnvSchema = z.object({
         .map((x) => x.trim().toLowerCase())
         .filter(Boolean),
     )
-    .pipe(z.array(z.string().email()).min(1)),
+    .pipe(
+      z.array(z.string().email()).min(1, "ALLOWED_EMAILS must contain at least one valid email"),
+    ),
 
-  // Ruang privat (batch B dan fase 4)
-  PRIVATE_PIN_PEPPER: z.string().min(32, "PRIVATE_PIN_PEPPER minimal 32 karakter"),
-  // Kunci AES-256 untuk kolom privat, 64 karakter hex (32 byte)
-  ENCRYPTION_KEY: z.string().regex(hexKey64, "ENCRYPTION_KEY harus 64 karakter hex"),
+  // Private space
+  PRIVATE_PIN_PEPPER: z.string().min(32, "PRIVATE_PIN_PEPPER must be at least 32 characters"),
+  // AES-256 key for private columns: 64 hexadecimal characters (32 bytes)
+  ENCRYPTION_KEY: z
+    .string()
+    .regex(hexKey64, "ENCRYPTION_KEY must be exactly 64 hexadecimal characters"),
   ENCRYPTION_KEY_VERSION: z.coerce.number().int().positive().default(1),
 
-  // Cron (fase 5)
-  CRON_SECRET: z.string().min(32, "CRON_SECRET minimal 32 karakter"),
+  // Cron
+  CRON_SECRET: z.string().min(32, "CRON_SECRET must be at least 32 characters"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -45,12 +52,12 @@ function loadEnv(): Env {
   const parsed = EnvSchema.safeParse(process.env);
   if (!parsed.success) {
     const issues = parsed.error.issues
-      .map((i) => `  - ${i.path.join(".") || "(root)"}: ${i.message}`)
+      .map((issue) => `  - ${issue.path.join(".") || "(root)"}: ${issue.message}`)
       .join("\n");
-    throw new Error(`Konfigurasi environment tidak valid:\n${issues}`);
+    throw new Error(`Invalid environment configuration:\n${issues}`);
   }
   return parsed.data;
 }
 
-// Dievaluasi sekali saat modul pertama kali dimuat di server.
+// Evaluated once, when the module is first loaded on the server.
 export const env: Env = loadEnv();

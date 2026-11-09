@@ -10,13 +10,13 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-/* ---------- Identitas ---------- */
+/* ---------- Identity ---------- */
 
 export const users = pgTable(
   "users",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    email: text("email").notNull(), // selalu disimpan lowercase oleh aplikasi
+    email: text("email").notNull(), // always stored lowercase by the application
     name: text("name"),
     locale: text("locale").notNull().default("en"),
     timezone: text("timezone").notNull().default("Asia/Jakarta"),
@@ -26,9 +26,9 @@ export const users = pgTable(
   (t) => [uniqueIndex("users_email_uq").on(t.email)],
 );
 
-/* ---------- Tema ---------- */
+/* ---------- Themes ---------- */
 
-// Preset dimiliki oleh sistem (user_id NULL). Tema pribadi dimiliki user.
+// Presets are owned by the system (user_id IS NULL). Custom themes belong to a user.
 export const themes = pgTable(
   "themes",
   {
@@ -36,14 +36,14 @@ export const themes = pgTable(
     userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     slug: text("slug").notNull(),
     name: text("name").notNull(),
-    seed: jsonb("seed").notNull(), // 8 seed tema, divalidasi Zod saat dibaca
+    seed: jsonb("seed").notNull(), // 8 theme seeds, validated with Zod on read
     version: integer("version").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    // Slug unik per pemilik
+    // Slug is unique per owner
     uniqueIndex("themes_owner_slug_uq").on(t.userId, t.slug),
-    // Preset: slug unik di antara preset (NULL tidak dianggap sama di unique biasa)
+    // Preset slugs are unique among presets (NULLs are not equal in plain unique indexes)
     uniqueIndex("themes_preset_slug_uq")
       .on(t.slug)
       .where(sql`${t.userId} is null`),
@@ -51,7 +51,7 @@ export const themes = pgTable(
   ],
 );
 
-/* ---------- Pengaturan per user ---------- */
+/* ---------- Per-user settings ---------- */
 
 export const userSettings = pgTable("user_settings", {
   userId: uuid("user_id")
@@ -63,13 +63,13 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/* ---------- Gerbang ruang privat ---------- */
+/* ---------- Private space gate ---------- */
 
 export const privatePin = pgTable("private_pin", {
   userId: uuid("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
-  pinHash: text("pin_hash").notNull(), // Argon2id, bukan enkripsi yang bisa dibalik
+  pinHash: text("pin_hash").notNull(), // Argon2id hash, not reversible encryption
   failedAttempts: integer("failed_attempts").notNull().default(0),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -81,9 +81,9 @@ export const auditLog = pgTable(
   "audit_log",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    // SET NULL agar riwayat tetap ada walau user dihapus
+    // SET NULL keeps the history even if the user is deleted
     userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
-    action: text("action").notNull(), // contoh: 'theme.update', 'data.delete'
+    action: text("action").notNull(), // e.g. 'theme.update', 'data.delete'
     entity: text("entity").notNull(),
     entityId: text("entity_id"),
     meta: jsonb("meta"),
