@@ -12,7 +12,7 @@ async function ShellFrame({ children }: { children: React.ReactNode }) {
   const sidebar = parseSidebarState(jar.get(SIDEBAR_COOKIE)?.value);
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="ambient flex min-h-dvh">
       <a
         href="#main"
         className="focus:rounded-control focus:bg-accent focus:text-on-accent sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2"

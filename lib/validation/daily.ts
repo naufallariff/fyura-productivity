@@ -53,7 +53,23 @@ export const CreateHabitInput = z
   })
   .strict();
 
+export const MoveTimeBlockInput = z
+  .object({
+    blockId: z.uuid(),
+    startMinute: z
+      .number()
+      .int()
+      .min(0)
+      .max(MINUTES_PER_DAY - 1),
+    endMinute: z.number().int().min(1).max(MINUTES_PER_DAY),
+  })
+  .strict()
+  .refine((value) => value.endMinute > value.startMinute, {
+    message: "End must be after start",
+  });
+
 export type SetDayStatusParams = z.infer<typeof SetDayStatusInput>;
 export type HabitCheckParams = z.infer<typeof HabitCheckInput>;
 export type CreateTimeBlockParams = z.infer<typeof CreateTimeBlockInput>;
 export type CreateHabitParams = z.infer<typeof CreateHabitInput>;
+export type MoveTimeBlockParams = z.infer<typeof MoveTimeBlockInput>;

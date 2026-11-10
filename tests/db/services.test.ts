@@ -107,4 +107,52 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
       await deleteTestUser(sql, otherId);
     }
   });
+
+  it("rejects a block that overlaps an existing block on the same day", async () => {
+    await createTimeBlock(userId, {
+      logDate: "2026-10-12",
+      startMinute: 540,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "First",
+      source: "MANUAL",
+    });
+
+    await expect(
+      createTimeBlock(userId, {
+        logDate: "2026-10-12",
+        startMinute: 570,
+        durationMinutes: 60,
+        category: "WORK",
+        activity: "Second",
+        source: "MANUAL",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("moves a block and rejects a move that overlaps another block", async () => {
+    const { moveTimeBlock } = await import("@/lib/services/daily");
+
+    const first = await createTimeBlock(userId, {
+      logDate: "2026-10-14",
+      startMinute: 540,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "A",
+      source: "MANUAL",
+    });
+    await createTimeBlock(userId, {
+      logDate: "2026-10-14",
+      startMinute: 720,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "B",
+      source: "MANUAL",
+    });
+
+    await moveTimeBlock(userId, { blockId: first, startMinute: 600, endMinute: 660 });
+    await expect(
+      moveTimeBlock(userId, { blockId: first, startMinute: 700, endMinute: 760 }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
 });

@@ -12,7 +12,9 @@ import {
 import {
   insertBlocks,
   listBlocksForDate,
-  softDeleteBlock,
+  softDeleteBlockGroup,
+  findBlockById,
+  updateBlockTiming,
 } from "@/lib/db/repositories/time-blocks";
 import { DEFAULT_HABITS } from "./default-habits";
 import { DomainError } from "./errors";
@@ -21,6 +23,7 @@ import {
   CreateTimeBlockInput,
   HabitCheckInput,
   SetDayStatusInput,
+  MoveTimeBlockInput,
 } from "@/lib/validation/daily";
 import { splitBlock } from "@/lib/time/split-block";
 import { addDays } from "@/lib/time/logical-date";
@@ -138,6 +141,16 @@ export async function createTimeBlock(userId: string, input: unknown): Promise<s
       if (!habit) throw new DomainError("NOT_FOUND", "Habit not found");
     }
 
+    // Reject overlaps for every segment before inserting anything.
+    // The whole check and insert run in one transaction.
+    for (const segment of segments) {
+      const existing = await listBlocksForDate(tx, userId, segment.logDate);
+      const clash = existing.find(
+        (block) => segment.startMinute < block.endMinute && block.startMinute < segment.endMinute,
+      );
+      if (clash) throw new DomainError("CONFLICT", "Time block overlaps an existing block");
+    }
+
     const rows = await insertBlocks(
       tx,
       segments.map((segment) => ({
@@ -157,14 +170,40 @@ export async function createTimeBlock(userId: string, input: unknown): Promise<s
   });
 }
 
-export async function deleteTimeBlock(userId: string, blockId: string): Promise<void> {
-  const id = parse(habitIdSchema, blockId);
+/**
+ * Moves or resizes a single-day block. Blocks that cross midnight are edited
+ * through the form, because changing one segment alone would break the pair.
+ */
+export async function moveTimeBlock(userId: string, input: unknown): Promise<void> {
+  const parsed = parse(MoveTimeBlockInput, input);
+
   await withUser(userId, async (tx) => {
-    const removed = await softDeleteBlock(tx, userId, id);
-    if (!removed) throw new DomainError("NOT_FOUND", "Time block not found");
+    const block = await findBlockById(tx, userId, parsed.blockId);
+    if (!block) throw new DomainError("NOT_FOUND", "Time block not found");
+    if (block.splitGroupId) {
+      throw new DomainError("CONFLICT", "Blocks that cross midnight are edited in the form");
+    }
+
+    const sameDay = await listBlocksForDate(tx, userId, block.logDate);
+    const clash = sameDay.some(
+      (other) =>
+        other.id !== block.id &&
+        parsed.startMinute < other.endMinute &&
+        other.startMinute < parsed.endMinute,
+    );
+    if (clash) throw new DomainError("CONFLICT", "Time block overlaps an existing block");
+
+    await updateBlockTiming(tx, userId, block.id, parsed.startMinute, parsed.endMinute);
   });
 }
 
+export async function deleteTimeBlock(userId: string, blockId: string): Promise<void> {
+  const id = parse(habitIdSchema, blockId);
+  await withUser(userId, async (tx) => {
+    const removed = await softDeleteBlockGroup(tx, userId, id);
+    if (removed === 0) throw new DomainError("NOT_FOUND", "Time block not found");
+  });
+}
 /* ---------- Reads ---------- */
 
 /** Everything the Today page needs for one logical day, in one transaction. */

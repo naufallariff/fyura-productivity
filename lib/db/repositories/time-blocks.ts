@@ -29,13 +29,57 @@ export async function insertBlocks(tx: Tx, rows: NewTimeBlockRow[]): Promise<Tim
   return tx.insert(timeBlocks).values(rows).returning();
 }
 
-export async function softDeleteBlock(tx: Tx, userId: string, blockId: string): Promise<boolean> {
-  const updated = await tx
-    .update(timeBlocks)
-    .set({ deletedAt: new Date(), updatedAt: new Date() })
+/** Soft-deletes a block and, when it is part of a midnight split, its sibling segments. */
+export async function softDeleteBlockGroup(
+  tx: Tx,
+  userId: string,
+  blockId: string,
+): Promise<number> {
+  const [target] = await tx
+    .select({ splitGroupId: timeBlocks.splitGroupId })
+    .from(timeBlocks)
     .where(
       and(eq(timeBlocks.userId, userId), eq(timeBlocks.id, blockId), isNull(timeBlocks.deletedAt)),
     )
+    .limit(1);
+  if (!target) return 0;
+
+  const scope = target.splitGroupId
+    ? eq(timeBlocks.splitGroupId, target.splitGroupId)
+    : eq(timeBlocks.id, blockId);
+
+  const updated = await tx
+    .update(timeBlocks)
+    .set({ deletedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(timeBlocks.userId, userId), scope, isNull(timeBlocks.deletedAt)))
     .returning({ id: timeBlocks.id });
-  return updated.length === 1;
+  return updated.length;
+}
+
+export async function findBlockById(
+  tx: Tx,
+  userId: string,
+  blockId: string,
+): Promise<TimeBlockRow | null> {
+  const [row] = await tx
+    .select()
+    .from(timeBlocks)
+    .where(
+      and(eq(timeBlocks.userId, userId), eq(timeBlocks.id, blockId), isNull(timeBlocks.deletedAt)),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function updateBlockTiming(
+  tx: Tx,
+  userId: string,
+  blockId: string,
+  startMinute: number,
+  endMinute: number,
+): Promise<void> {
+  await tx
+    .update(timeBlocks)
+    .set({ startMinute, endMinute, updatedAt: new Date() })
+    .where(and(eq(timeBlocks.userId, userId), eq(timeBlocks.id, blockId)));
 }
