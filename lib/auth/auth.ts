@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google";
 import { env } from "@/lib/config/env";
 import { upsertUserByEmail } from "@/lib/db/users";
 import { isAllowedEmail } from "./allowlist";
+import { ensureDefaultHabits } from "@/lib/services/daily";
 
 const THIRTY_DAYS_SECONDS = 60 * 60 * 24 * 30;
 
@@ -29,7 +30,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, profile }) {
       const p = profile as { email?: unknown; name?: unknown } | undefined;
       if (p && typeof p.email === "string") {
-        token.uid = await upsertUserByEmail(p.email, typeof p.name === "string" ? p.name : null);
+        const userId = await upsertUserByEmail(p.email, typeof p.name === "string" ? p.name : null);
+        token.uid = userId;
+        await ensureDefaultHabits(userId);
       }
       return token;
     },

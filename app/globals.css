@@ -194,6 +194,16 @@
   animation: pin-shake 400ms var(--ease-spring);
 }
 
+.ambient {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(60rem 40rem at 0% 0%, rgb(99 102 241 / 0.22), transparent 60%),
+    radial-gradient(50rem 36rem at 100% 0%, rgb(20 184 166 / 0.2), transparent 60%),
+    radial-gradient(50rem 40rem at 100% 100%, rgb(244 114 182 / 0.18), transparent 60%),
+    radial-gradient(44rem 34rem at 0% 100%, rgb(245 158 11 / 0.14), transparent 60%);
+  background-attachment: fixed;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
