@@ -22,6 +22,20 @@
       "when": 1794290173734,
       "tag": "0002_messy_nehzno",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794304748840,
+      "tag": "0003_sticky_kingpin",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794304764097,
+      "tag": "0004_rls_daily_tables",
+      "breakpoints": true
     }
   ]
 }
