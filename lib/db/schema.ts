@@ -57,9 +57,10 @@ export const userSettings = pgTable("user_settings", {
   userId: uuid("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
-  themeSlug: text("theme_slug").notNull().default("ocean"),
-  customThemeId: uuid("custom_theme_id").references(() => themes.id, { onDelete: "set null" }),
-  navbarMode: text("navbar_mode").notNull().default("auto"), // 'auto' | 'pinned'
+  themeStyle: text("theme_style").notNull().default("flat"),
+  themePalette: text("theme_palette").notNull().default("navy"),
+  themeMode: text("theme_mode").notNull().default("dark"),
+  navbarMode: text("navbar_mode").notNull().default("auto"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

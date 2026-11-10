@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import type { PinActionState } from "@/app/actions/private";
+import { Delete } from "lucide-react";
 
 const PIN_LENGTH = 6;
 const KEYPAD = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "back"] as const;
@@ -108,7 +109,7 @@ export function PinPad({ mode, action }: Props) {
               aria-label={key === "back" ? "Delete digit" : `Digit ${key}`}
               className="bg-surface-raised text-text ease-spring hover:bg-line grid size-16 place-items-center rounded-full text-2xl font-medium transition-all duration-200 active:scale-90 disabled:opacity-50 sm:size-18"
             >
-              {key === "back" ? "⌫" : key}
+              {key === "back" ? <Delete aria-hidden className="size-5" strokeWidth={1.75} /> : key}
             </button>
           ),
         )}

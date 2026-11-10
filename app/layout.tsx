@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { buildThemeCss } from "@/lib/theme/css";
 import "./globals.css";
+import { buildThemeCss } from "@/lib/theme/css";
+import { getRequestTheme } from "@/lib/theme/server";
+import { ThemeScript } from "@/components/theme/theme-script";
+import { connection } from "next/server";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: { default: "Fyura Productivity", template: "%s · Fyura Productivity" },
@@ -14,11 +18,15 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function ThemedHtml({ children }: { children: React.ReactNode }) {
+  await connection();
+  const theme = await getRequestTheme();
+
   return (
-    <html lang="en" data-style="flat" data-palette="navy" data-mode="dark">
+    <html lang="en" data-style={theme.style} data-palette={theme.palette} data-mode={theme.mode}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: buildThemeCss() }} />
+        <ThemeScript />
       </head>
       <body className="bg-bg text-text min-h-dvh font-sans antialiased">
         <span aria-hidden className="blob blob-a" />
@@ -26,5 +34,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
       </body>
     </html>
+  );
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={null}>
+      <ThemedHtml>{children}</ThemedHtml>
+    </Suspense>
   );
 }
