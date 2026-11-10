@@ -2,12 +2,6 @@ import { contrastRatio, mix } from "./color";
 import type { Palette } from "./schema";
 import type { Mode, ThemeTokens } from "./tokens";
 
-/** Danger is fixed per mode for now. Each value is checked against the surfaces in validate.ts. */
-export const DANGER: Readonly<Record<Mode, string>> = {
-  light: "#b3265e",
-  dark: "#f0609a",
-};
-
 const WHITE = "#ffffff";
 const INK = "#0b0d14";
 
@@ -16,13 +10,9 @@ export function pickOnColor(background: string): string {
   return contrastRatio(WHITE, background) >= contrastRatio(INK, background) ? WHITE : INK;
 }
 
-/**
- * Derives every semantic token for one palette and one mode.
- * Pure function: same input always gives the same output.
- */
+/** Derives every semantic token for one palette and one mode. Pure and deterministic. */
 export function deriveTokens(palette: Palette, mode: Mode): ThemeTokens {
   const seed = palette[mode];
-  // Raised surfaces lean slightly toward the text color. Lines do the same, more strongly.
   const lift = mode === "light" ? 0.03 : 0.06;
 
   return {
@@ -36,17 +26,14 @@ export function deriveTokens(palette: Palette, mode: Mode): ThemeTokens {
     accent: seed.accent,
     accentStrong: seed.accentStrong,
     onAccent: pickOnColor(seed.accent),
-    danger: DANGER[mode],
+    danger: seed.danger,
     glowA: seed.glow[0],
     glowB: seed.glow[1],
     chart: [...palette.chart],
   };
 }
 
-/**
- * Maps tokens to CSS custom properties. T3 (globals.css) reads these names.
- * Names are kebab-case and prefixed by role, never by palette.
- */
+/** Maps tokens to CSS custom properties. Names are role-based, never palette-based. */
 export function toCssVariables(tokens: ThemeTokens): Record<string, string> {
   const variables: Record<string, string> = {
     "--bg": tokens.bg,

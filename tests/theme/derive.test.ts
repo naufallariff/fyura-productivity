@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/theme/color";
-import { DANGER, deriveTokens, pickOnColor, toCssVariables } from "@/lib/theme/derive";
+import { deriveTokens, pickOnColor, toCssVariables } from "@/lib/theme/derive";
 import { getPalette } from "@/lib/theme/palettes";
 
 describe("deriveTokens", () => {
@@ -36,9 +36,10 @@ describe("deriveTokens", () => {
     }
   });
 
-  it("uses the mode-specific danger color", () => {
-    expect(deriveTokens(getPalette("navy"), "light").danger).toBe(DANGER.light);
-    expect(deriveTokens(getPalette("navy"), "dark").danger).toBe(DANGER.dark);
+  it("uses the danger seed of each palette and mode", () => {
+    const palette = getPalette("rose");
+    expect(deriveTokens(palette, "light").danger).toBe(palette.light.danger);
+    expect(deriveTokens(palette, "dark").danger).toBe(palette.dark.danger);
   });
 
   it("is deterministic for the same input", () => {

@@ -9,6 +9,7 @@
     "muted": "#7a5566",
     "accent": "#b3265e",
     "accentStrong": "#7f1a42",
+    "danger": "#b91c1c",
     "glow": ["#f5c6da", "#fbe1eb"]
   },
   "dark": {
@@ -18,6 +19,7 @@
     "muted": "#c9a3b5",
     "accent": "#f0609a",
     "accentStrong": "#c94a80",
+    "danger": "#f87171",
     "glow": ["#6b1f42", "#2a0f1e"]
   },
   "chart": ["#f0609a", "#ef4444", "#a855f7", "#fdba74", "#fb7185", "#94a3b8"]
