@@ -1,0 +1,24 @@
+{
+  "id": "aurora-frost",
+  "name": "Aurora Frost",
+  "version": 1,
+  "light": {
+    "bg": "#eef2ff",
+    "surface": "#ffffff",
+    "text": "#0a0c1a",
+    "muted": "#4b5275",
+    "accent": "#4f46e5",
+    "accentStrong": "#3730a3",
+    "glow": ["#c7d2fe", "#e0e7ff"]
+  },
+  "dark": {
+    "bg": "#0a0c1a",
+    "surface": "#161a36",
+    "text": "#eef2ff",
+    "muted": "#a5aed6",
+    "accent": "#a5b4fc",
+    "accentStrong": "#818cf8",
+    "glow": ["#312e81", "#1e1b4b"]
+  },
+  "chart": ["#4f46e5", "#8b5cf6", "#3b82f6", "#06b6d4", "#f472b6", "#94a3b8"]
+}

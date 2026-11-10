@@ -1,0 +1,11 @@
+{
+  "id": "mono",
+  "name": "Mono",
+  "description": "No shadows and no decoration. Built for focus and private screens.",
+  "background": "solid",
+  "surfaceAlpha": 1,
+  "blurPx": 0,
+  "shadow": "none",
+  "motion": "none",
+  "blobs": 0
+}

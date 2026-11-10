@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`toCssVariables > matches the snapshot for the default theme 1`] = `
+{
+  "--accent": "#8a96f0",
+  "--accent-strong": "#6b78e0",
+  "--bg": "#0f1330",
+  "--chart-1": "#4f5bd5",
+  "--chart-2": "#2ec4b6",
+  "--chart-3": "#8b5cf6",
+  "--chart-4": "#f472b6",
+  "--chart-5": "#facc15",
+  "--chart-6": "#94a3b8",
+  "--danger": "#f0609a",
+  "--glow-a": "#2b3a8f",
+  "--glow-b": "#1e2654",
+  "--line": "#383f68",
+  "--muted": "#a9b1d6",
+  "--on-accent": "#0b0d14",
+  "--surface": "#1e2654",
+  "--surface-raised": "#2b335e",
+  "--text": "#f5f7fc",
+}
+`;

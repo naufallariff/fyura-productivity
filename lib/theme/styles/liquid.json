@@ -1,0 +1,11 @@
+{
+  "id": "liquid",
+  "name": "Liquid",
+  "description": "Frosted panels over two slowly drifting light blobs.",
+  "background": "glow",
+  "surfaceAlpha": 0.6,
+  "blurPx": 24,
+  "shadow": "soft",
+  "motion": "slow",
+  "blobs": 2
+}

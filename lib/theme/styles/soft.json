@@ -1,0 +1,11 @@
+{
+  "id": "soft",
+  "name": "Soft",
+  "description": "Raised, tactile surfaces with gentle layered shadows.",
+  "background": "solid",
+  "surfaceAlpha": 1,
+  "blurPx": 0,
+  "shadow": "raised",
+  "motion": "none",
+  "blobs": 0
+}

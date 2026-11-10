@@ -1,0 +1,11 @@
+{
+  "id": "glass",
+  "name": "Glass",
+  "description": "Frosted panels over a static soft glow.",
+  "background": "glow",
+  "surfaceAlpha": 0.7,
+  "blurPx": 20,
+  "shadow": "soft",
+  "motion": "none",
+  "blobs": 0
+}

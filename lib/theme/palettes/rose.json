@@ -1,0 +1,24 @@
+{
+  "id": "rose",
+  "name": "Rose",
+  "version": 1,
+  "light": {
+    "bg": "#fbf0f5",
+    "surface": "#ffffff",
+    "text": "#14070e",
+    "muted": "#7a5566",
+    "accent": "#b3265e",
+    "accentStrong": "#7f1a42",
+    "glow": ["#f5c6da", "#fbe1eb"]
+  },
+  "dark": {
+    "bg": "#14070e",
+    "surface": "#2a0f1e",
+    "text": "#fbf0f5",
+    "muted": "#c9a3b5",
+    "accent": "#f0609a",
+    "accentStrong": "#c94a80",
+    "glow": ["#6b1f42", "#2a0f1e"]
+  },
+  "chart": ["#f0609a", "#ef4444", "#a855f7", "#fdba74", "#fb7185", "#94a3b8"]
+}

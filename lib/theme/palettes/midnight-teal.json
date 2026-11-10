@@ -1,0 +1,24 @@
+{
+  "id": "midnight-teal",
+  "name": "Midnight Teal",
+  "version": 1,
+  "light": {
+    "bg": "#eeeeee",
+    "surface": "#ffffff",
+    "text": "#071b2b",
+    "muted": "#3f5566",
+    "accent": "#167d8d",
+    "accentStrong": "#0e5560",
+    "glow": ["#b9e4e8", "#dceff1"]
+  },
+  "dark": {
+    "bg": "#071b2b",
+    "surface": "#0e2a3b",
+    "text": "#eeeeee",
+    "muted": "#9fc3c9",
+    "accent": "#b9e4e8",
+    "accentStrong": "#167d8d",
+    "glow": ["#167d8d", "#0b3a4f"]
+  },
+  "chart": ["#167d8d", "#b9e4e8", "#38bdf8", "#2dd4bf", "#0ea5e9", "#94a3b8"]
+}

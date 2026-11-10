@@ -1,0 +1,24 @@
+{
+  "id": "forest",
+  "name": "Forest",
+  "version": 1,
+  "light": {
+    "bg": "#eff6f3",
+    "surface": "#ffffff",
+    "text": "#092328",
+    "muted": "#4e6b66",
+    "accent": "#0f6b55",
+    "accentStrong": "#092328",
+    "glow": ["#bfe6d6", "#ddf2ea"]
+  },
+  "dark": {
+    "bg": "#061a1e",
+    "surface": "#0c2a30",
+    "text": "#eff6f3",
+    "muted": "#9cc2b8",
+    "accent": "#2fb68a",
+    "accentStrong": "#1e8f6c",
+    "glow": ["#0f4a45", "#092328"]
+  },
+  "chart": ["#2fb68a", "#a3e635", "#14b8a6", "#6ee7b7", "#4d7c0f", "#94a3a0"]
+}

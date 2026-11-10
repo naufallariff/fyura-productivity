@@ -1,0 +1,11 @@
+{
+  "id": "gradient",
+  "name": "Gradient",
+  "description": "Solid surfaces with a soft two-color gradient on hero areas.",
+  "background": "gradient",
+  "surfaceAlpha": 1,
+  "blurPx": 0,
+  "shadow": "hairline",
+  "motion": "none",
+  "blobs": 0
+}

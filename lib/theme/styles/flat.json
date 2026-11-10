@@ -1,0 +1,11 @@
+{
+  "id": "flat",
+  "name": "Flat",
+  "description": "Solid surfaces with hairline borders. Fastest and cleanest.",
+  "background": "solid",
+  "surfaceAlpha": 1,
+  "blurPx": 0,
+  "shadow": "hairline",
+  "motion": "none",
+  "blobs": 0
+}

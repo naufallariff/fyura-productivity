@@ -1,0 +1,24 @@
+{
+  "id": "navy",
+  "name": "Navy Dark",
+  "version": 1,
+  "light": {
+    "bg": "#f5f7fc",
+    "surface": "#ffffff",
+    "text": "#1e2654",
+    "muted": "#5a6485",
+    "accent": "#1e2654",
+    "accentStrong": "#14193d",
+    "glow": ["#c9d1f5", "#e6e9fa"]
+  },
+  "dark": {
+    "bg": "#0f1330",
+    "surface": "#1e2654",
+    "text": "#f5f7fc",
+    "muted": "#a9b1d6",
+    "accent": "#8a96f0",
+    "accentStrong": "#6b78e0",
+    "glow": ["#2b3a8f", "#1e2654"]
+  },
+  "chart": ["#4f5bd5", "#2ec4b6", "#8b5cf6", "#f472b6", "#facc15", "#94a3b8"]
+}
