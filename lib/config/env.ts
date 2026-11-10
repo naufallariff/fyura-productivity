@@ -44,6 +44,13 @@ const EnvSchema = z.object({
 
   // Cron
   CRON_SECRET: z.string().min(32, "CRON_SECRET must be at least 32 characters"),
+
+  // Observability: Sentry is disabled when the DSN is empty
+  SENTRY_DSN: z
+    .string()
+    .url()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

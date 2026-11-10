@@ -45,4 +45,10 @@ describe("environment configuration", () => {
     process.env.ALLOWED_EMAILS = " , ";
     await expect(import("@/lib/config/env")).rejects.toThrow(/ALLOWED_EMAILS/);
   });
+
+  it("treats an empty SENTRY_DSN as not configured", async () => {
+    process.env.SENTRY_DSN = "";
+    const { env } = await import("@/lib/config/env");
+    expect(env.SENTRY_DSN).toBeUndefined();
+  });
 });

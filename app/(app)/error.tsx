@@ -1,8 +1,10 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
+import { t } from "@/lib/i18n";
 
-export default function ErrorBoundary({
+export default function AppError({
   error,
   reset,
 }: {
@@ -10,8 +12,8 @@ export default function ErrorBoundary({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Hook for Sentry in Batch E. Only the digest is logged, never user data.
-    console.error("Route error", error.digest ?? "unknown");
+    // The digest links this report to the matching server log line via requestId.
+    Sentry.captureException(error, { tags: { digest: error.digest ?? "none" } });
   }, [error]);
 
   return (
@@ -19,16 +21,14 @@ export default function ErrorBoundary({
       role="alert"
       className="elevated rounded-card border-line bg-surface mx-auto mt-16 max-w-md border p-8 text-center"
     >
-      <h2 className="text-lg font-semibold">Something went wrong</h2>
-      <p className="text-muted mt-2 text-sm leading-relaxed">
-        This section could not be loaded. Your data is safe.
-      </p>
+      <h2 className="text-lg font-semibold">{t("error.title")}</h2>
+      <p className="text-muted mt-2 text-sm leading-relaxed">{t("error.body")}</p>
       <button
         type="button"
         onClick={reset}
         className="rounded-control bg-accent text-on-accent ease-spring mt-6 px-5 py-3 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
       >
-        Try again
+        {t("error.retry")}
       </button>
     </section>
   );

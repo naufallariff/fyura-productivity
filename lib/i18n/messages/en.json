@@ -1,5 +1,6 @@
 {
   "app.name": "Fyura Productivity",
+  "app.short": "Fyura",
   "nav.dashboard": "Dashboard",
   "nav.today": "Today",
   "nav.plan": "Weekly plan",

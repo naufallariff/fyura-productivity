@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      # Placeholder values. The build only needs them to parse the environment schema.
+      # No real secret is stored in CI. Database tests are skipped (RUN_DB_TESTS is unset).
+      APP_URL: http://localhost:3000
+      DEFAULT_TIMEZONE: Asia/Jakarta
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      AUTH_SECRET: ci-placeholder-auth-secret-min-32-characters
+      AUTH_GOOGLE_ID: ci-placeholder
+      AUTH_GOOGLE_SECRET: ci-placeholder
+      ALLOWED_EMAILS: ci@example.com
+      PRIVATE_PIN_PEPPER: ci-placeholder-pepper-min-32-characters-long
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      ENCRYPTION_KEY_VERSION: "1"
+      CRON_SECRET: ci-placeholder-cron-secret-min-32-characters
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Theme contrast and i18n gates
+        run: pnpm vitest run tests/theme tests/i18n
+
+      - name: Build
+        run: pnpm build

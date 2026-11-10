@@ -7,6 +7,7 @@ import { ChevronsLeft, ChevronsRight, LogOut } from "lucide-react";
 import { NAV_ITEMS, isActivePath } from "@/lib/nav/items";
 import { SIDEBAR_COOKIE, type SidebarState } from "@/lib/shell/sidebar-cookie";
 import { signOutAction } from "@/app/actions/auth";
+import { t } from "@/lib/i18n";
 
 export function Sidebar({ initial }: { initial: SidebarState }) {
   const pathname = usePathname();
@@ -29,20 +30,26 @@ export function Sidebar({ initial }: { initial: SidebarState }) {
           F
         </span>
         {!collapsed && (
-          <span className="truncate text-[15px] font-semibold tracking-[-0.01em]">Fyura</span>
+          <span className="truncate text-[15px] font-semibold tracking-[-0.01em]">
+            {t("app.short")}
+          </span>
         )}
       </div>
 
-      <nav aria-label="Sidebar navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+      <nav
+        aria-label={t("nav.sidebarLabel")}
+        className="flex-1 space-y-1 overflow-y-auto px-3 py-2"
+      >
         {NAV_ITEMS.map((item) => {
           const active = isActivePath(pathname, item.href);
           const Icon = item.icon;
+          const label = t(item.labelKey);
           return (
             <Link
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              title={collapsed ? item.labelKey : undefined}
+              title={collapsed ? label : undefined}
               className={`rounded-control flex h-10 items-center gap-3 px-3 text-sm transition-colors duration-200 ${
                 active
                   ? "bg-accent text-on-accent"
@@ -50,7 +57,7 @@ export function Sidebar({ initial }: { initial: SidebarState }) {
               } ${collapsed ? "justify-center" : ""}`}
             >
               <Icon aria-hidden className="size-4.5 shrink-0" strokeWidth={1.75} />
-              {!collapsed && <span className="truncate">{item.labelKey}</span>}
+              {!collapsed && <span className="truncate">{label}</span>}
             </Link>
           );
         })}
@@ -60,16 +67,17 @@ export function Sidebar({ initial }: { initial: SidebarState }) {
         <form action={signOutAction}>
           <button
             type="submit"
+            title={collapsed ? t("shell.signOut") : undefined}
             className="rounded-control text-muted hover:bg-surface-raised hover:text-text flex h-10 w-full items-center gap-3 px-3 text-sm transition-colors"
           >
             <LogOut aria-hidden className="size-4.5 shrink-0" strokeWidth={1.75} />
-            {!collapsed && <span>Sign out</span>}
+            {!collapsed && <span>{t("shell.signOut")}</span>}
           </button>
         </form>
         <button
           type="button"
           onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
           className="rounded-control text-muted hover:bg-surface-raised hover:text-text flex h-10 w-full items-center justify-center transition-colors"
         >
           {collapsed ? (
