@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "tsx scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "prepare": "husky",
     "test:db": "cross-env RUN_DB_TESTS=1 vitest run tests/db"
@@ -31,7 +31,7 @@
     "lucide-react": "^1.70.0",
     "next": "16.4.5",
     "next-auth": "5.0.0-beta.32",
-    "postgres": "^4.1.0",
+    "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",

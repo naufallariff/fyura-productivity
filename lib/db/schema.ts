@@ -12,6 +12,7 @@ import {
   check,
   date,
   primaryKey,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 
 /* ---------- Identity ---------- */
@@ -138,6 +139,7 @@ export const habits = pgTable(
   },
   (t) => [
     uniqueIndex("habits_user_key_uq").on(t.userId, t.key),
+    uniqueIndex("habits_id_user_uq").on(t.id, t.userId),
     check("habits_kind_chk", sql`${t.kind} in ('BINARY', 'QUANTITY')`),
     check(
       "habits_category_chk",
@@ -155,9 +157,7 @@ export const habitChecks = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    habitId: uuid("habit_id")
-      .notNull()
-      .references(() => habits.id, { onDelete: "cascade" }),
+    habitId: uuid("habit_id").notNull(),
     logDate: date("log_date", { mode: "string" }).notNull(),
     value: integer("value").notNull().default(0),
     source: text("source").notNull().default("MANUAL"), // 'MANUAL' | 'BLOCK'
@@ -167,6 +167,11 @@ export const habitChecks = pgTable(
     uniqueIndex("habit_checks_habit_day_uq").on(t.habitId, t.logDate),
     index("habit_checks_user_day_idx").on(t.userId, t.logDate),
     check("habit_checks_value_chk", sql`${t.value} >= 0`),
+    foreignKey({
+      name: "habit_checks_habit_owner_fk",
+      columns: [t.habitId, t.userId],
+      foreignColumns: [habits.id, habits.userId],
+    }).onDelete("cascade"),
   ],
 );
 
@@ -203,6 +208,11 @@ export const timeBlocks = pgTable(
       sql`${t.category} in ('WORSHIP', 'LEARNING', 'WORK', 'CAREER', 'FITNESS', 'REST', 'SOCIAL', 'LEISURE')`,
     ),
     check("time_blocks_source_chk", sql`${t.source} in ('MANUAL', 'TIMER', 'CHIP')`),
+    foreignKey({
+      name: "time_blocks_habit_owner_fk",
+      columns: [t.habitId, t.userId],
+      foreignColumns: [habits.id, habits.userId],
+    }),
   ],
 );
 
