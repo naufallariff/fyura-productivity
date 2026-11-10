@@ -32,5 +32,19 @@
   "streak.level.core": "Core",
   "private.locked.title": "Private space is locked",
   "private.locked.body": "Enter your PIN to open it.",
-  "private.session.remaining": "Session ends in {time}"
+  "private.session.remaining": "Session ends in {time}",
+  "nav.more": "More",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar",
+  "nav.primaryLabel": "Primary navigation",
+  "nav.sidebarLabel": "Sidebar navigation",
+  "shell.skipToContent": "Skip to content",
+  "shell.menu": "Open menu",
+  "shell.close": "Close",
+  "shell.signOut": "Sign out",
+  "shell.account": "Account",
+  "error.title": "Something went wrong",
+  "error.body": "This section could not be loaded. Your data is safe.",
+  "error.retry": "Try again",
+  "skeleton.loading": "Loading"
 }
