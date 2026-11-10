@@ -3,8 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "Fyura Productivity", template: "%s · Fyura Productivity" },
-  description: "Track daily routines, learning, and projects without judgment.",
-  robots: { index: false, follow: false }, // data pribadi, jangan diindeks
+  description: "Track the work that compounds.",
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
@@ -15,8 +15,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="antialiased">{children}</body>
+    <html lang="en" data-theme="ocean">
+      <body className="bg-bg text-text min-h-dvh font-sans antialiased">{children}</body>
     </html>
   );
 }
