@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { buildThemeCss } from "@/lib/theme/css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,8 +16,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="ocean">
-      <body className="bg-bg text-text min-h-dvh font-sans antialiased">{children}</body>
+    <html lang="en" data-style="flat" data-palette="navy" data-mode="dark">
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: buildThemeCss() }} />
+      </head>
+      <body className="bg-bg text-text min-h-dvh font-sans antialiased">
+        <span aria-hidden className="blob blob-a" />
+        <span aria-hidden className="blob blob-b" />
+        {children}
+      </body>
     </html>
   );
 }

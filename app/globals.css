@@ -9,7 +9,16 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
+  --color-glow-a: var(--glow-a);
+  --color-glow-b: var(--glow-b);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI",
     Roboto, sans-serif;
@@ -21,43 +30,110 @@
   --radius-control: 14px;
 }
 
-/* Ocean (default, light) */
+/* ---------- Surface variables (set per style) ---------- */
+
 :root,
-[data-theme="ocean"] {
-  color-scheme: light;
-  --bg: #f2f7fb;
-  --surface: #ffffff;
-  --surface-raised: #f6fafd;
-  --line: #dce6ef;
-  --text: #0b1e3f;
-  --muted: #5b6b82;
-  --accent: #1a8cc4;
-  --accent-strong: #16325c;
-  --danger: #b3265e;
+[data-style] {
+  --surface-alpha: 1;
+  --surface-blur: 0px;
+  --surface-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
+  --surface-bg-image: none;
 }
 
-/* Fyura Midnight (dark) */
-[data-theme="midnight"] {
-  color-scheme: dark;
-  --bg: #0d0e15;
-  --surface: #161925;
-  --surface-raised: #1d2131;
-  --line: #272c3e;
-  --text: #f8f9fa;
-  --muted: #9aa3b8;
-  --accent: #818cf8;
-  --accent-strong: #6366f1;
-  --danger: #f0609a;
+[data-style="glass"] {
+  --surface-alpha: 0.7;
+  --surface-blur: 20px;
+  --surface-shadow: 0 18px 40px -22px rgb(0 0 0 / 0.3);
+  --surface-bg-image: none;
 }
 
-/* Elevation: a hairline plus one soft shadow. No heavy drop shadows. */
-.elevated {
-  box-shadow:
-    0 1px 0 rgb(0 0 0 / 0.04),
-    0 18px 40px -22px rgb(0 0 0 / 0.28);
+[data-style="liquid"] {
+  --surface-alpha: 0.6;
+  --surface-blur: 24px;
+  --surface-shadow: 0 18px 40px -22px rgb(0 0 0 / 0.3);
+  --surface-bg-image: none;
 }
 
-/* PIN sheet: scale and fade in with a spring, and out with a short fade. */
+[data-style="soft"] {
+  --surface-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 10px 24px -12px rgb(0 0 0 / 0.22);
+}
+
+[data-style="mono"] {
+  --surface-shadow: none;
+}
+
+/* Gradient: hero areas only, using accent tones */
+[data-style="gradient"] {
+  --surface-bg-image: linear-gradient(135deg, var(--glow-a), var(--glow-b));
+}
+
+/* ---------- Page background per style ---------- */
+
+[data-style="glass"] body,
+[data-style="liquid"] body {
+  background-image:
+    radial-gradient(ellipse at 20% 0%, var(--glow-a) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 100%, var(--glow-b) 0%, transparent 50%);
+}
+
+/* ---------- Components ---------- */
+
+.surface {
+  background: color-mix(in oklab, var(--surface) calc(var(--surface-alpha) * 100%), transparent);
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(180%);
+  backdrop-filter: blur(var(--surface-blur)) saturate(180%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--surface-shadow);
+}
+
+.surface-raised {
+  background: var(--surface-raised);
+}
+
+/* Liquid blobs: transform-only motion, 25s cycle */
+.blob {
+  position: fixed;
+  z-index: -1;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.45;
+  pointer-events: none;
+  display: none;
+}
+
+[data-style="liquid"] .blob {
+  display: block;
+}
+
+.blob-a {
+  background: var(--glow-a);
+  top: -10rem;
+  left: -10rem;
+  animation: drift 25s ease-in-out infinite;
+}
+
+.blob-b {
+  background: var(--glow-b);
+  bottom: -12rem;
+  right: -10rem;
+  animation: drift 25s ease-in-out infinite reverse;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.06);
+  }
+}
+
+/* PIN sheet */
 .pin-sheet {
   opacity: 0;
   transform: translateY(16px) scale(0.97);
@@ -125,5 +201,9 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .blob {
+    animation: none !important;
   }
 }
