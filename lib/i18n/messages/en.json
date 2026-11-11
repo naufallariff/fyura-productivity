@@ -93,5 +93,16 @@
   "chip.english": "English",
   "chip.exercise": "Exercise",
   "chip.deepWork": "Deep work",
-  "chip.scrolling": "Scrolling"
+  "chip.scrolling": "Scrolling",
+  "habits.title": "Habits",
+  "habits.board.title": "Today's checklist",
+  "habits.board.hint": "Automated habits fill in from matching time blocks. A value you enter yourself always takes priority.",
+  "habits.automated": "Automated from blocks",
+  "habits.manualOnly": "Manual entry",
+  "habits.source.block": "From a time block",
+  "habits.source.manual": "Entered manually",
+  "habits.source.none": "Not recorded",
+  "habits.done": "Done",
+  "habits.open": "Mark done",
+  "habits.progress": "{value} of {target}"
 }

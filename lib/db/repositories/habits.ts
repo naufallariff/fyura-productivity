@@ -72,3 +72,20 @@ export async function upsertCheck(
       set: { value: row.value, source: row.source, updatedAt: new Date() },
     });
 }
+
+export async function deleteCheck(
+  tx: Tx,
+  userId: string,
+  habitId: string,
+  logDate: string,
+): Promise<void> {
+  await tx
+    .delete(habitChecks)
+    .where(
+      and(
+        eq(habitChecks.userId, userId),
+        eq(habitChecks.habitId, habitId),
+        eq(habitChecks.logDate, logDate),
+      ),
+    );
+}

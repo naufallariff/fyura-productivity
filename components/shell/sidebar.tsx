@@ -67,6 +67,7 @@ export function Sidebar({ initial }: { initial: SidebarState }) {
         <form action={signOutAction}>
           <button
             type="submit"
+            suppressHydrationWarning
             title={collapsed ? t("shell.signOut") : undefined}
             className="rounded-control text-muted hover:bg-surface-raised hover:text-text flex h-10 w-full items-center gap-3 px-3 text-sm transition-colors"
           >
@@ -77,6 +78,7 @@ export function Sidebar({ initial }: { initial: SidebarState }) {
         <button
           type="button"
           onClick={toggle}
+          suppressHydrationWarning
           aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
           className="rounded-control text-muted hover:bg-surface-raised hover:text-text flex h-10 w-full items-center justify-center transition-colors"
         >

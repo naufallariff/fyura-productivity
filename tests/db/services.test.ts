@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { RUN_DB_TESTS, createTestSql, createTestUser, deleteTestUser } from "./helpers";
 import postgres from "postgres";
+import { RUN_DB_TESTS, createTestSql, createTestUser, deleteTestUser } from "./helpers";
 
 describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
   let sql: postgres.Sql;
@@ -10,6 +10,8 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
   beforeAll(async () => {
     sql = createTestSql();
     userId = await createTestUser(sql, "block");
+    const svc = await import("@/lib/services/daily");
+    await svc.ensureDefaultHabits(userId);
     ({ createTimeBlock } = await import("@/lib/services/daily"));
   });
 
@@ -17,6 +19,25 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
     if (userId) await deleteTestUser(sql, userId);
     await sql.end();
   });
+
+  const habitIdOf = (uid: string, key: string) =>
+    sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${uid}, true)`;
+      const [row] = await tx<{ id: string }[]>`
+      select id from habits where user_id = ${uid} and key = ${key}`;
+      return row?.id ?? "";
+    });
+
+  const checkOf = (uid: string, date: string, key: string) =>
+    sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${uid}, true)`;
+      const [row] = await tx<{ value: number; source: string }[]>`
+      select hc.value, hc.source
+      from habit_checks hc
+      join habits h on h.id = hc.habit_id
+      where hc.user_id = ${uid} and h.key = ${key} and hc.log_date = ${date}`;
+      return row ?? null;
+    });
 
   // Read rows as the owner of the test user, inside a transaction with app.user_id set.
   const rowsFor = (uid: string) =>
@@ -154,5 +175,58 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
     await expect(
       moveTimeBlock(userId, { blockId: first, startMinute: 700, endMinute: 760 }),
     ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("derives the quran habit from a worship block", async () => {
+    const svc = await import("@/lib/services/daily");
+    await svc.createTimeBlock(userId, {
+      logDate: "2026-10-20",
+      startMinute: 360,
+      durationMinutes: 15,
+      category: "WORSHIP",
+      activity: "Quran",
+      source: "MANUAL",
+    });
+    expect(await checkOf(userId, "2026-10-20", "quran")).toMatchObject({
+      value: 15,
+      source: "BLOCK",
+    });
+  });
+
+  it("keeps a manual entry when a matching block is added later", async () => {
+    const svc = await import("@/lib/services/daily");
+    await svc.setHabitCheck(userId, {
+      habitId: await habitIdOf(userId, "quran"),
+      logDate: "2026-10-21",
+      value: 0,
+    });
+    await svc.createTimeBlock(userId, {
+      logDate: "2026-10-21",
+      startMinute: 360,
+      durationMinutes: 15,
+      category: "WORSHIP",
+      activity: "Quran",
+      source: "MANUAL",
+    });
+    expect(await checkOf(userId, "2026-10-21", "quran")).toMatchObject({
+      value: 0,
+      source: "MANUAL",
+    });
+  });
+
+  it("clears the derived value when its block is deleted", async () => {
+    const svc = await import("@/lib/services/daily");
+    const blockId = await svc.createTimeBlock(userId, {
+      logDate: "2026-10-22",
+      startMinute: 360,
+      durationMinutes: 15,
+      category: "WORSHIP",
+      activity: "Quran",
+      source: "MANUAL",
+    });
+    expect(await checkOf(userId, "2026-10-22", "quran")).not.toBeNull();
+
+    await svc.deleteTimeBlock(userId, blockId);
+    expect(await checkOf(userId, "2026-10-22", "quran")).toBeNull();
   });
 });

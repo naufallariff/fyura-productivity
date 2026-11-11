@@ -75,6 +75,7 @@ export function ThemePicker({ current }: { current: ThemeSelection }) {
         <button
           type="submit"
           disabled={pending}
+          suppressHydrationWarning
           className="rounded-control bg-accent text-on-accent ease-spring px-5 py-3 text-sm font-medium transition-transform duration-200 active:scale-[0.97] disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save theme"}

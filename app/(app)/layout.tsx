@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { requireUser } from "@/lib/auth/session";
 import { parseSidebarState, SIDEBAR_COOKIE } from "@/lib/shell/sidebar-cookie";
 import { Sidebar } from "@/components/shell/sidebar";
@@ -7,7 +8,11 @@ import { MobileNav } from "@/components/shell/mobile-nav";
 import { PageSkeleton } from "@/components/shell/skeleton";
 
 async function ShellFrame({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
+  // Mark this subtree as request-time before any call that may touch
+  // unstable values (crypto, auth). Without this, prerendering fails.
+  await connection();
+  await requireUser();
+
   const jar = await cookies();
   const sidebar = parseSidebarState(jar.get(SIDEBAR_COOKIE)?.value);
 
@@ -26,7 +31,6 @@ async function ShellFrame({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <MobileNav />
-      <span hidden>{user.email}</span>
     </div>
   );
 }
