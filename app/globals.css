@@ -205,13 +205,39 @@ main > * {
 }
 
 .ambient {
+  position: relative;
   background-color: var(--bg);
-  background-image:
-    radial-gradient(60rem 40rem at 0% 0%, rgb(99 102 241 / 0.22), transparent 60%),
-    radial-gradient(50rem 36rem at 100% 0%, rgb(20 184 166 / 0.2), transparent 60%),
-    radial-gradient(50rem 40rem at 100% 100%, rgb(244 114 182 / 0.18), transparent 60%),
-    radial-gradient(44rem 34rem at 0% 100%, rgb(245 158 11 / 0.14), transparent 60%);
-  background-attachment: fixed;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.ambient::before,
+.ambient::after {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40rem 30rem at 15% 10%, rgb(139 92 246 / 0.22), transparent 60%),
+    radial-gradient(36rem 30rem at 85% 15%, rgb(14 165 233 / 0.2), transparent 60%),
+    radial-gradient(40rem 34rem at 80% 90%, rgb(244 63 94 / 0.16), transparent 60%),
+    radial-gradient(34rem 28rem at 10% 85%, rgb(16 185 129 / 0.16), transparent 60%);
+}
+
+.ambient::after {
+  opacity: 0.6;
+  background: radial-gradient(30rem 24rem at 50% 50%, rgb(245 158 11 / 0.12), transparent 65%);
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(-2%, 1.5%, 0) scale(1.03);
+  }
 }
 
 @keyframes fire-flicker {
@@ -228,6 +254,10 @@ main > * {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .ambient::before {
+    animation: ambient-drift 28s ease-in-out infinite alternate;
+  }
+
   .fire-flicker {
     animation: fire-flicker 1.6s ease-in-out infinite;
     transform-origin: 50% 100%;
