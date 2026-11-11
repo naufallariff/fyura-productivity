@@ -10,6 +10,7 @@ export async function logFocusAction(input: {
   plannedMinutes: 25 | 50 | 90;
   startedAt: string;
   endedAt: string;
+  startMinute: number;
 }): Promise<void> {
   const user = await requireUser();
   await logFocusSession(user.id, input);

@@ -4,6 +4,7 @@ import {
   elapsedMinutes,
   formatCountdown,
   remainingMs,
+  minuteOfDayIn,
 } from "@/lib/focus/session";
 
 describe("remainingMs", () => {
@@ -32,5 +33,14 @@ describe("formatCountdown", () => {
     expect(formatCountdown(1500_000)).toBe("25:00");
     expect(formatCountdown(999)).toBe("00:01");
     expect(formatCountdown(0)).toBe("00:00");
+  });
+});
+
+describe("minuteOfDayIn", () => {
+  it("reads the wall-clock minute in the target timezone", () => {
+    // 03:00 UTC is 10:00 in Jakarta (UTC+7).
+    const instant = new Date("2026-10-25T03:00:00Z");
+    expect(minuteOfDayIn(instant, "Asia/Jakarta")).toBe(600);
+    expect(minuteOfDayIn(instant, "UTC")).toBe(180);
   });
 });

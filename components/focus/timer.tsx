@@ -8,6 +8,7 @@ import {
   remainingMs,
   type FocusDuration,
   type FocusKind,
+  minuteOfDayIn,
 } from "@/lib/focus/session";
 import { t } from "@/lib/i18n";
 
@@ -20,7 +21,7 @@ interface Run {
   endsAt: number;
 }
 
-export function FocusTimer({ logDate }: { logDate: string }) {
+export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: string }) {
   const [duration, setDuration] = useState<FocusDuration>(25);
   const [kind, setKind] = useState<FocusKind>("DEEP");
   const [phase, setPhase] = useState<Phase>("idle");
@@ -33,6 +34,8 @@ export function FocusTimer({ logDate }: { logDate: string }) {
   const persist = (current: Run, endedAt: number) => {
     setPhase("saving");
     setSaveError(null);
+    const startMinute = minuteOfDayIn(new Date(current.startedAt), timeZone);
+
     startSaving(() => {
       logFocusAction({
         logDate,
@@ -40,6 +43,7 @@ export function FocusTimer({ logDate }: { logDate: string }) {
         plannedMinutes: current.plannedMinutes,
         startedAt: new Date(current.startedAt).toISOString(),
         endedAt: new Date(endedAt).toISOString(),
+        startMinute,
       })
         .then(() => {
           setPhase("idle");
@@ -53,7 +57,6 @@ export function FocusTimer({ logDate }: { logDate: string }) {
     });
   };
 
-  // One animation loop, active only while running. Ends the session when time is up.
   useEffect(() => {
     if (phase !== "running") return;
 
@@ -74,11 +77,9 @@ export function FocusTimer({ logDate }: { logDate: string }) {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-    // persist is recreated each render but only reads its arguments and stable setters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  // Dim the page while focusing. Cleared on every exit path, including unmount.
   useEffect(() => {
     if (phase !== "running") return;
     document.body.dataset.focus = "on";
@@ -87,7 +88,6 @@ export function FocusTimer({ logDate }: { logDate: string }) {
     };
   }, [phase]);
 
-  // Clean up any running session if the user leaves the page.
   useEffect(() => {
     return () => {
       run.current = null;

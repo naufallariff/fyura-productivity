@@ -30,7 +30,7 @@ async function FocusContent() {
           data-focus-keep
           className="elevated rounded-card border-line bg-surface/85 border p-8 backdrop-blur-xl"
         >
-          <FocusTimer logDate={today} />
+          <FocusTimer logDate={today} timeZone={env.DEFAULT_TIMEZONE} />
         </section>
 
         <section className="elevated rounded-card border-line bg-surface/85 border p-6 backdrop-blur-xl">

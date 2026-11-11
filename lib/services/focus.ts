@@ -14,6 +14,7 @@ const LogFocusInput = z
     plannedMinutes: z.union([z.literal(25), z.literal(50), z.literal(90)]),
     startedAt: z.iso.datetime(),
     endedAt: z.iso.datetime(),
+    startMinute: z.number().int().min(0).max(1439),
   })
   .strict();
 
@@ -43,7 +44,7 @@ export async function logFocusSession(userId: string, input: unknown): Promise<v
     });
 
     if (countsAsDeepWork(parsed.kind, completed)) {
-      const startMinute = minuteOfDay(startedAt);
+      const startMinute = parsed.startMinute;
       await insertBlocks(tx, [
         {
           userId,
@@ -70,8 +71,4 @@ function parseLog(input: unknown) {
   } catch {
     throw new DomainError("VALIDATION_FAILED", "Input is invalid");
   }
-}
-
-function minuteOfDay(date: Date): number {
-  return date.getUTCHours() * 60 + date.getUTCMinutes();
 }

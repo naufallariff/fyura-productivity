@@ -239,6 +239,7 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
       plannedMinutes: 25,
       startedAt: start.toISOString(),
       endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+      startMinute: 600, // <--- Tambahkan ini (misal 600 untuk 10:00)
     });
 
     const rows = await sql.begin(async (tx) => {
@@ -259,6 +260,7 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
       plannedMinutes: 50,
       startedAt: start.toISOString(),
       endedAt: new Date(start.getTime() + 10 * 60_000).toISOString(),
+      startMinute: 180,
     });
 
     const rows = await sql.begin(async (tx) => {
