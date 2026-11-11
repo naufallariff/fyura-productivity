@@ -204,6 +204,16 @@
   background-attachment: fixed;
 }
 
+/* Dim-to-focus: everything except the focus card fades back while a session runs. */
+body[data-focus="on"] main > *:not([data-focus-keep]) {
+  opacity: 0.22;
+  transition: opacity 400ms ease;
+}
+
+main > * {
+  transition: opacity 400ms ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

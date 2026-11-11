@@ -50,6 +50,20 @@
       "when": 1794307838655,
       "tag": "0006_composite_owner_fk",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794367239327,
+      "tag": "0007_new_roughhouse",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794367248832,
+      "tag": "0008_rls_focus_sessions",
+      "breakpoints": true
     }
   ]
 }

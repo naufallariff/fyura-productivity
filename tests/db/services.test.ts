@@ -229,4 +229,43 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
     await svc.deleteTimeBlock(userId, blockId);
     expect(await checkOf(userId, "2026-10-22", "quran")).toBeNull();
   });
+
+  it("a completed deep session creates a deep work block and counts toward habits", async () => {
+    const { logFocusSession } = await import("@/lib/services/focus");
+    const start = new Date("2026-10-25T01:00:00Z");
+    await logFocusSession(userId, {
+      logDate: "2026-10-25",
+      kind: "DEEP",
+      plannedMinutes: 25,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+    });
+
+    const rows = await sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${userId}, true)`;
+      return tx`select activity, source from time_blocks
+        where user_id = ${userId} and log_date = '2026-10-25' and deleted_at is null`;
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ activity: "Deep work", source: "TIMER" });
+  });
+
+  it("a stopped deep session is recorded but creates no block", async () => {
+    const { logFocusSession } = await import("@/lib/services/focus");
+    const start = new Date("2026-10-26T01:00:00Z");
+    await logFocusSession(userId, {
+      logDate: "2026-10-26",
+      kind: "DEEP",
+      plannedMinutes: 50,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 10 * 60_000).toISOString(),
+    });
+
+    const rows = await sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${userId}, true)`;
+      return tx`select id from time_blocks
+        where user_id = ${userId} and log_date = '2026-10-26' and deleted_at is null`;
+    });
+    expect(rows).toHaveLength(0);
+  });
 });

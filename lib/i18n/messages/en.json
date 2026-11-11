@@ -125,5 +125,18 @@
   "dashboard.missed.label": "Most often missed",
   "dashboard.missed.none": "No misses in the last 7 days.",
   "dashboard.missed.count.one": "missed {count} time",
-  "dashboard.missed.count.other": "missed {count} times"
+  "dashboard.missed.count.other": "missed {count} times",
+  "focus.title": "Focus",
+  "focus.duration": "Duration",
+  "focus.kind": "Session type",
+  "focus.kind.deep": "Deep work",
+  "focus.kind.light": "Light",
+  "focus.minutes": "{minutes} min",
+  "focus.start": "Start session",
+  "focus.stop": "End early",
+  "focus.recent.title": "Recent sessions",
+  "focus.recent.empty": "No sessions yet. Start one when you are ready.",
+  "focus.recent.completed": "Completed",
+  "focus.recent.stopped": "Ended early",
+  "focus.error.save": "The session could not be saved. Check your connection and try again."
 }
