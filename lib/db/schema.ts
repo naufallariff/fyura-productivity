@@ -216,5 +216,56 @@ export const timeBlocks = pgTable(
   ],
 );
 
+/* ---------- Focus sessions ---------- */
+
+export const focusSessions = pgTable(
+  "focus_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    logDate: date("log_date", { mode: "string" }).notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    plannedMinutes: integer("planned_minutes").notNull(),
+    actualMinutes: integer("actual_minutes").notNull(),
+    kind: text("kind").notNull(), // 'DEEP' | 'LIGHT'
+    completed: boolean("completed").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("focus_sessions_user_day_idx").on(t.userId, t.logDate),
+    check("focus_sessions_kind_chk", sql`${t.kind} in ('DEEP', 'LIGHT')`),
+    check(
+      "focus_sessions_minutes_chk",
+      sql`${t.plannedMinutes} between 1 and 240 and ${t.actualMinutes} >= 0 and ${t.actualMinutes} <= ${t.plannedMinutes}`,
+    ),
+  ],
+);
+
+/* ---------- Journal ---------- */
+
+export const journalEntries = pgTable(
+  "journal_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    logDate: date("log_date", { mode: "string" }).notNull(),
+    kind: text("kind").notNull(), // 'DAILY' | 'LEARNING' | 'ENGLISH' | 'COURSE' | 'FREE'
+    title: text("title"),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("journal_user_day_kind_idx").on(t.userId, t.logDate, t.kind),
+    check("journal_kind_chk", sql`${t.kind} in ('DAILY', 'LEARNING', 'ENGLISH', 'COURSE', 'FREE')`),
+    check("journal_body_chk", sql`char_length(${t.body}) between 1 and 20000`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

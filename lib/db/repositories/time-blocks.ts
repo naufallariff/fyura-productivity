@@ -30,11 +30,12 @@ export async function insertBlocks(tx: Tx, rows: NewTimeBlockRow[]): Promise<Tim
 }
 
 /** Soft-deletes a block and, when it is part of a midnight split, its sibling segments. */
+/** Soft-deletes a block and its midnight sibling. Returns the affected logical dates. */
 export async function softDeleteBlockGroup(
   tx: Tx,
   userId: string,
   blockId: string,
-): Promise<number> {
+): Promise<string[]> {
   const [target] = await tx
     .select({ splitGroupId: timeBlocks.splitGroupId })
     .from(timeBlocks)
@@ -42,18 +43,19 @@ export async function softDeleteBlockGroup(
       and(eq(timeBlocks.userId, userId), eq(timeBlocks.id, blockId), isNull(timeBlocks.deletedAt)),
     )
     .limit(1);
-  if (!target) return 0;
+  if (!target) return [];
 
   const scope = target.splitGroupId
     ? eq(timeBlocks.splitGroupId, target.splitGroupId)
     : eq(timeBlocks.id, blockId);
 
-  const updated = await tx
+  const rows = await tx
     .update(timeBlocks)
     .set({ deletedAt: new Date(), updatedAt: new Date() })
     .where(and(eq(timeBlocks.userId, userId), scope, isNull(timeBlocks.deletedAt)))
-    .returning({ id: timeBlocks.id });
-  return updated.length;
+    .returning({ logDate: timeBlocks.logDate });
+
+  return [...new Set(rows.map((row) => row.logDate))];
 }
 
 export async function findBlockById(

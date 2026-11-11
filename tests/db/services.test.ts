@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { RUN_DB_TESTS, createTestSql, createTestUser, deleteTestUser } from "./helpers";
 import postgres from "postgres";
+import { RUN_DB_TESTS, createTestSql, createTestUser, deleteTestUser } from "./helpers";
 
 describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
   let sql: postgres.Sql;
@@ -10,6 +10,8 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
   beforeAll(async () => {
     sql = createTestSql();
     userId = await createTestUser(sql, "block");
+    const svc = await import("@/lib/services/daily");
+    await svc.ensureDefaultHabits(userId);
     ({ createTimeBlock } = await import("@/lib/services/daily"));
   });
 
@@ -17,6 +19,25 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
     if (userId) await deleteTestUser(sql, userId);
     await sql.end();
   });
+
+  const habitIdOf = (uid: string, key: string) =>
+    sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${uid}, true)`;
+      const [row] = await tx<{ id: string }[]>`
+      select id from habits where user_id = ${uid} and key = ${key}`;
+      return row?.id ?? "";
+    });
+
+  const checkOf = (uid: string, date: string, key: string) =>
+    sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${uid}, true)`;
+      const [row] = await tx<{ value: number; source: string }[]>`
+      select hc.value, hc.source
+      from habit_checks hc
+      join habits h on h.id = hc.habit_id
+      where hc.user_id = ${uid} and h.key = ${key} and hc.log_date = ${date}`;
+      return row ?? null;
+    });
 
   // Read rows as the owner of the test user, inside a transaction with app.user_id set.
   const rowsFor = (uid: string) =>
@@ -154,5 +175,153 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
     await expect(
       moveTimeBlock(userId, { blockId: first, startMinute: 700, endMinute: 760 }),
     ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("derives the quran habit from a worship block", async () => {
+    const svc = await import("@/lib/services/daily");
+    await svc.createTimeBlock(userId, {
+      logDate: "2026-10-20",
+      startMinute: 360,
+      durationMinutes: 15,
+      category: "WORSHIP",
+      activity: "Quran",
+      source: "MANUAL",
+    });
+    expect(await checkOf(userId, "2026-10-20", "quran")).toMatchObject({
+      value: 15,
+      source: "BLOCK",
+    });
+  });
+
+  it("keeps a manual entry when a matching block is added later", async () => {
+    const svc = await import("@/lib/services/daily");
+    await svc.setHabitCheck(userId, {
+      habitId: await habitIdOf(userId, "quran"),
+      logDate: "2026-10-21",
+      value: 0,
+    });
+    await svc.createTimeBlock(userId, {
+      logDate: "2026-10-21",
+      startMinute: 360,
+      durationMinutes: 15,
+      category: "WORSHIP",
+      activity: "Quran",
+      source: "MANUAL",
+    });
+    expect(await checkOf(userId, "2026-10-21", "quran")).toMatchObject({
+      value: 0,
+      source: "MANUAL",
+    });
+  });
+
+  it("clears the derived value when its block is deleted", async () => {
+    const svc = await import("@/lib/services/daily");
+    const blockId = await svc.createTimeBlock(userId, {
+      logDate: "2026-10-22",
+      startMinute: 360,
+      durationMinutes: 15,
+      category: "WORSHIP",
+      activity: "Quran",
+      source: "MANUAL",
+    });
+    expect(await checkOf(userId, "2026-10-22", "quran")).not.toBeNull();
+
+    await svc.deleteTimeBlock(userId, blockId);
+    expect(await checkOf(userId, "2026-10-22", "quran")).toBeNull();
+  });
+
+  it("a completed deep session creates a deep work block and counts toward habits", async () => {
+    const { logFocusSession } = await import("@/lib/services/focus");
+    const start = new Date("2026-10-25T01:00:00Z");
+    await logFocusSession(userId, {
+      logDate: "2026-10-25",
+      kind: "DEEP",
+      plannedMinutes: 25,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+      startMinute: 600, // <--- Tambahkan ini (misal 600 untuk 10:00)
+    });
+
+    const rows = await sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${userId}, true)`;
+      return tx`select activity, source from time_blocks
+        where user_id = ${userId} and log_date = '2026-10-25' and deleted_at is null`;
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ activity: "Deep work", source: "TIMER" });
+  });
+
+  it("a stopped deep session is recorded but creates no block", async () => {
+    const { logFocusSession } = await import("@/lib/services/focus");
+    const start = new Date("2026-10-26T01:00:00Z");
+    await logFocusSession(userId, {
+      logDate: "2026-10-26",
+      kind: "DEEP",
+      plannedMinutes: 50,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 10 * 60_000).toISOString(),
+      startMinute: 180,
+    });
+
+    const rows = await sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${userId}, true)`;
+      return tx`select id from time_blocks
+        where user_id = ${userId} and log_date = '2026-10-26' and deleted_at is null`;
+    });
+    expect(rows).toHaveLength(0);
+  });
+
+  it("counts a learning day only when a learning block and a learning entry both exist", async () => {
+    const { getLearningStreak, createJournalEntry } = await import("@/lib/services/journal");
+    await createTimeBlock(userId, {
+      logDate: "2026-10-27",
+      startMinute: 540,
+      durationMinutes: 45,
+      category: "LEARNING",
+      activity: "Reading",
+      source: "MANUAL",
+    });
+
+    const before = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(before.todayComplete).toBe(false);
+
+    await createJournalEntry(userId, {
+      logDate: "2026-10-27",
+      kind: "LEARNING",
+      title: "",
+      body: "Chapter 3 summary",
+    });
+
+    const after = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(after.todayComplete).toBe(true);
+    expect(after.current).toBe(1);
+  });
+
+  it("flags a learning entry written days after its date as late", async () => {
+    const { getLearningStreak } = await import("@/lib/services/journal");
+    // The entry above was written today, which is more than one day after 2026-10-27.
+    const streak = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(streak.lateDays).toBe(1);
+  });
+
+  it("keeps journal entries invisible to other users", async () => {
+    const { createJournalEntry } = await import("@/lib/services/journal");
+    await createJournalEntry(userId, {
+      logDate: "2026-10-28",
+      kind: "DAILY",
+      title: "",
+      body: "Private line",
+    });
+
+    const otherId = await createTestUser(sql, "journal-other");
+    try {
+      const rows = await sql.begin(async (tx) => {
+        await tx`select set_config('app.user_id', ${otherId}, true)`;
+        return tx`select id from journal_entries`;
+      });
+      expect(rows).toHaveLength(0);
+    } finally {
+      await deleteTestUser(sql, otherId);
+    }
   });
 });

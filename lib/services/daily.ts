@@ -34,6 +34,10 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { habitChecks } from "@/lib/db/schema";
+import type { Tx } from "@/lib/db/tx";
+import { HABIT_RULES, deriveValue, type BlockFact } from "@/lib/habits/mapping";
+import { toCategory } from "@/lib/habits/categories";
+import { deleteCheck } from "@/lib/db/repositories/habits";
 
 const habitIdSchema = z.uuid();
 
@@ -166,6 +170,10 @@ export async function createTimeBlock(userId: string, input: unknown): Promise<s
       })),
     );
 
+    for (const date of new Set(segments.map((segment) => segment.logDate))) {
+      await syncBlockHabits(tx, userId, date);
+    }
+
     return rows[0]?.id ?? "";
   });
 }
@@ -194,17 +202,95 @@ export async function moveTimeBlock(userId: string, input: unknown): Promise<voi
     if (clash) throw new DomainError("CONFLICT", "Time block overlaps an existing block");
 
     await updateBlockTiming(tx, userId, block.id, parsed.startMinute, parsed.endMinute);
+    await syncBlockHabits(tx, userId, block.logDate);
   });
 }
 
 export async function deleteTimeBlock(userId: string, blockId: string): Promise<void> {
   const id = parse(habitIdSchema, blockId);
   await withUser(userId, async (tx) => {
-    const removed = await softDeleteBlockGroup(tx, userId, id);
-    if (removed === 0) throw new DomainError("NOT_FOUND", "Time block not found");
+    const dates = await softDeleteBlockGroup(tx, userId, id);
+    if (dates.length === 0) throw new DomainError("NOT_FOUND", "Time block not found");
+    for (const date of dates) {
+      await syncBlockHabits(tx, userId, date);
+    }
   });
 }
+
+/**
+ * Recomputes block-derived habit values for one logical day.
+ * MANUAL rows are never touched, so an explicit user entry always wins.
+ * Runs inside the caller's transaction so blocks and checks change together.
+ */
+export async function syncBlockHabits(tx: Tx, userId: string, logDate: string): Promise<void> {
+  const [blocks, habits, checks] = await Promise.all([
+    listBlocksForDate(tx, userId, logDate),
+    listActiveHabits(tx, userId),
+    listChecksForDate(tx, userId, logDate),
+  ]);
+
+  const facts: BlockFact[] = blocks.map((block) => ({
+    category: toCategory(block.category),
+    activity: block.activity,
+    minutes: block.endMinute - block.startMinute,
+  }));
+  const checkByHabit = new Map(checks.map((check) => [check.habitId, check]));
+
+  for (const rule of HABIT_RULES) {
+    const habit = habits.find((h) => h.key === rule.habitKey);
+    if (!habit) continue;
+
+    const existing = checkByHabit.get(habit.id);
+    if (existing?.source === "MANUAL") continue;
+
+    const value = deriveValue(rule, facts);
+    if (value === 0) {
+      if (existing) await deleteCheck(tx, userId, habit.id, logDate);
+      continue;
+    }
+    if (existing && existing.value === value) continue;
+
+    await upsertCheck(tx, { userId, habitId: habit.id, logDate, value, source: "BLOCK" });
+  }
+}
+
 /* ---------- Reads ---------- */
+
+export interface HabitBoardRow {
+  id: string;
+  key: string;
+  name: string;
+  kind: "BINARY" | "QUANTITY";
+  target: number;
+  value: number;
+  source: "MANUAL" | "BLOCK" | null;
+  automated: boolean;
+}
+
+/** Habit checklist for one logical day, with the source of each value. */
+export async function getHabitBoard(userId: string, logDate: string): Promise<HabitBoardRow[]> {
+  return withUser(userId, async (tx) => {
+    const [habits, checks] = await Promise.all([
+      listActiveHabits(tx, userId),
+      listChecksForDate(tx, userId, logDate),
+    ]);
+    const byHabit = new Map(checks.map((check) => [check.habitId, check]));
+
+    return habits.map((habit) => {
+      const check = byHabit.get(habit.id);
+      return {
+        id: habit.id,
+        key: habit.key,
+        name: habit.name,
+        kind: habit.kind as HabitBoardRow["kind"],
+        target: habit.target,
+        value: check?.value ?? 0,
+        source: (check?.source as HabitBoardRow["source"]) ?? null,
+        automated: HABIT_RULES.some((rule) => rule.habitKey === habit.key),
+      };
+    });
+  });
+}
 
 /** Everything the Today page needs for one logical day, in one transaction. */
 export async function getDayView(userId: string, logDate: string) {
@@ -252,6 +338,7 @@ export async function getScoringInput(
 
     const habits: HabitDefinition[] = habitRows.map((h) => ({
       id: h.id,
+      name: h.name,
       category: h.category as HabitDefinition["category"],
       kind: h.kind as HabitDefinition["kind"],
       target: h.target,
@@ -277,6 +364,11 @@ export async function getScoringInput(
     }
     return { habits, days };
   });
+}
+
+/** 30 days ending on `today`. Enough for the trend and the previous-week comparison. */
+export async function getDashboardInput(userId: string, today: string) {
+  return getScoringInput(userId, addDays(today, -29), today);
 }
 
 /* ---------- Helpers ---------- */

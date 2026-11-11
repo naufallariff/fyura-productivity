@@ -76,6 +76,16 @@
     radial-gradient(ellipse at 90% 100%, var(--glow-b) 0%, transparent 50%);
 }
 
+/* Dim-to-focus: everything except the focus card fades back while a session runs. */
+body[data-focus="on"] main > *:not([data-focus-keep]) {
+  opacity: 0.22;
+  transition: opacity 400ms ease;
+}
+
+main > * {
+  transition: opacity 400ms ease;
+}
+
 /* ---------- Components ---------- */
 
 .surface {
@@ -202,6 +212,26 @@
     radial-gradient(50rem 40rem at 100% 100%, rgb(244 114 182 / 0.18), transparent 60%),
     radial-gradient(44rem 34rem at 0% 100%, rgb(245 158 11 / 0.14), transparent 60%);
   background-attachment: fixed;
+}
+
+@keyframes fire-flicker {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.04) translateY(-1px);
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fire-flicker {
+    animation: fire-flicker 1.6s ease-in-out infinite;
+    transform-origin: 50% 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
