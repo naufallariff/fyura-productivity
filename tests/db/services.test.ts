@@ -270,4 +270,58 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
     });
     expect(rows).toHaveLength(0);
   });
+
+  it("counts a learning day only when a learning block and a learning entry both exist", async () => {
+    const { getLearningStreak, createJournalEntry } = await import("@/lib/services/journal");
+    await createTimeBlock(userId, {
+      logDate: "2026-10-27",
+      startMinute: 540,
+      durationMinutes: 45,
+      category: "LEARNING",
+      activity: "Reading",
+      source: "MANUAL",
+    });
+
+    const before = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(before.todayComplete).toBe(false);
+
+    await createJournalEntry(userId, {
+      logDate: "2026-10-27",
+      kind: "LEARNING",
+      title: "",
+      body: "Chapter 3 summary",
+    });
+
+    const after = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(after.todayComplete).toBe(true);
+    expect(after.current).toBe(1);
+  });
+
+  it("flags a learning entry written days after its date as late", async () => {
+    const { getLearningStreak } = await import("@/lib/services/journal");
+    // The entry above was written today, which is more than one day after 2026-10-27.
+    const streak = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(streak.lateDays).toBe(1);
+  });
+
+  it("keeps journal entries invisible to other users", async () => {
+    const { createJournalEntry } = await import("@/lib/services/journal");
+    await createJournalEntry(userId, {
+      logDate: "2026-10-28",
+      kind: "DAILY",
+      title: "",
+      body: "Private line",
+    });
+
+    const otherId = await createTestUser(sql, "journal-other");
+    try {
+      const rows = await sql.begin(async (tx) => {
+        await tx`select set_config('app.user_id', ${otherId}, true)`;
+        return tx`select id from journal_entries`;
+      });
+      expect(rows).toHaveLength(0);
+    } finally {
+      await deleteTestUser(sql, otherId);
+    }
+  });
 });

@@ -9,6 +9,8 @@ import { formatPercent, formatPoints } from "@/lib/i18n/format";
 import { buildDashboard } from "@/lib/scoring/dashboard";
 import { getDashboardInput } from "@/lib/services/daily";
 import { localIsoDate } from "@/lib/time/local-date";
+import { Fire } from "@/components/streak/fire";
+import { getLearningStreak } from "@/lib/services/journal";
 
 export default function DashboardPage() {
   return (
@@ -24,6 +26,7 @@ async function DashboardContent() {
   const today = localIsoDate(new Date(), env.DEFAULT_TIMEZONE);
 
   const { habits, days } = await getDashboardInput(user.id, today);
+  const streak = await getLearningStreak(user.id, today, env.DEFAULT_TIMEZONE);
   const m = buildDashboard(habits as never, days, today);
 
   const weekPercent = m.week.ratio === null ? "—" : formatPercent(m.week.ratio);
@@ -114,6 +117,15 @@ async function DashboardContent() {
               ))}
             </ul>
           )}
+        </Card>
+
+        <Card title={t("dashboard.learning.label")}>
+          <Fire level={streak.level} streak={streak.current} />
+          <p className="text-muted mt-4 text-sm">
+            {streak.todayComplete
+              ? t("journal.streak.today.done")
+              : t("journal.streak.today.pending")}
+          </p>
         </Card>
       </div>
     </PageShell>

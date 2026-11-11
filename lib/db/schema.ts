@@ -243,5 +243,29 @@ export const focusSessions = pgTable(
   ],
 );
 
+/* ---------- Journal ---------- */
+
+export const journalEntries = pgTable(
+  "journal_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    logDate: date("log_date", { mode: "string" }).notNull(),
+    kind: text("kind").notNull(), // 'DAILY' | 'LEARNING' | 'ENGLISH' | 'COURSE' | 'FREE'
+    title: text("title"),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("journal_user_day_kind_idx").on(t.userId, t.logDate, t.kind),
+    check("journal_kind_chk", sql`${t.kind} in ('DAILY', 'LEARNING', 'ENGLISH', 'COURSE', 'FREE')`),
+    check("journal_body_chk", sql`char_length(${t.body}) between 1 and 20000`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
