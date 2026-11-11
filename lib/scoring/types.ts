@@ -38,3 +38,13 @@ export interface DayScore {
   /** completed / planned. Null when nothing is planned, so the day is excluded from averages. */
   ratio: number | null;
 }
+
+export interface HabitDefinition {
+  id: string;
+  name?: string;
+  category: Category;
+  kind: HabitKind;
+  target: number;
+  active: boolean;
+  offDayCore: boolean;
+}

@@ -338,6 +338,7 @@ export async function getScoringInput(
 
     const habits: HabitDefinition[] = habitRows.map((h) => ({
       id: h.id,
+      name: h.name,
       category: h.category as HabitDefinition["category"],
       kind: h.kind as HabitDefinition["kind"],
       target: h.target,
@@ -363,6 +364,11 @@ export async function getScoringInput(
     }
     return { habits, days };
   });
+}
+
+/** 30 days ending on `today`. Enough for the trend and the previous-week comparison. */
+export async function getDashboardInput(userId: string, today: string) {
+  return getScoringInput(userId, addDays(today, -29), today);
 }
 
 /* ---------- Helpers ---------- */
