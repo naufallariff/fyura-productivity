@@ -1,115 +1,49 @@
 import { contrastRatio } from "./color";
+import { BUNDLE_IDS, BUNDLES, MODES, type BundleId, type Mode } from "./bundles";
 import { deriveTokens } from "./derive";
-import { PaletteSchema, type Palette } from "./schema";
-import type { Mode, ThemeTokens } from "./tokens";
+import { HUE_NAMES, hueColor } from "./hues";
 
-export const MODES: readonly Mode[] = ["light", "dark"];
+export const TEXT_MIN = 4.5;
+export const GRAPHIC_MIN = 3;
 
-export type ContrastIssue = {
-  mode: Mode;
-  pair: string;
-  ratio: number;
-  required: number;
-};
-
-type ContrastPair = {
-  name: string;
-  foreground: (t: ThemeTokens) => string;
-  background: (t: ThemeTokens) => string;
-  required: number;
-};
-
-/** WCAG AA: 4.5:1 for body text, 3:1 for large text and UI components. */
-const TEXT = 4.5;
-const UI = 3;
-
-export const CONTRAST_PAIRS: readonly ContrastPair[] = [
-  { name: "text on bg", foreground: (t) => t.text, background: (t) => t.bg, required: TEXT },
-  { name: "muted on bg", foreground: (t) => t.muted, background: (t) => t.bg, required: TEXT },
-  {
-    name: "text on surface",
-    foreground: (t) => t.text,
-    background: (t) => t.surface,
-    required: TEXT,
-  },
-  {
-    name: "muted on surface",
-    foreground: (t) => t.muted,
-    background: (t) => t.surface,
-    required: TEXT,
-  },
-  {
-    name: "text on raised surface",
-    foreground: (t) => t.text,
-    background: (t) => t.surfaceRaised,
-    required: TEXT,
-  },
-  {
-    name: "accent on surface",
-    foreground: (t) => t.accent,
-    background: (t) => t.surface,
-    required: TEXT,
-  },
-  {
-    name: "on-accent on accent",
-    foreground: (t) => t.onAccent,
-    background: (t) => t.accent,
-    required: TEXT,
-  },
-  { name: "danger on bg", foreground: (t) => t.danger, background: (t) => t.bg, required: TEXT },
-  {
-    name: "danger on surface",
-    foreground: (t) => t.danger,
-    background: (t) => t.surface,
-    required: TEXT,
-  },
-  { name: "accent on bg (UI)", foreground: (t) => t.accent, background: (t) => t.bg, required: UI },
-];
-
-/** Returns every failing pair across both modes. An empty array means the palette passes. */
-export function checkPaletteContrast(palette: Palette): ContrastIssue[] {
-  const issues: ContrastIssue[] = [];
-
-  for (const mode of MODES) {
-    const tokens = deriveTokens(palette, mode);
-    for (const pair of CONTRAST_PAIRS) {
-      const ratio = contrastRatio(pair.foreground(tokens), pair.background(tokens));
-      if (ratio < pair.required) {
-        issues.push({
-          mode,
-          pair: pair.name,
-          ratio: Math.round(ratio * 100) / 100,
-          required: pair.required,
-        });
-      }
-    }
-  }
-
-  return issues;
+export interface ContrastResult {
+  readonly bundle: BundleId;
+  readonly mode: Mode;
+  readonly pair: string;
+  readonly ratio: number;
+  readonly required: number;
+  readonly ok: boolean;
 }
 
-export type PaletteValidation =
-  { ok: true; palette: Palette; issues: [] } | { ok: false; errors: string[] };
+type Rule = [pair: string, foreground: string, background: string, required: number];
 
-/** Use for any palette that comes from outside the code base, such as a user-created theme. */
-export function validatePalette(input: unknown): PaletteValidation {
-  const parsed = PaletteSchema.safeParse(input);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      errors: parsed.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`),
-    };
+/** Every text and icon pair that the UI relies on, for one bundle and one mode. */
+export function checkTheme(bundle: BundleId, mode: Mode): ContrastResult[] {
+  const t = deriveTokens(BUNDLES[bundle], mode);
+
+  const rules: Rule[] = [
+    ["ink on canvas", t.ink, t.canvas, TEXT_MIN],
+    ["ink on glass", t.ink, t.glassSolid, TEXT_MIN],
+    ["ink muted on glass", t.inkMuted, t.glassSolid, TEXT_MIN],
+    ["accent on glass", t.accent, t.glassSolid, TEXT_MIN],
+    ["on accent", t.onAccent, t.accent, TEXT_MIN],
+    ["ink on accent soft", t.ink, t.accentSoft, TEXT_MIN],
+    ["positive on glass", t.positive, t.glassSolid, TEXT_MIN],
+    ["negative on glass", t.negative, t.glassSolid, TEXT_MIN],
+    ["warning on glass", t.warning, t.glassSolid, TEXT_MIN],
+    ["info on glass", t.info, t.glassSolid, TEXT_MIN],
+  ];
+
+  for (const hue of HUE_NAMES) {
+    rules.push([`hue ${hue} on glass`, hueColor(hue, mode), t.glassSolid, GRAPHIC_MIN]);
   }
 
-  const issues = checkPaletteContrast(parsed.data);
-  if (issues.length > 0) {
-    return {
-      ok: false,
-      errors: issues.map(
-        (i) => `${i.mode} ${i.pair}: ratio ${i.ratio} is below required ${i.required}`,
-      ),
-    };
-  }
+  return rules.map(([pair, foreground, background, required]) => {
+    const ratio = contrastRatio(foreground, background);
+    return { bundle, mode, pair, ratio, required, ok: ratio >= required };
+  });
+}
 
-  return { ok: true, palette: parsed.data, issues: [] };
+export function checkAll(): ContrastResult[] {
+  return BUNDLE_IDS.flatMap((bundle) => MODES.flatMap((mode) => checkTheme(bundle, mode)));
 }
