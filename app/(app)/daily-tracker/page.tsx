@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageShell } from "@/components/shell/page-shell";
-import { PageSkeleton } from "@/components/shell/skeleton";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { DaySummaryCard } from "@/components/today/day-summary";
 import { DayStatusCard } from "@/features/daily-tracker/day-status";
 import { TodayWorkspace } from "@/components/today/workspace";

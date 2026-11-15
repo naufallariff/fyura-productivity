@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { deleteJournalAction, saveJournalAction } from "@/features/journal/actions";
 import { PageShell } from "@/components/shell/page-shell";
-import { PageSkeleton } from "@/components/shell/skeleton";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { Fire } from "@/features/learning/fire";
 import { requireUser } from "@/server/auth/session";
 import { env } from "@/server/config/env";

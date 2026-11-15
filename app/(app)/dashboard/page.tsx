@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { PageShell } from "@/components/shell/page-shell";
-import { PageSkeleton } from "@/components/shell/skeleton";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { Card, Delta, TrendSparkline } from "@/components/dashboard/cards";
 import { requireUser } from "@/server/auth/session";
 import { env } from "@/server/config/env";

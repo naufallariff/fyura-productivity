@@ -113,6 +113,18 @@
   }
 }
 
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--glass-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .blobs {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
   .blob-a {
     animation: drift-a 28s ease-in-out infinite alternate;
