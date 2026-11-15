@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAllowedEmail, normalizeEmail } from "@/lib/auth/allowlist";
+import { isAllowedEmail, normalizeEmail } from "@/server/auth/allowlist";
 
 const ALLOWED = ["owner@gmail.com"];
 

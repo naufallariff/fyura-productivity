@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { lockPrivateAction, setupPinAction, unlockPrivateAction } from "@/app/actions/private";
-import { IdleGuard } from "@/components/private/idle-guard";
-import { PinModal } from "@/components/private/pin-modal";
-import { SessionRing } from "@/components/private/session-ring";
-import { requireUser } from "@/lib/auth/session";
-import { hasPrivatePin } from "@/lib/private/gate";
-import { getPrivateExpiry } from "@/lib/private/guard";
+import { lockPrivateAction, setupPinAction, unlockPrivateAction } from "@/features/private/actions";
+import { IdleGuard } from "@/features/private/components/idle-guard";
+import { PinModal } from "@/features/private/components/pin-modal";
+import { SessionRing } from "@/features/private/components/session-ring";
+import { requireUser } from "@/server/auth/session";
+import { hasPrivatePin } from "@/server/private/gate";
+import { getPrivateExpiry } from "@/server/private/guard";
 
 function LockedPlaceholder() {
   return (

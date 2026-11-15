@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { env } from "@/lib/config/env";
+import { env } from "@/server/config/env";
 import { PRIVATE_COOKIE_NAME, readPrivateExpiry } from "./session";
 
 /** Returns the private session expiry for this user, or null when locked. Never redirects. */

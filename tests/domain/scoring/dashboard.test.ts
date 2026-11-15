@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildDashboard, type NamedHabit } from "@/lib/scoring/dashboard";
-import type { DayRecord } from "@/lib/scoring/types";
+import { buildDashboard, type NamedHabit } from "@/domain/scoring/dashboard";
+import type { DayRecord } from "@/domain/scoring/types";
 
 const HABITS: NamedHabit[] = [
   {

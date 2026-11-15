@@ -3,7 +3,7 @@ import {
   PRIVATE_SESSION_TTL_MS,
   createPrivateToken,
   verifyPrivateToken,
-} from "@/lib/private/session";
+} from "@/server/private/session";
 
 const SECRET = "s".repeat(32);
 const USER = "11111111-1111-4111-8111-111111111111";

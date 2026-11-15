@@ -1,7 +1,7 @@
 "use server";
 
-import { signOut } from "@/lib/auth/auth";
-import { clearPrivateSession } from "@/lib/private/cookie";
+import { signOut } from "@/server/auth/auth";
+import { clearPrivateSession } from "@/server/private/cookie";
 
 export async function signOutAction(): Promise<void> {
   await clearPrivateSession();

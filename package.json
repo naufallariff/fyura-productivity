@@ -16,7 +16,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "prepare": "husky",
-    "test:db": "cross-env RUN_DB_TESTS=1 vitest run tests/db"
+    "test:db": "cross-env RUN_DB_TESTS=1 vitest run tests/server/db"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,json,md,css}": [
@@ -26,6 +26,7 @@
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",
     "@sentry/nextjs": "^11.11.0",
+    "@tanstack/react-query": "^5.107.1",
     "dotenv": "^18.0.9",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.70.0",

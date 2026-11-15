@@ -1,4 +1,4 @@
-import type { Category } from "@/lib/scoring/types";
+import type { Category } from "@/domain/scoring/types";
 
 export const BLOCK_CATEGORIES = [
   "WORSHIP",

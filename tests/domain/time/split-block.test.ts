@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitBlock } from "@/lib/time/split-block";
+import { splitBlock } from "@/domain/time/split-block";
 
 describe("splitBlock", () => {
   it("keeps a block inside one day as a single segment", () => {

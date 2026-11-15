@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutLanes } from "@/lib/time/layout";
+import { layoutLanes } from "@/domain/time/layout";
 
 describe("layoutLanes", () => {
   it("gives two overlapping blocks two lanes", () => {

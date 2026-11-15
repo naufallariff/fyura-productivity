@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser } from "@/lib/auth/session";
-import { logFocusSession } from "@/lib/services/focus";
+import { requireUser } from "@/server/auth/session";
+import { logFocusSession } from "@/server/services/focus";
 
 export async function logFocusAction(input: {
   logDate: string;

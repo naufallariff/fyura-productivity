@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, useTransition } from "react";
-import type { PinActionState } from "@/app/actions/private";
+import type { PinActionState } from "@/features/private/actions";
 import { Delete } from "lucide-react";
 
 const PIN_LENGTH = 6;

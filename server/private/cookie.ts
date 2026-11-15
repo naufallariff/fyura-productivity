@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { env } from "@/lib/config/env";
+import { env } from "@/server/config/env";
 import { PRIVATE_COOKIE_NAME, PRIVATE_SESSION_TTL_MS, createPrivateToken } from "./session";
 
 /** Issues or renews the private session cookie. Renewal resets the 10-minute window. */

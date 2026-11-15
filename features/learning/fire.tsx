@@ -1,5 +1,5 @@
 import { t, tPlural } from "@/lib/i18n";
-import type { FireLevel } from "@/lib/scoring/streak";
+import type { FireLevel } from "@/domain/scoring/streak";
 
 const SCALE: Record<FireLevel, number> = {
   ember: 0.6,

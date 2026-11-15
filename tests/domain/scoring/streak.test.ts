@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bestStreak, currentStreak, fireLevel, isLateEntry } from "@/lib/scoring/streak";
-import { addDays, daysBetween, isoWeekday } from "@/lib/time/logical-date";
+import { bestStreak, currentStreak, fireLevel, isLateEntry } from "@/domain/scoring/streak";
+import { addDays, daysBetween, isoWeekday } from "@/domain/time/logical-date";
 
 const DAYS = [
   { date: "2026-10-01", complete: true },

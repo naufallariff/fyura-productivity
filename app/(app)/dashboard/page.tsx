@@ -2,15 +2,15 @@ import { Suspense } from "react";
 import { PageShell } from "@/components/shell/page-shell";
 import { PageSkeleton } from "@/components/shell/skeleton";
 import { Card, Delta, TrendSparkline } from "@/components/dashboard/cards";
-import { requireUser } from "@/lib/auth/session";
-import { env } from "@/lib/config/env";
+import { requireUser } from "@/server/auth/session";
+import { env } from "@/server/config/env";
 import { t, tPlural } from "@/lib/i18n";
 import { formatPercent, formatPoints } from "@/lib/i18n/format";
-import { buildDashboard } from "@/lib/scoring/dashboard";
-import { getDashboardInput } from "@/lib/services/daily";
-import { localIsoDate } from "@/lib/time/local-date";
-import { Fire } from "@/components/streak/fire";
-import { getLearningStreak } from "@/lib/services/journal";
+import { buildDashboard } from "@/domain/scoring/dashboard";
+import { getDashboardInput } from "@/server/services/daily";
+import { localIsoDate } from "@/domain/time/local-date";
+import { Fire } from "@/features/learning/fire";
+import { getLearningStreak } from "@/server/services/journal";
 
 export default function DashboardPage() {
   return (

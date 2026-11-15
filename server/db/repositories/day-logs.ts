@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, gte, lte } from "drizzle-orm";
-import type { Tx } from "@/lib/db/tx";
-import { dayLogs } from "@/lib/db/schema";
+import type { Tx } from "@/server/db/tx";
+import { dayLogs } from "@/server/db/schema";
 
 export type DayLogRow = typeof dayLogs.$inferSelect;
 

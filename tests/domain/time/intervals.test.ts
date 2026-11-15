@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findGaps, mergeIntervals } from "@/lib/time/intervals";
+import { findGaps, mergeIntervals } from "@/domain/time/intervals";
 
 describe("mergeIntervals", () => {
   it("merges overlapping and touching intervals without mutating input", () => {

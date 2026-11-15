@@ -1,5 +1,5 @@
-import { env } from "@/lib/config/env";
-import { isAuthorizedCron } from "@/lib/cron/auth";
+import { env } from "@/server/config/env";
+import { isAuthorizedCron } from "@/server/cron/auth";
 
 export async function GET(request: Request) {
   if (!isAuthorizedCron(request.headers.get("authorization"), env.CRON_SECRET)) {

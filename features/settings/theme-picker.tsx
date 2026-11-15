@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { Check } from "lucide-react";
-import { saveThemeAction, type ThemeActionState } from "@/app/actions/settings";
+import { saveThemeAction, type ThemeActionState } from "@/features/settings/actions";
 import { PALETTES } from "@/lib/theme/palettes";
 import { STYLES } from "@/lib/theme/styles";
 import type { ThemeSelection } from "@/lib/theme/resolve";

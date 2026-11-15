@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { ThemePicker } from "@/components/settings/theme-picker";
-import { requireUser } from "@/lib/auth/session";
-import { getUserSettings } from "@/lib/db/settings";
+import { ThemePicker } from "@/features/settings/theme-picker";
+import { requireUser } from "@/server/auth/session";
+import { getUserSettings } from "@/server/db/settings";
 
 async function SettingsContent() {
   const user = await requireUser();

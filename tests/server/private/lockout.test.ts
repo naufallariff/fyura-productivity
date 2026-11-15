@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeLockUntil } from "@/lib/private/lockout";
+import { computeLockUntil } from "@/server/private/lockout";
 
 const NOW = new Date("2026-01-01T00:00:00Z");
 const minutesFromNow = (d: Date | null) =>

@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser } from "@/lib/auth/session";
-import { createJournalEntry, deleteJournalEntry } from "@/lib/services/journal";
+import { requireUser } from "@/server/auth/session";
+import { createJournalEntry, deleteJournalEntry } from "@/server/services/journal";
 
 export async function saveJournalAction(formData: FormData): Promise<void> {
   const user = await requireUser();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMinute, parseClock } from "@/lib/time/clock";
+import { formatMinute, parseClock } from "@/domain/time/clock";
 
 describe("parseClock", () => {
   it("converts HH:MM to minutes from midnight", () => {

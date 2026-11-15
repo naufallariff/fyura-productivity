@@ -2,7 +2,7 @@ import { habitCompletion, plannedHabits, scoreDay, weeklyRatio } from "./daily";
 import { computeTrend, type TrendPoint } from "./ewma";
 import { calibrationState, type CalibrationState } from "./warmup";
 import type { DayRecord, DayScore, HabitDefinition } from "./types";
-import { addDays } from "@/lib/time/logical-date";
+import { addDays } from "@/domain/time/logical-date";
 
 export type NamedHabit = HabitDefinition & { name: string };
 

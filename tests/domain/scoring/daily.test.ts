@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { prayerDailyValue } from "@/lib/scoring/daily";
+import { prayerDailyValue } from "@/domain/scoring/daily";
 
 describe("prayerDailyValue", () => {
   it("returns 1 only when all five prayers are performed", () => {

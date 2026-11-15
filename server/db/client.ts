@@ -1,7 +1,7 @@
 import "server-only";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { env } from "@/lib/config/env";
+import { env } from "@/server/config/env";
 import * as schema from "./schema";
 
 // One connection pool per process. In development it is cached on globalThis

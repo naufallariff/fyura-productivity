@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hashPin, isValidPin, verifyPin } from "@/lib/crypto/pin";
+import { hashPin, isValidPin, verifyPin } from "@/server/crypto/pin";
 
 const PEPPER = "p".repeat(32);
 

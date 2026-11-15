@@ -2,10 +2,10 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addBlockAction, type ActionState } from "@/app/actions/today";
-import { BLOCK_CATEGORIES, categoryLabelKey } from "@/lib/habits/categories";
-import { QUICK_CHIPS, type QuickChip } from "@/lib/habits/quick";
+import { BLOCK_CATEGORIES, categoryLabelKey } from "@/domain/categories";
+import { QUICK_CHIPS, type QuickChip } from "@/features/daily-tracker/quick-chips";
 import { t } from "@/lib/i18n";
-import { formatMinute } from "@/lib/time/clock";
+import { formatMinute } from "@/domain/time/clock";
 
 export interface Draft {
   start: number;

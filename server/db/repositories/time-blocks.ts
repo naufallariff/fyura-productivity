@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq, isNull } from "drizzle-orm";
-import type { Tx } from "@/lib/db/tx";
-import { timeBlocks } from "@/lib/db/schema";
+import type { Tx } from "@/server/db/tx";
+import { timeBlocks } from "@/server/db/schema";
 
 export type TimeBlockRow = typeof timeBlocks.$inferSelect;
 export type NewTimeBlockRow = typeof timeBlocks.$inferInsert;

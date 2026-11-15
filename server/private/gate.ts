@@ -1,9 +1,9 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { env } from "@/lib/config/env";
-import { hashPin, verifyPin } from "@/lib/crypto/pin";
-import { privatePin } from "@/lib/db/schema";
-import { withUser } from "@/lib/db/tx";
+import { env } from "@/server/config/env";
+import { hashPin, verifyPin } from "@/server/crypto/pin";
+import { privatePin } from "@/server/db/schema";
+import { withUser } from "@/server/db/tx";
 import { MAX_ATTEMPTS_BEFORE_LOCK, computeLockUntil } from "./lockout";
 
 export type UnlockResult =

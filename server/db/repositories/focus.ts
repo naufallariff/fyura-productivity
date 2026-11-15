@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
-import type { Tx } from "@/lib/db/tx";
-import { focusSessions } from "@/lib/db/schema";
+import type { Tx } from "@/server/db/tx";
+import { focusSessions } from "@/server/db/schema";
 
 export type FocusRow = typeof focusSessions.$inferSelect;
 

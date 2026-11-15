@@ -5,7 +5,7 @@ import {
   formatCountdown,
   remainingMs,
   minuteOfDayIn,
-} from "@/lib/focus/session";
+} from "@/domain/focus/session";
 
 describe("remainingMs", () => {
   it("never goes below zero", () => {

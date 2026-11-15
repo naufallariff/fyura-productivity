@@ -1,6 +1,6 @@
 import { setDayStatusAction } from "@/app/actions/today";
 import { t } from "@/lib/i18n";
-import type { DayStatus } from "@/lib/scoring/types";
+import type { DayStatus } from "@/domain/scoring/types";
 
 const STATUSES: readonly DayStatus[] = ["NORMAL", "SICK", "FLEXIBLE", "OFF"];
 

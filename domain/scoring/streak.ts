@@ -1,4 +1,4 @@
-import { addDays, assertIsoDate, daysBetween } from "@/lib/time/logical-date";
+import { addDays, assertIsoDate, daysBetween } from "@/domain/time/logical-date";
 
 export interface LearningDay {
   /** Logical date of the entry (log_date), not the time it was typed. */

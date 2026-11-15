@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { redact } from "@/lib/observability/redact";
+import { redact } from "@/server/observability/redact";
 
 describe("redact", () => {
   it("replaces secrets, cookies, PINs, emails, and OAuth codes", () => {

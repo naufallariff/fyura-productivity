@@ -1,12 +1,12 @@
 import "server-only";
-import { withUser } from "@/lib/db/tx";
+import { withUser } from "@/server/db/tx";
 import {
   insertJournalEntry,
   listJournalForDate,
   listLearningBlockDates,
   listLearningEntries,
   softDeleteJournalEntry,
-} from "@/lib/db/repositories/journal";
+} from "@/server/db/repositories/journal";
 import { DomainError } from "./errors";
 import { CreateJournalInput } from "@/lib/validation/journal";
 import {
@@ -16,8 +16,8 @@ import {
   isLateEntry,
   type FireLevel,
   type LearningDay,
-} from "@/lib/scoring/streak";
-import { localIsoDate } from "@/lib/time/local-date";
+} from "@/domain/scoring/streak";
+import { localIsoDate } from "@/domain/time/local-date";
 
 export async function createJournalEntry(userId: string, input: unknown): Promise<string> {
   const parsed = parse(CreateJournalInput, input);

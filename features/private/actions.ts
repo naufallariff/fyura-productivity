@@ -2,12 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { auth } from "@/lib/auth/auth";
-import { requireUser } from "@/lib/auth/session";
-import { clearPrivateSession, grantPrivateSession } from "@/lib/private/cookie";
-import { checkPrivatePin, setPrivatePin } from "@/lib/private/gate";
-import { env } from "@/lib/config/env";
-import { PRIVATE_COOKIE_NAME, verifyPrivateToken } from "@/lib/private/session";
+import { auth } from "@/server/auth/auth";
+import { requireUser } from "@/server/auth/session";
+import { clearPrivateSession, grantPrivateSession } from "@/server/private/cookie";
+import { checkPrivatePin, setPrivatePin } from "@/server/private/gate";
+import { env } from "@/server/config/env";
+import { PRIVATE_COOKIE_NAME, verifyPrivateToken } from "@/server/private/session";
 import { cookies } from "next/headers";
 
 export type PinActionState = { status: "idle" } | { status: "error"; message: string };

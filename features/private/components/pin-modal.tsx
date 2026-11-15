@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { PinActionState } from "@/app/actions/private";
+import type { PinActionState } from "@/features/private/actions";
 import { PinPad } from "./pin-pad";
 
 type Props = {

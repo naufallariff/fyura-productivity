@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq, isNull } from "drizzle-orm";
-import type { Tx } from "@/lib/db/tx";
-import { journalEntries, timeBlocks } from "@/lib/db/schema";
+import type { Tx } from "@/server/db/tx";
+import { journalEntries, timeBlocks } from "@/server/db/schema";
 
 export type JournalRow = typeof journalEntries.$inferSelect;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { balanceScore } from "@/lib/scoring/balance";
+import { balanceScore } from "@/domain/scoring/balance";
 
 describe("balanceScore", () => {
   it("returns 1 when actual shares match the plan exactly", () => {

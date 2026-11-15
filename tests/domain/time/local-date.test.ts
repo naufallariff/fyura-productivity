@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isValidIsoDate, localIsoDate } from "@/lib/time/local-date";
+import { isValidIsoDate, localIsoDate } from "@/domain/time/local-date";
 
 describe("localIsoDate", () => {
   it("uses the target timezone for the calendar date", () => {

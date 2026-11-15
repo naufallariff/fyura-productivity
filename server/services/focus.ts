@@ -1,11 +1,10 @@
 import "server-only";
 import { z } from "zod";
-import { withUser } from "@/lib/db/tx";
-import { insertFocusSession, listRecentFocus } from "@/lib/db/repositories/focus";
-import { insertBlocks } from "@/lib/db/repositories/time-blocks";
-import { syncBlockHabits } from "@/lib/services/daily";
+import { withUser } from "@/server/db/tx";
+import { insertFocusSession, listRecentFocus } from "@/server/db/repositories/focus";
+import { insertBlocks } from "@/server/db/repositories/time-blocks";
 import { DomainError } from "./errors";
-import { countsAsDeepWork, elapsedMinutes } from "@/lib/focus/session";
+import { countsAsDeepWork, elapsedMinutes } from "@/domain/focus/session";
 
 const LogFocusInput = z
   .object({
@@ -56,7 +55,6 @@ export async function logFocusSession(userId: string, input: unknown): Promise<v
           source: "TIMER",
         },
       ]);
-      await syncBlockHabits(tx, userId, parsed.logDate);
     }
   });
 }

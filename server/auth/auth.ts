@@ -1,10 +1,9 @@
 import "server-only";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { env } from "@/lib/config/env";
-import { upsertUserByEmail } from "@/lib/db/users";
+import { env } from "@/server/config/env";
+import { upsertUserByEmail } from "@/server/db/users";
 import { isAllowedEmail } from "./allowlist";
-import { ensureDefaultHabits } from "@/lib/services/daily";
 
 const THIRTY_DAYS_SECONDS = 60 * 60 * 24 * 30;
 
@@ -32,7 +31,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (p && typeof p.email === "string") {
         const userId = await upsertUserByEmail(p.email, typeof p.name === "string" ? p.name : null);
         token.uid = userId;
-        await ensureDefaultHabits(userId);
       }
       return token;
     },

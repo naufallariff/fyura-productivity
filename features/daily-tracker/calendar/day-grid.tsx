@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { deleteBlockAction, moveBlockAction } from "@/app/actions/today";
-import { categoryLabelKey, categoryStyle } from "@/lib/habits/categories";
+import { categoryLabelKey, categoryStyle } from "@/domain/categories";
 import { t } from "@/lib/i18n";
-import type { Category } from "@/lib/scoring/types";
-import { formatMinute } from "@/lib/time/clock";
-import { layoutLanes } from "@/lib/time/layout";
-import { SNAP_MINUTES, clamp, snapMinute } from "@/lib/time/snap";
+import type { Category } from "@/domain/scoring/types";
+import { formatMinute } from "@/domain/time/clock";
+import { layoutLanes } from "@/domain/time/layout";
+import { SNAP_MINUTES, clamp, snapMinute } from "@/domain/time/snap";
 
 export const HOUR_PX = 56;
 const PX_PER_MIN = HOUR_PX / 60;

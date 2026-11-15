@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAuthorizedCron } from "@/lib/cron/auth";
+import { isAuthorizedCron } from "@/server/cron/auth";
 
 const SECRET = "c".repeat(32);
 

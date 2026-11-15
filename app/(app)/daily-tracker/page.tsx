@@ -5,17 +5,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageShell } from "@/components/shell/page-shell";
 import { PageSkeleton } from "@/components/shell/skeleton";
 import { DaySummaryCard } from "@/components/today/day-summary";
-import { DayStatusCard } from "@/components/today/day-status";
+import { DayStatusCard } from "@/features/daily-tracker/day-status";
 import { TodayWorkspace } from "@/components/today/workspace";
-import type { GridBlock } from "@/components/today/day-grid";
-import { requireUser } from "@/lib/auth/session";
-import { env } from "@/lib/config/env";
-import { toCategory } from "@/lib/habits/categories";
+import type { GridBlock } from "@/features/daily-tracker/calendar/day-grid";
+import { requireUser } from "@/server/auth/session";
+import { env } from "@/server/config/env";
+import { toCategory } from "@/domain/categories";
 import { t } from "@/lib/i18n";
-import { scoreDay } from "@/lib/scoring/daily";
-import { getDayView, getScoringInput } from "@/lib/services/daily";
-import { addDays } from "@/lib/time/logical-date";
-import { isValidIsoDate, localIsoDate } from "@/lib/time/local-date";
+import { scoreDay } from "@/domain/scoring/daily";
+import { getDayView, getScoringInput } from "@/server/services/daily";
+import { addDays } from "@/domain/time/logical-date";
+import { isValidIsoDate, localIsoDate } from "@/domain/time/local-date";
 
 type SearchParams = Promise<{ date?: string | string[] }>;
 

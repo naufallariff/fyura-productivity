@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { logFocusAction } from "@/app/actions/focus";
+import { logFocusAction } from "@/features/daily-tracker/pomodoro/actions";
 import {
   FOCUS_DURATIONS,
   formatCountdown,
@@ -9,7 +9,7 @@ import {
   type FocusDuration,
   type FocusKind,
   minuteOfDayIn,
-} from "@/lib/focus/session";
+} from "@/domain/focus/session";
 import { t } from "@/lib/i18n";
 
 type Phase = "idle" | "running" | "saving";

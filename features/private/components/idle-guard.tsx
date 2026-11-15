@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { touchPrivateAction } from "@/app/actions/private";
+import { touchPrivateAction } from "@/features/private/actions";
 
 const PING_INTERVAL_MS = 60_000;
 

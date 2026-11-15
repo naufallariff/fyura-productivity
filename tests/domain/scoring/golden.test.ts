@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { computeTrend } from "@/lib/scoring/ewma";
-import { calibrationState } from "@/lib/scoring/warmup";
-import { scoreDay, weeklyRatio } from "@/lib/scoring/daily";
-import type { DayRecord, HabitDefinition } from "@/lib/scoring/types";
+import { computeTrend } from "@/domain/scoring/ewma";
+import { calibrationState } from "@/domain/scoring/warmup";
+import { scoreDay, weeklyRatio } from "@/domain/scoring/daily";
+import type { DayRecord, HabitDefinition } from "@/domain/scoring/types";
 
 /*
  * Hand-calculated fixture. Habits:

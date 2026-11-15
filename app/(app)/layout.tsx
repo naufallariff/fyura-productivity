@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireUser } from "@/server/auth/session";
 import { parseSidebarState, SIDEBAR_COOKIE } from "@/lib/shell/sidebar-cookie";
 import { Sidebar } from "@/components/shell/sidebar";
 import { MobileNav } from "@/components/shell/mobile-nav";

@@ -1,7 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "./client";
-import { normalizeEmail } from "@/lib/auth/allowlist";
+import { normalizeEmail } from "@/server/auth/allowlist";
 
 /**
  * Creates or updates the user row for a verified Google account and returns its id.

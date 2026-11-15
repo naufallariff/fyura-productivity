@@ -1,15 +1,15 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { deleteJournalAction, saveJournalAction } from "@/app/actions/journal";
+import { deleteJournalAction, saveJournalAction } from "@/features/journal/actions";
 import { PageShell } from "@/components/shell/page-shell";
 import { PageSkeleton } from "@/components/shell/skeleton";
-import { Fire } from "@/components/streak/fire";
-import { requireUser } from "@/lib/auth/session";
-import { env } from "@/lib/config/env";
+import { Fire } from "@/features/learning/fire";
+import { requireUser } from "@/server/auth/session";
+import { env } from "@/server/config/env";
 import { JOURNAL_KINDS } from "@/lib/validation/journal";
 import { t } from "@/lib/i18n";
-import { getJournalForDate, getLearningStreak } from "@/lib/services/journal";
-import { isValidIsoDate, localIsoDate } from "@/lib/time/local-date";
+import { getJournalForDate, getLearningStreak } from "@/server/services/journal";
+import { isValidIsoDate, localIsoDate } from "@/domain/time/local-date";
 
 type SearchParams = Promise<{ date?: string | string[] }>;
 

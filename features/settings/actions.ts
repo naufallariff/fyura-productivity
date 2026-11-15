@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import { requireUser } from "@/lib/auth/session";
-import { saveThemeSelection } from "@/lib/db/settings";
+import { requireUser } from "@/server/auth/session";
+import { saveThemeSelection } from "@/server/db/settings";
 import { ThemeSelectionSchema } from "@/lib/theme/resolve";
 
 export type ThemeActionState =
@@ -16,14 +15,11 @@ export async function saveThemeAction(
   const user = await requireUser();
 
   const parsed = ThemeSelectionSchema.safeParse({
-    style: formData.get("style"),
-    palette: formData.get("palette"),
+    bundle: formData.get("bundle"),
     mode: formData.get("mode"),
   });
-
   if (!parsed.success) {
-    const message = z.prettifyError(parsed.error);
-    return { status: "error", message };
+    return { status: "error", message: "Choose a valid bundle and mode." };
   }
 
   await saveThemeSelection(user.id, parsed.data);
