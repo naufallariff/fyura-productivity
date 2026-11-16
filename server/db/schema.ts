@@ -176,5 +176,45 @@ export const journalEntries = pgTable(
   ],
 );
 
+/* ---------- Weekly plan (template per weekday) ---------- */
+
+// The template a daily checklist is built from. Weekday 1 is Monday, 7 is Sunday.
+export const weeklyPlanItems = pgTable(
+  "weekly_plan_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekday: integer("weekday").notNull(),
+    position: integer("position").notNull(),
+    title: text("title").notNull(),
+    category: text("category").notNull(),
+    isRequired: boolean("is_required").notNull().default(true),
+    // Core items also apply on flexible and off days.
+    isCore: boolean("is_core").notNull().default(false),
+    plannedMinutes: integer("planned_minutes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("weekly_plan_items_user_day_idx")
+      .on(t.userId, t.weekday, t.position)
+      .where(sql`${t.deletedAt} is null`),
+    check("weekly_plan_weekday_chk", sql`${t.weekday} between 1 and 7`),
+    check("weekly_plan_position_chk", sql`${t.position} >= 0`),
+    check("weekly_plan_title_chk", sql`char_length(${t.title}) between 1 and 120`),
+    check(
+      "weekly_plan_category_chk",
+      sql`${t.category} in ('WORSHIP', 'LEARNING', 'WORK', 'CAREER', 'FITNESS', 'REST', 'SOCIAL', 'LEISURE')`,
+    ),
+    check(
+      "weekly_plan_minutes_chk",
+      sql`${t.plannedMinutes} is null or ${t.plannedMinutes} between 1 and 1440`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

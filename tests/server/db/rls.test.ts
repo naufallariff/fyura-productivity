@@ -69,4 +69,15 @@ describe.skipIf(!RUN_DB_TESTS)("RLS isolation (requires database)", () => {
     const rows = await asUser(userA, (tx) => tx`select id from time_blocks`);
     expect(rows).toHaveLength(0);
   });
+
+  it("user A cannot read user B weekly plan items", async () => {
+    await asUser(
+      userB,
+      (tx) =>
+        tx`insert into weekly_plan_items (user_id, weekday, position, title, category)
+       values (${userB}, 1, 0, 'B item', 'WORSHIP')`,
+    );
+    const rows = await asUser(userA, (tx) => tx`select id from weekly_plan_items`);
+    expect(rows).toHaveLength(0);
+  });
 });

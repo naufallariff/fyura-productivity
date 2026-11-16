@@ -1,7 +1,8 @@
 import "server-only";
 import type { ZodType } from "zod";
-import { DomainError, type DomainErrorCode } from "@/server/services/errors";
+import { auth } from "@/server/auth/auth";
 import { logEvent } from "@/server/observability/logger";
+import { DomainError, type DomainErrorCode } from "@/server/services/errors";
 
 const STATUS: Record<DomainErrorCode, number> = {
   VALIDATION_FAILED: 400,
@@ -13,6 +14,7 @@ const STATUS: Record<DomainErrorCode, number> = {
 const NO_STORE = { "Cache-Control": "no-store" };
 const PRIVATE_READ = { "Cache-Control": "private, no-cache" };
 
+/** Parses query parameters. Failures become DomainError with code VALIDATION_FAILED. */
 export function parseQuery<T>(schema: ZodType<T>, url: string): T {
   const params = Object.fromEntries(new URL(url).searchParams);
   const parsed = schema.safeParse(params);
@@ -20,18 +22,17 @@ export function parseQuery<T>(schema: ZodType<T>, url: string): T {
   return parsed.data;
 }
 
-/**
- * Reads are cached by the client, so the response may be stored privately but must be
- * revalidated. Sensitive data is never stored.
- */
+/** Reads are cached by the client. The response may be kept privately but must be revalidated. */
 export function jsonRead(body: unknown): Response {
   return Response.json(body, { headers: PRIVATE_READ });
 }
 
+/** Sensitive responses are never stored by any cache. */
 export function jsonSensitive(body: unknown): Response {
   return Response.json(body, { headers: NO_STORE });
 }
 
+/** Maps a thrown error to a response. Only the error name is logged, never the message. */
 export function errorResponse(error: unknown, requestId: string | null): Response {
   if (error instanceof DomainError) {
     return Response.json(
@@ -39,7 +40,6 @@ export function errorResponse(error: unknown, requestId: string | null): Respons
       { status: STATUS[error.code], headers: NO_STORE },
     );
   }
-  // Only the error name is logged. Messages can contain user input.
   logEvent("error", "api request failed", {
     requestId,
     name: error instanceof Error ? error.name : "unknown",
@@ -47,5 +47,18 @@ export function errorResponse(error: unknown, requestId: string | null): Respons
   return Response.json(
     { error: "INTERNAL", message: "Something went wrong." },
     { status: 500, headers: NO_STORE },
+  );
+}
+
+/** Session check for route handlers. Returns null instead of redirecting, so the client gets a 401. */
+export async function apiUserId(): Promise<string | null> {
+  const session = await auth();
+  return session?.user?.id ?? null;
+}
+
+export function unauthorized(): Response {
+  return Response.json(
+    { error: "UNAUTHORIZED", message: "Sign in required." },
+    { status: 401, headers: NO_STORE },
   );
 }

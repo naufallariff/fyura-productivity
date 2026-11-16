@@ -8,7 +8,7 @@ import {
   softDeleteJournalEntry,
 } from "@/server/db/repositories/journal";
 import { DomainError } from "./errors";
-import { CreateJournalInput } from "@/lib/validation/journal";
+import { CreateJournalInput } from "@/server/validation/journal";
 import {
   bestStreak,
   currentStreak,

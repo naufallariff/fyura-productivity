@@ -85,6 +85,20 @@
       "when": 1794746011257,
       "tag": "0011_third_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794824880059,
+      "tag": "0012_lonely_iceman",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794824901221,
+      "tag": "0013_rls_weekly_plan_items",
+      "breakpoints": true
     }
   ]
 }
