@@ -3,16 +3,18 @@ import { z } from "zod";
 import { DomainError } from "@/server/services/errors";
 
 export const PAGE_SIZE = 25;
+export const MAX_PAGE_SIZE = 50;
 
 const CursorPayload = z
   .object({
-    at: z.iso.datetime(),
+    k: z.string().min(1).max(64),
     id: z.uuid(),
   })
   .strict();
 
+/** Sort key and row id. The key is opaque to the database layer and built by each service. */
 export interface Cursor {
-  readonly at: string;
+  readonly key: string;
   readonly id: string;
 }
 
@@ -21,24 +23,24 @@ export interface Page<T> {
   readonly nextCursor: string | null;
 }
 
-/** Opaque to clients. Encodes the sort key so the next page starts exactly after the last row. */
 export function encodeCursor(cursor: Cursor): string {
-  return Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
+  return Buffer.from(JSON.stringify({ k: cursor.key, id: cursor.id }), "utf8").toString(
+    "base64url",
+  );
 }
 
 export function decodeCursor(raw: string | null | undefined): Cursor | null {
   if (!raw) return null;
   try {
     const json: unknown = JSON.parse(Buffer.from(raw, "base64url").toString("utf8"));
-    return CursorPayload.parse(json);
+    const parsed = CursorPayload.parse(json);
+    return { key: parsed.k, id: parsed.id };
   } catch {
     throw new DomainError("VALIDATION_FAILED", "Cursor is invalid");
   }
 }
 
-/**
- * Takes limit + 1 rows from the query. The extra row only proves that another page exists.
- */
+/** Takes limit + 1 rows. The extra row only proves that another page exists. */
 export function toPage<T extends { readonly id: string }>(
   rows: readonly T[],
   limit: number,
