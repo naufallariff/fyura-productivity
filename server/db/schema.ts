@@ -216,5 +216,43 @@ export const weeklyPlanItems = pgTable(
   ],
 );
 
+/* ---------- Daily checklist (snapshot per logical day) ---------- */
+
+// Created when the first item of a day is checked. It copies the weekly plan for that
+// weekday, so later edits to the plan never rewrite a day that was already recorded.
+export const checklistEntries = pgTable(
+  "checklist_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    logDate: date("log_date", { mode: "string" }).notNull(),
+    sourceItemId: uuid("source_item_id").references(() => weeklyPlanItems.id, {
+      onDelete: "set null",
+    }),
+    title: text("title").notNull(),
+    category: text("category").notNull(),
+    isRequired: boolean("is_required").notNull(),
+    isCore: boolean("is_core").notNull(),
+    plannedMinutes: integer("planned_minutes"),
+    position: integer("position").notNull(),
+    isDone: boolean("is_done").notNull().default(false),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("checklist_entries_day_source_uq").on(t.userId, t.logDate, t.sourceItemId),
+    index("checklist_entries_user_day_idx").on(t.userId, t.logDate, t.position),
+    check("checklist_title_chk", sql`char_length(${t.title}) between 1 and 120`),
+    check(
+      "checklist_category_chk",
+      sql`${t.category} in ('WORSHIP', 'LEARNING', 'WORK', 'CAREER', 'FITNESS', 'REST', 'SOCIAL', 'LEISURE')`,
+    ),
+    check("checklist_position_chk", sql`${t.position} >= 0`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

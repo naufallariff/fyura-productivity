@@ -5,6 +5,7 @@ import {
   formatCountdown,
   remainingMs,
   minuteOfDayIn,
+  isValidFocusMinutes,
 } from "@/domain/focus/session";
 
 describe("remainingMs", () => {
@@ -42,5 +43,16 @@ describe("minuteOfDayIn", () => {
     const instant = new Date("2026-10-25T03:00:00Z");
     expect(minuteOfDayIn(instant, "Asia/Jakarta")).toBe(600);
     expect(minuteOfDayIn(instant, "UTC")).toBe(180);
+  });
+
+  describe("isValidFocusMinutes", () => {
+    it("accepts whole numbers from 1 to 240 only", () => {
+      expect(isValidFocusMinutes(1)).toBe(true);
+      expect(isValidFocusMinutes(240)).toBe(true);
+      expect(isValidFocusMinutes(0)).toBe(false);
+      expect(isValidFocusMinutes(241)).toBe(false);
+      expect(isValidFocusMinutes(12.5)).toBe(false);
+      expect(isValidFocusMinutes(Number.NaN)).toBe(false);
+    });
   });
 });

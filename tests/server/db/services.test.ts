@@ -25,6 +25,7 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
       return tx<
         {
           log_date: string;
+          activity: string;
           start_minute: number;
           end_minute: number;
           split_group_id: string | null;
@@ -32,7 +33,7 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
         }[]
       >`
             select to_char(log_date, 'YYYY-MM-DD') as log_date,
-                start_minute, end_minute, split_group_id, category
+                activity, start_minute, end_minute, split_group_id, category
             from time_blocks
             where user_id = ${uid} and deleted_at is null
             order by log_date, start_minute`;
@@ -249,5 +250,52 @@ describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
     } finally {
       await deleteTestUser(sql, otherId);
     }
+  });
+
+  it("keeps a completed deep session and skips the block when it overlaps", async () => {
+    const { logFocusSession } = await import("@/server/services/focus");
+
+    await createTimeBlock(userId, {
+      logDate: "2026-10-28",
+      startMinute: 600,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "Existing",
+      source: "MANUAL",
+    });
+
+    const start = new Date("2026-10-28T03:10:00Z");
+    const result = await logFocusSession(userId, {
+      logDate: "2026-10-28",
+      kind: "DEEP",
+      plannedMinutes: 25,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+      startMinute: 610,
+    });
+
+    expect(result).toMatchObject({ completed: true, blockCreated: false });
+  });
+
+  it("splits a deep work block that crosses midnight into two linked rows", async () => {
+    const { logFocusSession } = await import("@/server/services/focus");
+
+    const start = new Date("2026-10-29T16:50:00Z");
+    const result = await logFocusSession(userId, {
+      logDate: "2026-10-30",
+      kind: "DEEP",
+      plannedMinutes: 25,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+      startMinute: 1430,
+    });
+    expect(result).toMatchObject({ completed: true, blockCreated: true });
+
+    const rows = await rowsFor(userId);
+    const crossing = rows.filter(
+      (row) => row.activity === "Deep work" && row.log_date >= "2026-10-30",
+    );
+    expect(crossing).toHaveLength(2);
+    expect(crossing[0]?.split_group_id).toBe(crossing[1]?.split_group_id);
   });
 });

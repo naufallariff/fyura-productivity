@@ -1,7 +1,14 @@
 export type FocusKind = "DEEP" | "LIGHT";
 
-export const FOCUS_DURATIONS = [25, 50, 90] as const;
-export type FocusDuration = (typeof FOCUS_DURATIONS)[number];
+/** Quick picks shown in the timer. Any whole number of minutes from 1 to 240 is allowed. */
+export const FOCUS_PRESETS = [25, 50, 90] as const;
+export const FOCUS_MIN_MINUTES = 1;
+export const FOCUS_MAX_MINUTES = 240;
+export type FocusDuration = number;
+
+export function isValidFocusMinutes(value: number): boolean {
+  return Number.isInteger(value) && value >= FOCUS_MIN_MINUTES && value <= FOCUS_MAX_MINUTES;
+}
 
 /** Remaining milliseconds from a fixed end timestamp. Never negative. */
 export function remainingMs(endsAt: number, now: number): number {

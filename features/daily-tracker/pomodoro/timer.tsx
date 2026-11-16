@@ -1,62 +1,91 @@
+// features/daily-tracker/pomodoro/timer.tsx
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { logFocusAction } from "@/features/daily-tracker/pomodoro/actions";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, Input } from "@/components/ui/field";
+import { Segmented } from "@/components/ui/segmented";
 import {
-  FOCUS_DURATIONS,
+  FOCUS_PRESETS,
   formatCountdown,
-  remainingMs,
-  type FocusDuration,
-  type FocusKind,
+  isValidFocusMinutes,
   minuteOfDayIn,
+  remainingMs,
+  type FocusKind,
 } from "@/domain/focus/session";
 import { t } from "@/lib/i18n";
+import { cn } from "@/lib/ui/cn";
+import type { FocusLogResult } from "@/server/services/focus";
+import { logFocusAction } from "./actions";
 
 type Phase = "idle" | "running" | "saving";
+type Notice = "completed" | "blockConflict" | "stopped";
 
 interface Run {
-  kind: FocusKind;
-  plannedMinutes: FocusDuration;
-  startedAt: number;
-  endsAt: number;
+  readonly kind: FocusKind;
+  readonly plannedMinutes: number;
+  readonly startedAt: number;
+  readonly endsAt: number;
+}
+
+const MS_PER_MINUTE = 60_000;
+
+const NOTICE_KEY: Record<Notice, string> = {
+  completed: "focus.notice.completed",
+  blockConflict: "focus.notice.blockConflict",
+  stopped: "focus.notice.stopped",
+};
+
+function noticeFor(
+  kind: FocusKind,
+  reason: "completed" | "stopped",
+  result: FocusLogResult,
+): Notice {
+  if (reason === "stopped") return "stopped";
+  if (kind === "DEEP" && result.completed && !result.blockCreated) return "blockConflict";
+  return "completed";
 }
 
 export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: string }) {
-  const [duration, setDuration] = useState<FocusDuration>(25);
+  const [input, setInput] = useState("25");
   const [kind, setKind] = useState<FocusKind>("DEEP");
   const [phase, setPhase] = useState<Phase>("idle");
-  const [shownMs, setShownMs] = useState(duration * 60_000);
-  const run = useRef<Run | null>(null);
-  const [, startSaving] = useTransition();
-
+  const [shownMs, setShownMs] = useState(0);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const run = useRef<Run | null>(null);
 
-  const persist = (current: Run, endedAt: number) => {
-    setPhase("saving");
-    setSaveError(null);
-    const startMinute = minuteOfDayIn(new Date(current.startedAt), timeZone);
+  const minutes = Number(input);
+  const valid = isValidFocusMinutes(minutes);
+  const inputError = input !== "" && !valid ? t("focus.customInvalid") : undefined;
 
-    startSaving(() => {
-      logFocusAction({
-        logDate,
-        kind: current.kind,
-        plannedMinutes: current.plannedMinutes,
-        startedAt: new Date(current.startedAt).toISOString(),
-        endedAt: new Date(endedAt).toISOString(),
-        startMinute,
-      })
-        .then(() => {
-          setPhase("idle");
-          setShownMs(duration * 60_000);
-        })
-        .catch(() => {
-          setPhase("idle");
-          setShownMs(duration * 60_000);
-          setSaveError(t("focus.error.save"));
+  // Stable identity keeps the animation effect from restarting on every render.
+  const save = useCallback(
+    async (current: Run, endedAt: number, reason: "completed" | "stopped") => {
+      setPhase("saving");
+      setSaveError(null);
+      try {
+        const result = await logFocusAction({
+          logDate,
+          kind: current.kind,
+          plannedMinutes: current.plannedMinutes,
+          startedAt: new Date(current.startedAt).toISOString(),
+          endedAt: new Date(endedAt).toISOString(),
+          startMinute: minuteOfDayIn(new Date(current.startedAt), timeZone),
         });
-    });
-  };
+        if (!result.ok) throw new Error(result.code);
+        setNotice(noticeFor(current.kind, reason, result.data));
+      } catch {
+        setSaveError(t("focus.error.save"));
+      } finally {
+        setPhase("idle");
+        setShownMs(0);
+      }
+    },
+    [logDate, timeZone],
+  );
 
+  // One animation loop, active only while a session runs.
   useEffect(() => {
     if (phase !== "running") return;
 
@@ -64,30 +93,24 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
     const tick = () => {
       const current = run.current;
       if (!current) return;
-      const now = Date.now();
-      const left = remainingMs(current.endsAt, now);
+
+      const left = remainingMs(current.endsAt, Date.now());
       setShownMs(left);
 
       if (left === 0) {
         run.current = null;
-        persist(current, now);
+        // The planned end is recorded, not the frame time, so the duration is exact.
+        void save(current, current.endsAt, "completed");
         return;
       }
       frame = requestAnimationFrame(tick);
     };
+
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
+  }, [phase, save]);
 
-  useEffect(() => {
-    if (phase !== "running") return;
-    document.body.dataset.focus = "on";
-    return () => {
-      delete document.body.dataset.focus;
-    };
-  }, [phase]);
-
+  // Clears the running session if the component unmounts.
   useEffect(() => {
     return () => {
       run.current = null;
@@ -95,103 +118,125 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
   }, []);
 
   const start = () => {
+    if (!valid) return;
     const startedAt = Date.now();
     run.current = {
       kind,
-      plannedMinutes: duration,
+      plannedMinutes: minutes,
       startedAt,
-      endsAt: startedAt + duration * 60_000,
+      endsAt: startedAt + minutes * MS_PER_MINUTE,
     };
-    setShownMs(duration * 60_000);
+    setNotice(null);
+    setSaveError(null);
+    setShownMs(minutes * MS_PER_MINUTE);
     setPhase("running");
   };
 
-  const stopEarly = () => {
+  const stop = () => {
     const current = run.current;
     if (!current) return;
     run.current = null;
-    persist(current, Date.now());
+    void save(current, Date.now(), "stopped");
   };
 
+  const presetOptions = FOCUS_PRESETS.map((preset) => ({
+    value: String(preset),
+    label: t("focus.minutes", { minutes: preset }),
+  }));
+
+  const kindOptions = [
+    { value: "DEEP", label: t("focus.kind.deep") },
+    { value: "LIGHT", label: t("focus.kind.light") },
+  ] as const;
+
+  const display = phase === "idle" ? (valid ? minutes * MS_PER_MINUTE : 0) : shownMs;
+
   return (
-    <section aria-labelledby="focus-title" className="text-center">
-      <h2 id="focus-title" className="text-muted text-sm font-medium">
-        {t("focus.title")}
-      </h2>
-
-      <p className="mt-4 text-[72px] leading-none font-semibold tracking-[-0.04em] tabular-nums">
-        {formatCountdown(shownMs)}
-      </p>
-
-      {phase === "idle" && (
-        <>
-          <div
-            role="radiogroup"
-            aria-label={t("focus.duration")}
-            className="mt-6 flex justify-center gap-2"
-          >
-            {FOCUS_DURATIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                role="radio"
-                aria-checked={duration === option}
-                onClick={() => {
-                  setDuration(option);
-                  setShownMs(option * 60_000);
-                }}
-                className={`ease-spring rounded-full px-4 py-2 text-sm font-medium transition-transform duration-200 active:scale-[0.97] ${
-                  duration === option ? "bg-accent text-on-accent" : "bg-surface-raised"
-                }`}
-              >
-                {t("focus.minutes", { minutes: option })}
-              </button>
-            ))}
-          </div>
-          <div
-            role="radiogroup"
-            aria-label={t("focus.kind")}
-            className="mt-3 flex justify-center gap-2"
-          >
-            {(["DEEP", "LIGHT"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                role="radio"
-                aria-checked={kind === option}
-                onClick={() => setKind(option)}
-                className={`ease-spring rounded-full px-4 py-2 text-sm font-medium transition-transform duration-200 active:scale-[0.97] ${
-                  kind === option ? "bg-accent text-on-accent" : "bg-surface-raised"
-                }`}
-              >
-                {t(option === "DEEP" ? "focus.kind.deep" : "focus.kind.light")}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={start}
-            className="rounded-control bg-accent text-on-accent ease-spring mt-8 px-8 py-3 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
-          >
-            {t("focus.start")}
-          </button>
-        </>
-      )}
-
+    <>
       {phase === "running" && (
-        <button
-          type="button"
-          onClick={stopEarly}
-          className="rounded-control border-line ease-spring mt-8 border px-8 py-3 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
+        <div
+          aria-hidden
+          className="bg-canvas/75 fixed inset-0 z-40 motion-safe:transition-opacity"
+        />
+      )}
+
+      <section
+        aria-labelledby="focus-title"
+        className="glass relative z-50 mx-auto flex w-full max-w-md flex-col items-center gap-6 p-6 sm:p-8"
+      >
+        <h2 id="focus-title" className="text-ink-muted text-sm font-medium">
+          {t("focus.title")}
+        </h2>
+
+        <p
+          role="timer"
+          className="text-ink text-[72px] leading-none font-semibold tracking-[-0.04em] tabular-nums"
         >
-          {t("focus.stop")}
-        </button>
-      )}
-      {saveError && (
-        <p role="alert" className="text-danger mt-6 text-sm">
-          {saveError}
+          {formatCountdown(display)}
         </p>
-      )}
-    </section>
+
+        {phase === "idle" && (
+          <div className="grid w-full gap-5">
+            <Segmented
+              label={t("focus.duration")}
+              options={presetOptions}
+              value={input}
+              onChange={setInput}
+            />
+
+            <Field
+              id="focus-minutes"
+              label={t("focus.custom")}
+              hint={t("focus.customHint")}
+              error={inputError}
+            >
+              <Input
+                id="focus-minutes"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={240}
+                step={1}
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                invalid={inputError !== undefined}
+                aria-describedby={inputError ? "focus-minutes-error" : "focus-minutes-hint"}
+              />
+            </Field>
+
+            <Segmented
+              label={t("focus.kind")}
+              options={kindOptions}
+              value={kind}
+              onChange={setKind}
+            />
+
+            <Button onClick={start} disabled={!valid} className="w-full">
+              {t("focus.start")}
+            </Button>
+          </div>
+        )}
+
+        {phase === "running" && (
+          <Button variant="secondary" onClick={stop}>
+            {t("focus.stop")}
+          </Button>
+        )}
+
+        {phase === "saving" && <Button pending>{t("common.saving")}</Button>}
+
+        {notice && (
+          <p role="status" className={cn("text-ink-muted text-center text-sm")}>
+            {t(NOTICE_KEY[notice])}
+          </p>
+        )}
+
+        {saveError && (
+          <p role="alert" className="text-negative text-center text-sm">
+            {saveError}
+          </p>
+        )}
+      </section>
+    </>
   );
 }

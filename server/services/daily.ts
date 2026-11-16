@@ -1,9 +1,8 @@
 // server/services/daily.ts
 import "server-only";
 import { randomUUID } from "node:crypto";
-import type { ZodType } from "zod";
 import { z } from "zod";
-import { withUser } from "@/server/db/tx";
+import { withUser, type Tx } from "@/server/db/tx";
 import { findDayLog, upsertDayLog } from "@/server/db/repositories/day-logs";
 import {
   findBlockById,
@@ -12,7 +11,6 @@ import {
   softDeleteBlockGroup,
   updateBlockTiming,
 } from "@/server/db/repositories/time-blocks";
-import { DomainError } from "./errors";
 import {
   CreateTimeBlockInput,
   MoveTimeBlockInput,
@@ -20,16 +18,52 @@ import {
 } from "@/server/validation/daily";
 import { splitBlock } from "@/domain/time/split-block";
 import type { DayStatus } from "@/domain/scoring/types";
+import { DomainError } from "./errors";
+import { parse } from "./parse";
 
 const idSchema = z.uuid();
 
-/** Validates input at the boundary. Expected failures become DomainError. Other errors propagate. */
-function parse<T>(schema: ZodType<T>, value: unknown): T {
-  const result = schema.safeParse(value);
-  if (!result.success) {
-    throw new DomainError("VALIDATION_FAILED", "Input is invalid");
+export interface BlockInput {
+  readonly logDate: string;
+  readonly startMinute: number;
+  readonly durationMinutes: number;
+  readonly category: string;
+  readonly activity: string;
+  readonly source: "MANUAL" | "TIMER" | "CHIP";
+}
+
+/**
+ * Places one block inside the caller's transaction.
+ * A block that crosses midnight becomes two linked rows. Every segment is checked for
+ * overlap before anything is written, so a clash never leaves a half-written pair.
+ * The daily tracker and the focus service both use this function.
+ */
+export async function placeBlock(tx: Tx, userId: string, input: BlockInput): Promise<string> {
+  const segments = splitBlock(input.logDate, input.startMinute, input.durationMinutes);
+  const splitGroupId = segments.length > 1 ? randomUUID() : null;
+
+  for (const segment of segments) {
+    const sameDay = await listBlocksForDate(tx, userId, segment.logDate);
+    const clash = sameDay.some(
+      (block) => segment.startMinute < block.endMinute && block.startMinute < segment.endMinute,
+    );
+    if (clash) throw new DomainError("CONFLICT", "Time block overlaps an existing block");
   }
-  return result.data;
+
+  const rows = await insertBlocks(
+    tx,
+    segments.map((segment) => ({
+      userId,
+      logDate: segment.logDate,
+      startMinute: segment.startMinute,
+      endMinute: segment.endMinute,
+      category: input.category,
+      activity: input.activity,
+      splitGroupId,
+      source: input.source,
+    })),
+  );
+  return rows[0]?.id ?? "";
 }
 
 export async function setDayStatus(userId: string, input: unknown): Promise<void> {
@@ -39,39 +73,18 @@ export async function setDayStatus(userId: string, input: unknown): Promise<void
   );
 }
 
-/**
- * Creates a block. A block that crosses midnight is stored as two linked rows.
- * Overlap is checked for every segment before anything is inserted.
- */
 export async function createTimeBlock(userId: string, input: unknown): Promise<string> {
   const parsed = parse(CreateTimeBlockInput, input);
-  const segments = splitBlock(parsed.logDate, parsed.startMinute, parsed.durationMinutes);
-  const splitGroupId = segments.length > 1 ? randomUUID() : null;
-
-  return withUser(userId, async (tx) => {
-    for (const segment of segments) {
-      const sameDay = await listBlocksForDate(tx, userId, segment.logDate);
-      const clash = sameDay.some(
-        (block) => segment.startMinute < block.endMinute && block.startMinute < segment.endMinute,
-      );
-      if (clash) throw new DomainError("CONFLICT", "Time block overlaps an existing block");
-    }
-
-    const rows = await insertBlocks(
-      tx,
-      segments.map((segment) => ({
-        userId,
-        logDate: segment.logDate,
-        startMinute: segment.startMinute,
-        endMinute: segment.endMinute,
-        category: parsed.category,
-        activity: parsed.activity,
-        splitGroupId,
-        source: parsed.source,
-      })),
-    );
-    return rows[0]?.id ?? "";
-  });
+  return withUser(userId, (tx) =>
+    placeBlock(tx, userId, {
+      logDate: parsed.logDate,
+      startMinute: parsed.startMinute,
+      durationMinutes: parsed.durationMinutes,
+      category: parsed.category,
+      activity: parsed.activity,
+      source: parsed.source,
+    }),
+  );
 }
 
 /** Moves or resizes a single-day block. Blocks that cross midnight are edited as a pair in the dialog. */
