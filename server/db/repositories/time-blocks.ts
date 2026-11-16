@@ -152,3 +152,24 @@ export async function updateBlockDetails(
     .returning({ id: timeBlocks.id });
   return updated.length;
 }
+
+/** Active blocks whose logical date falls inside the range, earliest first. */
+export async function listBlocksInRange(
+  tx: Tx,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+): Promise<TimeBlockRow[]> {
+  return tx
+    .select()
+    .from(timeBlocks)
+    .where(
+      and(
+        eq(timeBlocks.userId, userId),
+        isNull(timeBlocks.deletedAt),
+        gte(timeBlocks.logDate, fromDate),
+        lte(timeBlocks.logDate, toDate),
+      ),
+    )
+    .orderBy(asc(timeBlocks.logDate), asc(timeBlocks.startMinute));
+}

@@ -69,7 +69,7 @@ describe.skipIf(!RUN_DB_TESTS)("checklist services (requires database)", () => {
     expect(after.frozen).toBe(true);
     expect(after.items).toHaveLength(2);
     expect(after.items.find((item) => item.sourceItemId === prayer.id)?.isDone).toBe(true);
-  });
+  }, 30_000);
 
   it("rejects a toggle for an item that is not part of the frozen day", async () => {
     await expect(

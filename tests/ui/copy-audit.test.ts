@@ -2,7 +2,14 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const ROOTS = ["components/ui", "lib/ui", "lib/i18n/messages"];
+const ROOTS = [
+  "components/ui",
+  "lib/ui",
+  "lib/i18n/messages",
+  "features/daily-tracker",
+  "features/weekly-plan",
+  "app/(app)/daily-tracker",
+];
 const EXTENSIONS = [".ts", ".tsx", ".json"];
 
 // Emoji, arrows, command and modifier symbols, bullets, dashes, ellipsis, and check marks.

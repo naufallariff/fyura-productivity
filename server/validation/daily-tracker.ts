@@ -55,3 +55,9 @@ export const UpdateBlockInput = z
   );
 
 export const DayStatusInput = z.enum(DAY_STATUSES);
+
+export const CalendarRangeQuery = z
+  .object({ from: IsoDate, to: IsoDate })
+  .strict()
+  .refine((value) => value.from <= value.to, "from must not be after to")
+  .refine((value) => daysBetween(value.from, value.to) < 62, "Range must be shorter than 62 days");

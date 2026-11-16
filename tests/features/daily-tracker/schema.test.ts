@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  CreateHabitInput,
   CreateTimeBlockInput,
-  HabitCheckInput,
+  MoveTimeBlockInput,
   SetDayStatusInput,
-} from "@/lib/validation/daily";
+} from "@/server/validation/daily";
 
 describe("daily validation", () => {
   it("accepts a valid day status", () => {
@@ -25,16 +24,6 @@ describe("daily validation", () => {
     );
   });
 
-  it("rejects negative habit values", () => {
-    expect(
-      HabitCheckInput.safeParse({
-        habitId: "11111111-1111-4111-8111-111111111111",
-        logDate: "2026-10-06",
-        value: -1,
-      }).success,
-    ).toBe(false);
-  });
-
   it("rejects unknown fields on a time block (strict schema)", () => {
     const result = CreateTimeBlockInput.safeParse({
       logDate: "2026-10-06",
@@ -47,15 +36,12 @@ describe("daily validation", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a habit with an invalid key", () => {
-    expect(
-      CreateHabitInput.safeParse({
-        key: "Prayer Five",
-        name: "x",
-        category: "WORSHIP",
-        kind: "BINARY",
-        target: 1,
-      }).success,
-    ).toBe(false);
+  it("rejects a move whose end is not after its start", () => {
+    const result = MoveTimeBlockInput.safeParse({
+      blockId: "11111111-1111-4111-8111-111111111111",
+      startMinute: 600,
+      endMinute: 600,
+    });
+    expect(result.success).toBe(false);
   });
 });
