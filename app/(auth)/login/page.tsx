@@ -3,14 +3,14 @@ import { signIn } from "@/server/auth/auth";
 export default function LoginPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center px-5 py-10">
-      <section className="elevated rounded-card border-line bg-surface w-full max-w-95 border p-8 sm:p-10">
+      <section className="rounded-card border-line glass w-full max-w-95 border p-8 sm:p-10">
         <div className="bg-accent mx-auto grid size-14 place-items-center rounded-[18px] text-xl font-semibold text-white">
           F
         </div>
 
         <div className="mt-6 text-center">
           <h1 className="text-[26px] font-semibold tracking-[-0.02em]">Fyura Productivity</h1>
-          <p className="text-muted mt-2 text-sm leading-relaxed">
+          <p className="text-ink-muted mt-2 text-sm leading-relaxed">
             Sign in with your approved Google account to continue.
           </p>
         </div>
@@ -30,7 +30,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-muted mt-6 text-center text-xs">
+        <p className="text-ink-muted mt-6 text-center text-xs">
           Access is limited to approved accounts.
         </p>
       </section>

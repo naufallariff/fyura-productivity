@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
-import { signOutAction } from "@/app/actions/auth";
+import { signOutAction } from "@/features/auth/auth";
 import { clearClientSession } from "@/client/query/session";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/ui/cn";

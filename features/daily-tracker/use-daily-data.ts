@@ -6,7 +6,7 @@ import { apiGet } from "@/client/api/fetch";
 import { scopedKey } from "@/client/query/keys";
 import { CACHE_POLICY } from "@/client/query/policy";
 import { BLOCK_CATEGORIES } from "@/domain/categories";
-import { DAY_STATUSES, type Category, type DayStatus } from "@/domain/scoring/types";
+import { type Category, type DayStatus } from "@/domain/scoring/types";
 import type { ActionResult } from "@/server/api/action";
 import {
   createBlockAction,
@@ -145,5 +145,3 @@ export function useSetDayStatus(userId: string) {
     },
   });
 }
-
-export { DAY_STATUSES };

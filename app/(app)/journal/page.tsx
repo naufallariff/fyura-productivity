@@ -6,7 +6,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 import { Fire } from "@/features/learning/fire";
 import { requireUser } from "@/server/auth/session";
 import { env } from "@/server/config/env";
-import { JOURNAL_KINDS } from "@/lib/validation/journal";
+import { JOURNAL_KINDS } from "@/server/validation/journal";
 import { t } from "@/lib/i18n";
 import { getJournalForDate, getLearningStreak } from "@/server/services/journal";
 import { isValidIsoDate, localIsoDate } from "@/domain/time/local-date";
@@ -14,7 +14,7 @@ import { isValidIsoDate, localIsoDate } from "@/domain/time/local-date";
 type SearchParams = Promise<{ date?: string | string[] }>;
 
 const FIELD =
-  "w-full rounded-control border border-line bg-surface-raised px-3 py-2.5 text-base outline-none focus-visible:ring-2 focus-visible:ring-accent";
+  "w-full rounded-control border border-line bg-ink/5 px-3 py-2.5 text-base outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
 export default function JournalPage({ searchParams }: { searchParams: SearchParams }) {
   return (
@@ -41,13 +41,13 @@ async function JournalContent({ searchParams }: { searchParams: SearchParams }) 
     <PageShell title={t("journal.title")} email={user.email}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-5">
-          <section className="elevated rounded-card border-line bg-surface/85 border p-5 backdrop-blur-xl sm:p-6">
+          <section className="rounded-card border-line glass border p-5 sm:p-6">
             <h2 className="mb-4 text-sm font-semibold">{t("journal.form.title")}</h2>
             <form action={saveJournalAction} className="space-y-4">
               <input type="hidden" name="logDate" value={logDate} />
               <div className="grid gap-4 sm:grid-cols-[200px_minmax(0,1fr)]">
                 <label className="space-y-1.5 text-sm">
-                  <span className="text-muted">{t("journal.form.kind")}</span>
+                  <span className="text-ink-muted">{t("journal.form.kind")}</span>
                   <select name="kind" defaultValue="DAILY" className={FIELD}>
                     {JOURNAL_KINDS.map((kind) => (
                       <option key={kind} value={kind}>
@@ -57,12 +57,12 @@ async function JournalContent({ searchParams }: { searchParams: SearchParams }) 
                   </select>
                 </label>
                 <label className="space-y-1.5 text-sm">
-                  <span className="text-muted">{t("journal.form.titleField")}</span>
+                  <span className="text-ink-muted">{t("journal.form.titleField")}</span>
                   <input type="text" name="title" maxLength={120} className={FIELD} />
                 </label>
               </div>
               <label className="block space-y-1.5 text-sm">
-                <span className="text-muted">{t("journal.form.body")}</span>
+                <span className="text-ink-muted">{t("journal.form.body")}</span>
                 <textarea name="body" rows={6} required maxLength={20000} className={FIELD} />
               </label>
               <div className="flex justify-end">
@@ -76,17 +76,17 @@ async function JournalContent({ searchParams }: { searchParams: SearchParams }) 
             </form>
           </section>
 
-          <section className="elevated rounded-card border-line bg-surface/85 border p-5 backdrop-blur-xl sm:p-6">
+          <section className="rounded-card border-line glass border p-5 sm:p-6">
             <h2 className="mb-4 text-sm font-semibold">{t("journal.list.title")}</h2>
             {entries.length === 0 ? (
-              <p className="text-muted text-sm">{t("journal.list.empty")}</p>
+              <p className="text-ink-muted text-sm">{t("journal.list.empty")}</p>
             ) : (
               <ul className="divide-line divide-y">
                 {entries.map((entry) => (
                   <li key={entry.id} className="py-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 space-y-1">
-                        <p className="text-muted text-xs">
+                        <p className="text-ink-muted text-xs">
                           {t(`journal.kind.${entry.kind}`)}
                           {entry.title && ` · ${entry.title}`}
                         </p>
@@ -94,7 +94,10 @@ async function JournalContent({ searchParams }: { searchParams: SearchParams }) 
                       </div>
                       <form action={deleteJournalAction}>
                         <input type="hidden" name="entryId" value={entry.id} />
-                        <button type="submit" className="text-muted hover:text-danger text-xs">
+                        <button
+                          type="submit"
+                          className="text-ink-muted hover:text-negative text-xs"
+                        >
                           {t("journal.delete")}
                         </button>
                       </form>
@@ -106,23 +109,23 @@ async function JournalContent({ searchParams }: { searchParams: SearchParams }) 
           </section>
         </div>
 
-        <aside className="elevated rounded-card border-line bg-surface/85 h-fit border p-5 backdrop-blur-xl sm:p-6">
+        <aside className="rounded-card border-line glass h-fit border p-5 sm:p-6">
           <h2 className="mb-4 text-sm font-semibold">{t("journal.streak.title")}</h2>
           <Fire level={streak.level} streak={streak.current} />
-          <p className="text-muted mt-4 text-sm">
+          <p className="text-ink-muted mt-4 text-sm">
             {streak.todayComplete
               ? t("journal.streak.today.done")
               : t("journal.streak.today.pending")}
           </p>
-          <p className="text-muted mt-2 text-sm">
+          <p className="text-ink-muted mt-2 text-sm">
             {t("journal.streak.best", { days: streak.best })}
           </p>
           {streak.lateDays > 0 && (
-            <p className="text-muted mt-2 text-sm">
+            <p className="text-ink-muted mt-2 text-sm">
               {t("journal.streak.late", { count: streak.lateDays })}
             </p>
           )}
-          <p className="text-muted mt-4 text-xs leading-relaxed">{t("journal.streak.hint")}</p>
+          <p className="text-ink-muted mt-4 text-xs leading-relaxed">{t("journal.streak.hint")}</p>
         </aside>
       </div>
     </PageShell>

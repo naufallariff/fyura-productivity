@@ -32,7 +32,7 @@ export function Fire({ level, streak }: { level: FireLevel; streak: number }) {
       </div>
       <div>
         <p className="text-sm font-semibold">{t(`streak.level.${level}`)}</p>
-        <p className="text-muted text-sm">
+        <p className="text-ink-muted text-sm">
           {streak === 0 ? t("streak.none") : tPlural("streak.days", streak)}
         </p>
       </div>

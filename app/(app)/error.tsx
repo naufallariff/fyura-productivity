@@ -19,10 +19,10 @@ export default function AppError({
   return (
     <section
       role="alert"
-      className="elevated rounded-card border-line bg-surface mx-auto mt-16 max-w-md border p-8 text-center"
+      className="rounded-card border-line glass mx-auto mt-16 max-w-md border p-8 text-center"
     >
       <h2 className="text-lg font-semibold">{t("error.title")}</h2>
-      <p className="text-muted mt-2 text-sm leading-relaxed">{t("error.body")}</p>
+      <p className="text-ink-muted mt-2 text-sm leading-relaxed">{t("error.body")}</p>
       <button
         type="button"
         onClick={reset}

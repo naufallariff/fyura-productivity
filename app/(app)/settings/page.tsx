@@ -1,31 +1,31 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
+import { PageFrame, PageHeader } from "@/components/shell/page-header";
+import { PageSkeleton } from "@/components/ui/skeleton";
 import { ThemePicker } from "@/features/settings/theme-picker";
+import { t } from "@/lib/i18n";
 import { requireUser } from "@/server/auth/session";
-import { getUserSettings } from "@/server/db/settings";
-
-async function SettingsContent() {
-  const user = await requireUser();
-  const settings = await getUserSettings(user.id);
-
-  return (
-    <main className="mx-auto max-w-5xl px-5 py-10 sm:py-14">
-      <header className="mb-10 space-y-2">
-        <h1 className="text-[28px] font-semibold tracking-[-0.02em]">Settings</h1>
-        <p className="text-muted text-sm">
-          Appearance is saved to your account and applies on every device.
-        </p>
-      </header>
-      <section className="elevated rounded-card border-line bg-surface border p-6 sm:p-8">
-        <ThemePicker current={settings} />
-      </section>
-    </main>
-  );
-}
+import { getThemeSelection } from "@/server/db/settings";
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <SettingsContent />
     </Suspense>
+  );
+}
+
+async function SettingsContent() {
+  await connection();
+  const user = await requireUser();
+  const current = await getThemeSelection(user.id);
+
+  return (
+    <PageFrame>
+      <PageHeader title={t("settings.title")} lead={t("settings.lead")} />
+      <section className="glass p-5 sm:p-7">
+        <ThemePicker current={current} />
+      </section>
+    </PageFrame>
   );
 }

@@ -1,17 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import { Check } from "lucide-react";
-import { saveThemeAction, type ThemeActionState } from "@/features/settings/actions";
-import { PALETTES } from "@/lib/theme/palettes";
-import { STYLES } from "@/lib/theme/styles";
+import { Button } from "@/components/ui/button";
+import { BUNDLE_IDS, BUNDLES, MODES, type BundleId, type Mode } from "@/lib/theme/bundles";
 import type { ThemeSelection } from "@/lib/theme/resolve";
-
-const MODES = [
-  { id: "light", label: "Light" },
-  { id: "dark", label: "Dark" },
-  { id: "system", label: "System" },
-] as const;
+import { t } from "@/lib/i18n";
+import { saveThemeAction, type ThemeActionState } from "./actions";
 
 const INITIAL: ThemeActionState = { status: "idle" };
 
@@ -21,114 +15,81 @@ export function ThemePicker({ current }: { current: ThemeSelection }) {
   return (
     <form action={action} className="space-y-8">
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold tracking-tight">Surface style</legend>
+        <legend className="text-sm font-semibold">{t("settings.bundle")}</legend>
+        <p className="text-ink-muted text-xs leading-relaxed">{t("settings.bundle.hint")}</p>
         <div className="grid gap-3 sm:grid-cols-3">
-          {STYLES.map((style) => (
-            <OptionCard
-              key={style.id}
-              name="style"
-              value={style.id}
-              title={style.name}
-              description={style.description}
-              checked={current.style === style.id}
-            />
+          {BUNDLE_IDS.map((id) => (
+            <BundleOption key={id} id={id} checked={current.bundle === id} />
           ))}
         </div>
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold tracking-tight">Color palette</legend>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PALETTES.map((palette) => (
-            <OptionCard
-              key={palette.id}
-              name="palette"
-              value={palette.id}
-              title={palette.name}
-              swatches={[palette.dark.accent, palette.dark.surface, palette.dark.text]}
-              checked={current.palette === palette.id}
-            />
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold tracking-tight">Mode</legend>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <legend className="text-sm font-semibold">{t("settings.mode")}</legend>
+        <div className="grid gap-3 sm:grid-cols-2">
           {MODES.map((mode) => (
-            <OptionCard
-              key={mode.id}
-              name="mode"
-              value={mode.id}
-              title={mode.label}
-              checked={current.mode === mode.id}
-            />
+            <ModeOption key={mode} mode={mode} checked={current.mode === mode} />
           ))}
         </div>
       </fieldset>
 
-      <div className="flex items-center justify-between gap-4">
-        <p role="status" aria-live="polite" className="text-muted text-sm">
-          {state.status === "saved" && "Theme saved."}
-          {state.status === "error" && <span className="text-danger">{state.message}</span>}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p role="status" aria-live="polite" className="text-ink-muted text-sm">
+          {state.status === "saved" && t("settings.saved")}
+          {state.status === "error" && <span className="text-negative">{state.message}</span>}
         </p>
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-control bg-accent text-on-accent ease-spring px-5 py-3 text-sm font-medium transition-transform duration-200 active:scale-[0.97] disabled:opacity-60"
-        >
-          {pending ? "Saving…" : "Save theme"}
-        </button>
+        <Button type="submit" pending={pending}>
+          {t("settings.save")}
+        </Button>
       </div>
     </form>
   );
 }
 
-function OptionCard({
-  name,
-  value,
-  title,
-  description,
-  swatches,
-  checked,
-}: {
-  name: string;
-  value: string;
-  title: string;
-  description?: string;
-  swatches?: string[];
-  checked: boolean;
-}) {
+function BundleOption({ id, checked }: { id: BundleId; checked: boolean }) {
+  const bundle = BUNDLES[id];
   return (
-    <label className="relative cursor-pointer">
+    <label className="relative block cursor-pointer">
       <input
         type="radio"
-        name={name}
-        value={value}
+        name="bundle"
+        value={id}
         defaultChecked={checked}
         className="peer sr-only"
       />
-      <span className="rounded-card border-line bg-surface ease-spring peer-checked:border-accent peer-checked:ring-accent/30 flex h-full flex-col gap-3 border p-5 transition-transform duration-200 peer-checked:ring-2 active:scale-[0.98]">
-        <span className="flex items-center justify-between">
-          <span className="text-[15px] font-medium">{title}</span>
-          <Check
-            aria-hidden
-            className="text-accent size-4 opacity-0 peer-checked:opacity-100"
-            strokeWidth={2}
+      <span className="glass ease-spring peer-checked:ring-accent peer-focus-visible:ring-accent flex h-full flex-col gap-3 p-4 transition-transform duration-200 peer-checked:ring-2 peer-focus-visible:ring-2 motion-safe:active:scale-[0.98]">
+        <span className="text-sm font-medium">{bundle.label}</span>
+        <span className="flex gap-1.5" aria-hidden>
+          <span
+            className="border-line size-6 rounded-full border"
+            style={{ background: bundle.light.canvas }}
+          />
+          <span
+            className="border-line size-6 rounded-full border"
+            style={{ background: bundle.light.glow[0] }}
+          />
+          <span
+            className="border-line size-6 rounded-full border"
+            style={{ background: bundle.light.accent }}
           />
         </span>
-        {description && <span className="text-muted text-sm leading-relaxed">{description}</span>}
-        {swatches && (
-          <span className="flex gap-1.5">
-            {swatches.map((color) => (
-              <span
-                key={color}
-                className="border-line size-5 rounded-full border"
-                style={{ background: color }}
-              />
-            ))}
-          </span>
-        )}
+      </span>
+    </label>
+  );
+}
+
+function ModeOption({ mode, checked }: { mode: Mode; checked: boolean }) {
+  return (
+    <label className="relative block cursor-pointer">
+      <input
+        type="radio"
+        name="mode"
+        value={mode}
+        defaultChecked={checked}
+        className="peer sr-only"
+      />
+      <span className="glass ease-spring peer-checked:ring-accent peer-focus-visible:ring-accent flex min-h-11 items-center p-4 text-sm font-medium transition-transform duration-200 peer-checked:ring-2 peer-focus-visible:ring-2 motion-safe:active:scale-[0.98]">
+        {t(`settings.mode.${mode}`)}
       </span>
     </label>
   );

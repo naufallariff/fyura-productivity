@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CreateJournalInput } from "@/lib/validation/journal";
+import { CreateJournalInput } from "@/server/validation/journal";
 
 const base = { logDate: "2026-10-27", kind: "LEARNING", title: "", body: "Notes" };
 

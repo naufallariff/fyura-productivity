@@ -29,7 +29,7 @@ export function PinModal({ mode, action }: Props) {
       ref={ref}
       aria-labelledby="pin-title"
       onClose={() => router.replace("/dashboard")}
-      className="pin-sheet elevated rounded-card border-line bg-surface text-text m-auto w-[min(92vw,400px)] border px-8 pt-10 pb-8 backdrop:bg-black/40 max-sm:mx-auto max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:max-w-none max-sm:rounded-t-[28px] max-sm:rounded-b-none max-sm:pb-10"
+      className="pin-sheet rounded-card border-line glass text-ink m-auto w-[min(92vw,400px)] border px-8 pt-10 pb-8 backdrop:bg-black/40 max-sm:mx-auto max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:max-w-none max-sm:rounded-t-[28px] max-sm:rounded-b-none max-sm:pb-10"
     >
       <PinPad mode={mode} action={action} />
 

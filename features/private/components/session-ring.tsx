@@ -50,7 +50,7 @@ export function SessionRing({ expiresAt }: { expiresAt: number }) {
           strokeDashoffset={CIRCUMFERENCE * (1 - fraction)}
         />
       </svg>
-      <span className="text-text text-xs font-medium tabular-nums">
+      <span className="text-ink text-xs font-medium tabular-nums">
         {now === null ? "--:--" : `${minutes}:${pad(seconds)}`}
       </span>
     </div>

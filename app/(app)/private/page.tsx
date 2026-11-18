@@ -9,12 +9,10 @@ import { getPrivateExpiry } from "@/server/private/guard";
 
 function LockedPlaceholder() {
   return (
-    <section className="elevated rounded-card border-line bg-surface border p-8 text-center">
-      <div className="bg-surface-raised mx-auto grid size-12 place-items-center rounded-2xl text-xl">
-        🔒
-      </div>
+    <section className="rounded-card border-line glass border p-8 text-center">
+      <div className="bg-ink/5 mx-auto grid size-12 place-items-center rounded-2xl text-xl">🔒</div>
       <h2 className="mt-4 text-lg font-semibold tracking-[-0.01em]">Private space is locked</h2>
-      <p className="text-muted mt-1 text-sm">Enter your PIN to open it.</p>
+      <p className="text-ink-muted mt-1 text-sm">Enter your PIN to open it.</p>
     </section>
   );
 }
@@ -22,9 +20,9 @@ function LockedPlaceholder() {
 function Unlocked({ expiresAt }: { expiresAt: number }) {
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-5 py-8 sm:py-12">
-      <header className="elevated rounded-card border-line bg-surface flex items-center justify-between gap-4 border p-6">
+      <header className="rounded-card border-line glass flex items-center justify-between gap-4 border p-6">
         <div className="space-y-1">
-          <p className="text-muted text-sm">Private space</p>
+          <p className="text-ink-muted text-sm">Private space</p>
           <h1 className="text-[26px] font-semibold tracking-[-0.02em]">Unlocked</h1>
         </div>
         <div className="flex items-center gap-4">
@@ -32,7 +30,7 @@ function Unlocked({ expiresAt }: { expiresAt: number }) {
           <form action={lockPrivateAction}>
             <button
               type="submit"
-              className="rounded-control border-line bg-surface-raised text-text ease-spring border px-4 py-2.5 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
+              className="rounded-control border-line bg-ink/5 text-ink ease-spring border px-4 py-2.5 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
             >
               Lock
             </button>
@@ -42,8 +40,8 @@ function Unlocked({ expiresAt }: { expiresAt: number }) {
 
       <section className="grid gap-4 sm:grid-cols-2">
         {["Recovery log", "Private flame"].map((title) => (
-          <article key={title} className="rounded-card border-line bg-surface border p-6">
-            <p className="text-muted text-xs font-medium tracking-widest uppercase">
+          <article key={title} className="rounded-card border-line glass border p-6">
+            <p className="text-ink-muted text-xs font-medium tracking-widest uppercase">
               Opens in Phase 4
             </p>
             <h2 className="mt-3 text-lg font-semibold tracking-[-0.01em]">{title}</h2>

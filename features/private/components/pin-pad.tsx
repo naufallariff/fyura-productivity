@@ -69,7 +69,7 @@ export function PinPad({ mode, action }: Props) {
         <h2 id="pin-title" className="text-[22px] font-semibold tracking-[-0.02em]">
           {mode === "setup" ? "Create your PIN" : "Enter your PIN"}
         </h2>
-        <p className="text-muted mx-auto max-w-70 text-sm leading-relaxed">
+        <p className="text-ink-muted mx-auto max-w-70 text-sm leading-relaxed">
           {mode === "setup"
             ? "Six digits, separate from your Google login. It cannot be recovered in this version."
             : "Six digits to open your private space."}
@@ -92,7 +92,7 @@ export function PinPad({ mode, action }: Props) {
         ))}
       </div>
 
-      <p role="alert" aria-live="polite" className="text-danger min-h-5 text-center text-sm">
+      <p role="alert" aria-live="polite" className="text-negative min-h-5 text-center text-sm">
         {message}
       </p>
 
@@ -107,7 +107,7 @@ export function PinPad({ mode, action }: Props) {
               onClick={() => press(key)}
               disabled={pending}
               aria-label={key === "back" ? "Delete digit" : `Digit ${key}`}
-              className="bg-surface-raised text-text ease-spring hover:bg-line grid size-16 place-items-center rounded-full text-2xl font-medium transition-all duration-200 active:scale-90 disabled:opacity-50 sm:size-18"
+              className="bg-ink/5 text-ink ease-spring hover:bg-line grid size-16 place-items-center rounded-full text-2xl font-medium transition-all duration-200 active:scale-90 disabled:opacity-50 sm:size-18"
             >
               {key === "back" ? <Delete aria-hidden className="size-5" strokeWidth={1.75} /> : key}
             </button>
