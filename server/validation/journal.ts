@@ -1,17 +1,19 @@
+// server/validation/journal.ts
 import { z } from "zod";
+import { JOURNAL_KINDS } from "@/domain/journal/kinds";
+import { isValidIsoDate } from "@/domain/time/local-date";
 
-export const JOURNAL_KINDS = ["DAILY", "LEARNING", "ENGLISH", "COURSE", "FREE"] as const;
-export type JournalKind = (typeof JOURNAL_KINDS)[number];
+export { JOURNAL_KINDS, type JournalKind } from "@/domain/journal/kinds";
 
-const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must use YYYY-MM-DD");
+const IsoDate = z.string().refine(isValidIsoDate, "Date must be a real calendar date");
 
 export const CreateJournalInput = z
   .object({
     logDate: IsoDate,
     kind: z.enum(JOURNAL_KINDS),
-    title: z.string().trim().max(120),
-    body: z.string().trim().min(1, "Write at least one line").max(20_000),
+    title: z.string().trim().max(120).default(""),
+    body: z.string().trim().min(1).max(20000),
   })
   .strict();
 
-export type CreateJournalParams = z.infer<typeof CreateJournalInput>;
+export const DeleteJournalInput = z.object({ entryId: z.uuid() }).strict();

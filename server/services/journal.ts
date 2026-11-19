@@ -1,4 +1,6 @@
+// server/services/journal.ts
 import "server-only";
+import { env } from "@/server/config/env";
 import { withUser } from "@/server/db/tx";
 import {
   insertJournalEntry,
@@ -7,8 +9,8 @@ import {
   listLearningEntries,
   softDeleteJournalEntry,
 } from "@/server/db/repositories/journal";
-import { DomainError } from "./errors";
-import { CreateJournalInput } from "@/server/validation/journal";
+import { CreateJournalInput, DeleteJournalInput } from "@/server/validation/journal";
+import type { JournalKind } from "@/domain/journal/kinds";
 import {
   bestStreak,
   currentStreak,
@@ -18,6 +20,50 @@ import {
   type LearningDay,
 } from "@/domain/scoring/streak";
 import { localIsoDate } from "@/domain/time/local-date";
+import { DomainError } from "./errors";
+import { parse } from "./parse";
+
+export interface JournalEntryDto {
+  readonly id: string;
+  readonly logDate: string;
+  readonly kind: JournalKind;
+  readonly title: string | null;
+  readonly body: string;
+  readonly createdAt: string;
+  /** True when the entry was written more than one day after its log date. Marked, never rejected. */
+  readonly late: boolean;
+}
+
+export interface LearningStreakView {
+  readonly current: number;
+  readonly best: number;
+  readonly level: FireLevel;
+  readonly todayComplete: boolean;
+  /** Complete days whose LEARNING entry was written more than one day after its date. */
+  readonly lateDays: number;
+}
+
+/** Entries of one day, optionally filtered by kind. A day is small, so no pagination. */
+export async function listJournalDay(
+  userId: string,
+  logDate: string,
+  kind?: JournalKind,
+): Promise<JournalEntryDto[]> {
+  return withUser(userId, async (tx) => {
+    const rows = await listJournalForDate(tx, userId, logDate);
+    return rows
+      .filter((row) => kind === undefined || row.kind === kind)
+      .map((row) => ({
+        id: row.id,
+        logDate: row.logDate,
+        kind: row.kind as JournalKind,
+        title: row.title,
+        body: row.body,
+        createdAt: row.createdAt.toISOString(),
+        late: isLateEntry(row.logDate, localIsoDate(row.createdAt, env.DEFAULT_TIMEZONE)),
+      }));
+  });
+}
 
 export async function createJournalEntry(userId: string, input: unknown): Promise<string> {
   const parsed = parse(CreateJournalInput, input);
@@ -32,24 +78,12 @@ export async function createJournalEntry(userId: string, input: unknown): Promis
   );
 }
 
-export async function deleteJournalEntry(userId: string, entryId: string): Promise<void> {
+export async function deleteJournalEntry(userId: string, input: unknown): Promise<void> {
+  const parsed = parse(DeleteJournalInput, input);
   await withUser(userId, async (tx) => {
-    const removed = await softDeleteJournalEntry(tx, userId, entryId);
+    const removed = await softDeleteJournalEntry(tx, userId, parsed.entryId);
     if (!removed) throw new DomainError("NOT_FOUND", "Journal entry not found");
   });
-}
-
-export async function getJournalForDate(userId: string, logDate: string) {
-  return withUser(userId, (tx) => listJournalForDate(tx, userId, logDate));
-}
-
-export interface LearningStreakView {
-  current: number;
-  best: number;
-  level: FireLevel;
-  todayComplete: boolean;
-  /** Complete days whose LEARNING entry was written more than one day after its date. */
-  lateDays: number;
 }
 
 /**
@@ -82,22 +116,14 @@ export async function getLearningStreak(
       .map((date) => ({ date, complete: blockSet.has(date) && lateByDate.has(date) }));
 
     const current = currentStreak(days, today);
-    const lateDays = days.filter((d) => d.complete && lateByDate.get(d.date) === true).length;
+    const lateDays = days.filter((day) => day.complete && lateByDate.get(day.date) === true).length;
 
     return {
       current,
       best: bestStreak(days),
       level: fireLevel(current),
-      todayComplete: days.some((d) => d.date === today && d.complete),
+      todayComplete: days.some((day) => day.date === today && day.complete),
       lateDays,
     };
   });
-}
-
-function parse<T>(schema: { parse: (value: unknown) => T }, value: unknown): T {
-  try {
-    return schema.parse(value);
-  } catch {
-    throw new DomainError("VALIDATION_FAILED", "Input is invalid");
-  }
 }

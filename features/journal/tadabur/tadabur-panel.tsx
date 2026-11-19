@@ -17,11 +17,14 @@ import { useDeleteTadabur, useTadaburList, type TadaburFilters } from "./use-tad
 export function TadaburPanel({
   userId,
   today,
+  filters,
+  onFiltersChange,
 }: {
   readonly userId: string;
   readonly today: string;
+  readonly filters: TadaburFilters;
+  readonly onFiltersChange: (next: TadaburFilters) => void;
 }) {
-  const [filters, setFilters] = useState<TadaburFilters>({});
   const list = useTadaburList(userId, filters);
   const remove = useDeleteTadabur(userId);
 
@@ -34,7 +37,7 @@ export function TadaburPanel({
   const filtersActive = Boolean(filters.from || filters.to || filters.surah);
 
   const setFilter = (key: keyof TadaburFilters, value: string) =>
-    setFilters((current) => ({ ...current, [key]: value === "" ? undefined : value }));
+    onFiltersChange({ ...filters, [key]: value === "" ? undefined : value });
 
   const onDelete = (entryId: string) => {
     if (confirmId !== entryId) {
@@ -96,7 +99,7 @@ export function TadaburPanel({
       </div>
 
       {filtersActive && (
-        <Button variant="ghost" size="sm" onClick={() => setFilters({})}>
+        <Button variant="ghost" size="sm" onClick={() => onFiltersChange({})}>
           {t("tadabur.filter.clear")}
         </Button>
       )}

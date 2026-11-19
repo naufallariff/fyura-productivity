@@ -1,24 +1,24 @@
+// features/journal/actions.ts
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { runAction, type ActionResult } from "@/server/api/action";
+import { consumeRateLimit } from "@/server/api/rate-limit";
 import { requireUser } from "@/server/auth/session";
 import { createJournalEntry, deleteJournalEntry } from "@/server/services/journal";
 
-export async function saveJournalAction(formData: FormData): Promise<void> {
+export async function createJournalAction(input: unknown): Promise<ActionResult<string>> {
   const user = await requireUser();
-  await createJournalEntry(user.id, {
-    logDate: formData.get("logDate"),
-    kind: formData.get("kind"),
-    title: formData.get("title") ?? "",
-    body: formData.get("body"),
+  return runAction(async () => {
+    await consumeRateLimit(user.id, "write");
+    return createJournalEntry(user.id, input);
   });
-  revalidatePath("/journal");
-  revalidatePath("/dashboard");
 }
 
-export async function deleteJournalAction(formData: FormData): Promise<void> {
+export async function deleteJournalAction(input: unknown): Promise<ActionResult<null>> {
   const user = await requireUser();
-  await deleteJournalEntry(user.id, String(formData.get("entryId") ?? ""));
-  revalidatePath("/journal");
-  revalidatePath("/dashboard");
+  return runAction(async () => {
+    await consumeRateLimit(user.id, "write");
+    await deleteJournalEntry(user.id, input);
+    return null;
+  });
 }
