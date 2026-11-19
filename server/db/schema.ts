@@ -739,12 +739,13 @@ export const reviewCards = pgTable(
     index("review_cards_user_due_idx")
       .on(t.userId, t.dueOn)
       .where(sql`${t.archivedAt} is null`),
-    // Cascade, not set null: a composite set null would also clear user_id, which is NOT NULL.
+    // No cascade. Deleting an item first detaches its review cards (see purgeItem in the
+    // learning service), so the cards keep their SM-2 history as standalone cards.
     foreignKey({
       name: "review_cards_item_owner_fk",
       columns: [t.itemId, t.userId],
       foreignColumns: [learningItems.id, learningItems.userId],
-    }).onDelete("cascade"),
+    }),
     check("review_cards_prompt_chk", sql`char_length(${t.prompt}) between 1 and 500`),
     check("review_cards_ef_chk", sql`${t.ef} >= 1.3`),
     check("review_cards_counters_chk", sql`${t.intervalDays} >= 0 and ${t.repetitions} >= 0`),

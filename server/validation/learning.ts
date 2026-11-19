@@ -100,3 +100,5 @@ export const DueQuery = z
     limit: z.coerce.number().int().min(1).max(50).default(25),
   })
   .strict();
+
+export const PurgeItemInput = z.object({ itemId: Uuid }).strict();

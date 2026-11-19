@@ -21,6 +21,8 @@ import {
   updateSubjectRow,
   upsertProgress,
   lockReviewCard,
+  detachReviewCards,
+  deleteItemRow,
   type ItemPosition,
   type ItemRow,
   type ReviewRow,
@@ -36,6 +38,7 @@ import {
   SubmitReviewInput,
   UpdateItemInput,
   UpdateSubjectInput,
+  PurgeItemInput,
 } from "@/server/validation/learning";
 import {
   WIP_LIMIT,
@@ -315,6 +318,31 @@ export async function logProgress(
       await updateItemRow(tx, userId, item.id, { status: "ACTIVE" });
     }
     return { completedUnits: completed };
+  });
+}
+
+/**
+ * Permanent deletion. Only archived items can be purged, so an accidental click never
+ * destroys data directly. Review cards are detached first, because the foreign key does
+ * not cascade to them.
+ */
+export async function purgeItem(
+  userId: string,
+  input: unknown,
+): Promise<{ detachedCards: number }> {
+  const parsed = parse(PurgeItemInput, input);
+
+  return withUser(userId, async (tx) => {
+    const item = await selectItem(tx, userId, parsed.itemId);
+    if (!item) throw new DomainError("NOT_FOUND", "Item not found");
+    if (item.status !== "ARCHIVED") {
+      throw new DomainError("CONFLICT", "Archive the item before deleting it permanently");
+    }
+
+    const detachedCards = await detachReviewCards(tx, userId, item.id);
+    const removed = await deleteItemRow(tx, userId, item.id);
+    if (!removed) throw new DomainError("NOT_FOUND", "Item not found");
+    return { detachedCards };
   });
 }
 

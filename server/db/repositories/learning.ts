@@ -266,3 +266,22 @@ export async function selectDueCards(
     .orderBy(asc(reviewCards.dueOn), asc(reviewCards.id))
     .limit(limit);
 }
+
+/** Detaches every review card of an item. The card and its SM-2 history stay. */
+export async function detachReviewCards(tx: Tx, userId: string, itemId: string): Promise<number> {
+  const rows = await tx
+    .update(reviewCards)
+    .set({ itemId: null, updatedAt: new Date() })
+    .where(and(eq(reviewCards.userId, userId), eq(reviewCards.itemId, itemId)))
+    .returning({ id: reviewCards.id });
+  return rows.length;
+}
+
+/** Deletes the item row. Progress rows go with it through the cascade foreign key. */
+export async function deleteItemRow(tx: Tx, userId: string, itemId: string): Promise<boolean> {
+  const removed = await tx
+    .delete(learningItems)
+    .where(and(eq(learningItems.userId, userId), eq(learningItems.id, itemId)))
+    .returning({ id: learningItems.id });
+  return removed.length === 1;
+}

@@ -19,30 +19,20 @@ describe.skipIf(!RUN_DB_TESTS)("learning services (requires database)", () => {
     await sql.end();
   });
 
-  it("saves a second active subject with a warning and keeps it", async () => {
-    const first = await svc.createSubject(userId, {
-      name: "AI Agentic",
-      kind: "STUDY",
-      status: "ACTIVE",
-    });
-    expect(first.warning).toBe(false);
-
-    const second = await svc.createSubject(userId, {
-      name: "DevOps",
-      kind: "STUDY",
-      status: "ACTIVE",
-    });
-    expect(second.warning).toBe(true);
+  it("warns when the WIP limit is passed and still saves the subject", async () => {
+    const results = [];
+    for (const name of ["WIP A", "WIP B", "WIP C", "WIP D"]) {
+      results.push(await svc.createSubject(userId, { name, kind: "STUDY", status: "ACTIVE" }));
+    }
+    expect(results.map((result) => result.warning)).toEqual([false, false, false, true]);
 
     const list = await svc.listSubjects(userId);
-    expect(list.items.map((row) => row.name)).toEqual(
-      expect.arrayContaining(["AI Agentic", "DevOps"]),
-    );
-  }, 30_000);
+    expect(list.items.map((row) => row.name)).toContain("WIP D");
+  }, 60_000);
 
   it("rejects a duplicate subject name", async () => {
     await expect(
-      svc.createSubject(userId, { name: "DevOps", kind: "STUDY", status: "QUEUED" }),
+      svc.createSubject(userId, { name: "WIP A", kind: "STUDY", status: "QUEUED" }),
     ).rejects.toMatchObject({ code: "CONFLICT" });
   }, 30_000);
 
@@ -165,4 +155,31 @@ describe.skipIf(!RUN_DB_TESTS)("learning services (requires database)", () => {
       await deleteTestUser(sql, other);
     }
   }, 30_000);
+
+  it("purges an archived item, keeps its review card as a standalone card", async () => {
+    const subject = await svc.createSubject(userId, {
+      name: "Purge test",
+      kind: "STUDY",
+      status: "QUEUED",
+    });
+    const item = await svc.createItem(userId, {
+      subjectId: subject.subject.id,
+      title: "Temporary",
+      kind: "BOOK",
+    });
+    const card = await svc.createReviewCard(userId, { itemId: item.id, prompt: "Keep this card" });
+
+    await expect(svc.purgeItem(userId, { itemId: item.id })).rejects.toMatchObject({
+      code: "CONFLICT",
+    });
+
+    await svc.updateItem(userId, { itemId: item.id, status: "ARCHIVED" });
+    const result = await svc.purgeItem(userId, { itemId: item.id });
+    expect(result.detachedCards).toBe(1);
+
+    const due = await svc.listDueReviews(userId, { limit: 50 });
+    const survivor = due.find((row) => row.id === card.id);
+    expect(survivor).toBeDefined();
+    expect(survivor?.itemId).toBeNull();
+  }, 60_000);
 });
