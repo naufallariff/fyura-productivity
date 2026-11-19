@@ -1,20 +1,44 @@
-import { GraduationCap } from "lucide-react";
+// app/(app)/learning/page.tsx
+import { Suspense } from "react";
+import { connection } from "next/server";
 import { PageFrame, PageHeader } from "@/components/shell/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
+import { PageSkeleton } from "@/components/ui/skeleton";
+import { LearningTabs, type LearningTab } from "@/features/learning/learning-tabs";
+import { MaterialsPanel } from "@/features/learning/materials-panel";
+import { ReviewsPanel } from "@/features/learning/reviews-panel";
+import { localIsoDate } from "@/domain/time/local-date";
 import { t } from "@/lib/i18n";
+import { requireUser } from "@/server/auth/session";
+import { env } from "@/server/config/env";
 
-export default function LearningPage() {
+type SearchParams = Promise<{ tab?: string | string[] }>;
+
+export default function LearningPage({ searchParams }: { searchParams: SearchParams }) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <LearningContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function LearningContent({ searchParams }: { searchParams: SearchParams }) {
+  await connection();
+  const user = await requireUser();
+  const params = await searchParams;
+  const tab: LearningTab = params.tab === "ulasan" ? "ulasan" : "materi";
+  const today = localIsoDate(new Date(), env.DEFAULT_TIMEZONE);
+
   return (
     <PageFrame>
       <PageHeader title={t("learning.title")} lead={t("learning.lead")} />
-      <section className="glass">
-        <EmptyState
-          icon={GraduationCap}
-          title={t("module.comingTitle")}
-          body={t("module.comingBody")}
-          hue="indigo"
-        />
-      </section>
+      <div className="mb-6">
+        <LearningTabs active={tab} />
+      </div>
+      {tab === "materi" ? (
+        <MaterialsPanel userId={user.id} today={today} />
+      ) : (
+        <ReviewsPanel userId={user.id} />
+      )}
     </PageFrame>
   );
 }

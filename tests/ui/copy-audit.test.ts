@@ -10,6 +10,7 @@ const ROOTS = [
   "features/weekly-plan",
   "features/projects",
   "features/journal/tadabur",
+  "features/learning",
   "app/(app)/daily-tracker",
   "app/(app)/projects",
 ];
