@@ -87,6 +87,7 @@ export const MoveCardInput = z
     listId: Uuid,
     beforeId: Neighbour,
     afterId: Neighbour,
+    // With no neighbours, TOP puts the card first and BOTTOM puts it last, computed on the server.
     placement: z.enum(["TOP", "BOTTOM"]).optional(),
   })
   .strict();

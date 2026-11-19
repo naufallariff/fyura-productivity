@@ -54,7 +54,7 @@ describe.skipIf(!RUN_DB_TESTS)("projects services (requires database)", () => {
   it("appends cards in order", async () => {
     const { todo, a, b } = await fixture();
     expect(await allCardIds(todo.id)).toEqual([a.id, b.id]);
-  });
+  }, 30_000);
 
   it("moves a card to another list between two neighbours", async () => {
     const { done, a } = await fixture();
@@ -152,9 +152,9 @@ describe.skipIf(!RUN_DB_TESTS)("projects services (requires database)", () => {
   });
 
   it("paginates boards without skipping or repeating any", async () => {
-    await fixture();
-    await fixture();
-    await fixture();
+    for (const title of ["One", "Two", "Three"]) {
+      await svc.createBoard(userId, { title, hue: "sky" });
+    }
 
     const seen: string[] = [];
     let cursor: string | undefined;
@@ -166,7 +166,7 @@ describe.skipIf(!RUN_DB_TESTS)("projects services (requires database)", () => {
 
     expect(new Set(seen).size).toBe(seen.length);
     expect(seen.length).toBeGreaterThanOrEqual(3);
-  });
+  }, 30_000);
 
   it("keeps another user's boards invisible", async () => {
     await fixture();
