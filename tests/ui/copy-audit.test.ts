@@ -8,7 +8,9 @@ const ROOTS = [
   "lib/i18n/messages",
   "features/daily-tracker",
   "features/weekly-plan",
+  "features/projects",
   "app/(app)/daily-tracker",
+  "app/(app)/projects",
 ];
 const EXTENSIONS = [".ts", ".tsx", ".json"];
 
