@@ -620,5 +620,140 @@ export const careerActivities = pgTable(
   ],
 );
 
+/* ---------- Learning ---------- */
+
+export const subjects = pgTable(
+  "subjects",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    kind: text("kind").notNull().default("STUDY"),
+    status: text("status").notNull().default("QUEUED"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("subjects_id_user_uq").on(t.id, t.userId),
+    uniqueIndex("subjects_user_name_uq").on(t.userId, t.name),
+    index("subjects_user_status_idx").on(t.userId, t.status),
+    check("subjects_name_chk", sql`char_length(${t.name}) between 1 and 80`),
+    check("subjects_kind_chk", sql`${t.kind} in ('STUDY', 'LANGUAGE', 'FAITH')`),
+    check("subjects_status_chk", sql`${t.status} in ('QUEUED', 'ACTIVE', 'ARCHIVED')`),
+  ],
+);
+
+export const learningItems = pgTable(
+  "learning_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    subjectId: uuid("subject_id").notNull(),
+    title: text("title").notNull(),
+    kind: text("kind").notNull().default("BOOK"),
+    sourceUrl: text("source_url"),
+    totalUnits: integer("total_units"),
+    status: text("status").notNull().default("QUEUED"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // Target of the composite foreign keys from reading_progress and review_cards.
+    uniqueIndex("learning_items_id_user_uq").on(t.id, t.userId),
+    index("learning_items_user_subject_idx").on(t.userId, t.subjectId, t.status),
+    foreignKey({
+      name: "learning_items_subject_owner_fk",
+      columns: [t.subjectId, t.userId],
+      foreignColumns: [subjects.id, subjects.userId],
+    }).onDelete("cascade"),
+    check("learning_items_title_chk", sql`char_length(${t.title}) between 1 and 160`),
+    check("learning_items_kind_chk", sql`${t.kind} in ('BOOK', 'COURSE', 'RESEARCH')`),
+    check(
+      "learning_items_status_chk",
+      sql`${t.status} in ('QUEUED', 'ACTIVE', 'DONE', 'ARCHIVED')`,
+    ),
+    check(
+      "learning_items_units_chk",
+      sql`${t.totalUnits} is null or ${t.totalUnits} between 1 and 100000`,
+    ),
+    check(
+      "learning_items_url_chk",
+      sql`${t.sourceUrl} is null or (char_length(${t.sourceUrl}) <= 2000 and ${t.sourceUrl} like 'https://%')`,
+    ),
+  ],
+);
+
+export const readingProgress = pgTable(
+  "reading_progress",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    itemId: uuid("item_id").notNull(),
+    logDate: date("log_date", { mode: "string" }).notNull(),
+    units: integer("units").notNull().default(0),
+    minutes: integer("minutes").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // One row per item and day. The upsert in the repository depends on this index.
+    uniqueIndex("reading_progress_item_day_uq").on(t.itemId, t.logDate),
+    index("reading_progress_user_day_idx").on(t.userId, t.logDate),
+    foreignKey({
+      name: "reading_progress_item_owner_fk",
+      columns: [t.itemId, t.userId],
+      foreignColumns: [learningItems.id, learningItems.userId],
+    }).onDelete("cascade"),
+    check("reading_progress_units_chk", sql`${t.units} between 0 and 100000`),
+    check("reading_progress_minutes_chk", sql`${t.minutes} between 0 and 1440`),
+  ],
+);
+
+export const reviewCards = pgTable(
+  "review_cards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // Nullable: a card may stand alone. When it belongs to an item, both columns are checked together.
+    itemId: uuid("item_id"),
+    prompt: text("prompt").notNull(),
+    ef: doublePrecision("ef").notNull().default(2.5),
+    intervalDays: integer("interval_days").notNull().default(0),
+    repetitions: integer("repetitions").notNull().default(0),
+    dueOn: date("due_on", { mode: "string" }).notNull(),
+    lastQuality: integer("last_quality"),
+    lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("review_cards_user_due_idx")
+      .on(t.userId, t.dueOn)
+      .where(sql`${t.archivedAt} is null`),
+    // Cascade, not set null: a composite set null would also clear user_id, which is NOT NULL.
+    foreignKey({
+      name: "review_cards_item_owner_fk",
+      columns: [t.itemId, t.userId],
+      foreignColumns: [learningItems.id, learningItems.userId],
+    }).onDelete("cascade"),
+    check("review_cards_prompt_chk", sql`char_length(${t.prompt}) between 1 and 500`),
+    check("review_cards_ef_chk", sql`${t.ef} >= 1.3`),
+    check("review_cards_counters_chk", sql`${t.intervalDays} >= 0 and ${t.repetitions} >= 0`),
+    check(
+      "review_cards_quality_chk",
+      sql`${t.lastQuality} is null or ${t.lastQuality} between 0 and 5`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
