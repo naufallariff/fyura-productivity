@@ -29,6 +29,20 @@
       "when": 1795077191151,
       "tag": "0003_rls_capture_tadabur",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795080537186,
+      "tag": "0004_fast_whiplash",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795080564549,
+      "tag": "0005_rls_career",
+      "breakpoints": true
     }
   ]
 }

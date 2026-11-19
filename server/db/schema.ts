@@ -522,5 +522,103 @@ export const tadaburEntries = pgTable(
   ],
 );
 
+/* ---------- Career ---------- */
+
+export const jobs = pgTable(
+  "jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    company: text("company").notNull(),
+    role: text("role").notNull(),
+    source: text("source"),
+    link: text("link"),
+    status: text("status").notNull().default("APPLIED"),
+    appliedAt: date("applied_at", { mode: "string" }),
+    nextAction: text("next_action"),
+    nextActionDate: date("next_action_date", { mode: "string" }),
+    salaryInfo: text("salary_info"),
+    notes: text("notes"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // Target of the composite foreign key from job_events.
+    uniqueIndex("jobs_id_user_uq").on(t.id, t.userId),
+    index("jobs_user_active_idx")
+      .on(t.userId, t.updatedAt, t.id)
+      .where(sql`${t.archivedAt} is null`),
+    index("jobs_user_next_idx")
+      .on(t.userId, t.nextActionDate)
+      .where(sql`${t.archivedAt} is null and ${t.nextActionDate} is not null`),
+    check("jobs_company_chk", sql`char_length(${t.company}) between 1 and 120`),
+    check("jobs_role_chk", sql`char_length(${t.role}) between 1 and 120`),
+    check(
+      "jobs_status_chk",
+      sql`${t.status} in ('APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'REJECTED', 'GHOSTED', 'WITHDRAWN')`,
+    ),
+    check("jobs_link_chk", sql`${t.link} is null or char_length(${t.link}) <= 2000`),
+    check("jobs_notes_chk", sql`${t.notes} is null or char_length(${t.notes}) <= 10000`),
+  ],
+);
+
+export const jobEvents = pgTable(
+  "job_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    jobId: uuid("job_id").notNull(),
+    fromStatus: text("from_status"),
+    toStatus: text("to_status").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("job_events_job_time_idx").on(t.jobId, t.occurredAt),
+    // The event must belong to a job of the same user. The database enforces it.
+    foreignKey({
+      name: "job_events_job_owner_fk",
+      columns: [t.jobId, t.userId],
+      foreignColumns: [jobs.id, jobs.userId],
+    }).onDelete("cascade"),
+    check(
+      "job_events_to_chk",
+      sql`${t.toStatus} in ('APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'REJECTED', 'GHOSTED', 'WITHDRAWN')`,
+    ),
+    check(
+      "job_events_from_chk",
+      sql`${t.fromStatus} is null or ${t.fromStatus} in ('APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'REJECTED', 'GHOSTED', 'WITHDRAWN')`,
+    ),
+  ],
+);
+
+export const careerActivities = pgTable(
+  "career_activities",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    activityDate: date("activity_date", { mode: "string" }).notNull(),
+    kind: text("kind").notNull(),
+    count: integer("count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // One row per user, day, and kind. Upserts depend on this index.
+    uniqueIndex("career_activities_day_kind_uq").on(t.userId, t.activityDate, t.kind),
+    check(
+      "career_activities_kind_chk",
+      sql`${t.kind} in ('APPLY', 'FOLLOW_UP', 'NETWORKING', 'REMOTE_COMMUNITY', 'OTHER')`,
+    ),
+    check("career_activities_count_chk", sql`${t.count} between 0 and 1000`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
