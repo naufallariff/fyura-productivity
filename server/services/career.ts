@@ -287,11 +287,15 @@ export async function getActivityRange(userId: string, input: unknown) {
 
 /* ---------- Summary ---------- */
 
-/** Job counts by status for active jobs, and how many open jobs need a follow-up. */
+/**
+ * Job counts by status for active jobs, and how many open jobs need a follow-up.
+ * Dates are taken in the caller's time zone.
+ */
 export async function careerSummary(
   userId: string,
+  timeZone: string,
 ): Promise<{ counts: Record<JobStatus, number>; followUp: number }> {
-  const today = todayIso();
+  const today = localIsoDate(new Date(), timeZone);
 
   return withUser(userId, async (tx) => {
     const rows = await listActiveJobsForSummary(tx, userId);
@@ -310,10 +314,7 @@ export async function careerSummary(
     for (const row of rows) {
       const status = asJobStatus(row.status);
       counts[status] += 1;
-      const lastChangedOn = localIsoDate(
-        changes.get(row.id) ?? row.createdAt,
-        env.DEFAULT_TIMEZONE,
-      );
+      const lastChangedOn = localIsoDate(changes.get(row.id) ?? row.createdAt, timeZone);
       if (needsFollowUp(status, lastChangedOn, today)) followUp += 1;
     }
 

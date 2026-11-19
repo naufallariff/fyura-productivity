@@ -79,9 +79,9 @@ describe.skipIf(!RUN_DB_TESTS)("career services (requires database)", () => {
   }, 30_000);
 
   it("counts active jobs by status in the summary", async () => {
-    const before = await svc.careerSummary(userId);
+    const before = await svc.careerSummary(userId, "Asia/Jakarta");
     await svc.createJob(userId, { company: "Delta", role: "Engineer" });
-    const after = await svc.careerSummary(userId);
+    const after = await svc.careerSummary(userId, "Asia/Jakarta");
     expect(after.counts.APPLIED).toBe(before.counts.APPLIED + 1);
   }, 30_000);
 
