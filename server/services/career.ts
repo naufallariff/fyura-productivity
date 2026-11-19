@@ -143,6 +143,20 @@ export async function listJobs(userId: string, input: unknown): Promise<Page<Job
   });
 }
 
+/** Every active job, for the board. The count is bounded in practice, so no pagination. */
+export async function listActiveJobsBoard(userId: string): Promise<JobSummaryDto[]> {
+  const today = todayIso();
+  return withUser(userId, async (tx) => {
+    const rows = await listJobsPage(tx, userId, { archived: false }, null, 500);
+    const changes = await lastStatusChanges(
+      tx,
+      userId,
+      rows.map((row) => row.id),
+    );
+    return rows.map((row) => toSummary(row, changes.get(row.id), today));
+  });
+}
+
 export async function getJob(userId: string, jobId: string): Promise<JobDetailDto> {
   const today = todayIso();
   return withUser(userId, async (tx) => {
