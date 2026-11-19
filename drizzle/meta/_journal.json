@@ -15,6 +15,20 @@
       "when": 1795051140866,
       "tag": "0001_baseline_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795077113111,
+      "tag": "0002_fair_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795077191151,
+      "tag": "0003_rls_capture_tadabur",
+      "breakpoints": true
     }
   ]
 }

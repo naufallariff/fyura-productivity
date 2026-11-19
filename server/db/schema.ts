@@ -446,5 +446,81 @@ export const rateLimits = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.bucket] })],
 );
 
+/* ---------- Capture (ideas) ---------- */
+
+export const ideas = pgTable(
+  "ideas",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body").notNull().default(""),
+    status: text("status").notNull().default("INBOX"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // Target of the composite foreign key from idea_tags.
+    uniqueIndex("ideas_id_user_uq").on(t.id, t.userId),
+    index("ideas_user_updated_idx").on(t.userId, t.updatedAt, t.id),
+    check("ideas_title_chk", sql`char_length(${t.title}) between 1 and 200`),
+    check("ideas_body_chk", sql`char_length(${t.body}) <= 20000`),
+    check("ideas_status_chk", sql`${t.status} in ('INBOX', 'ACTIVE', 'ARCHIVED')`),
+  ],
+);
+
+export const ideaTags = pgTable(
+  "idea_tags",
+  {
+    userId: uuid("user_id").notNull(),
+    ideaId: uuid("idea_id").notNull(),
+    tag: text("tag").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.ideaId, t.tag] }),
+    index("idea_tags_user_tag_idx").on(t.userId, t.tag),
+    // The tag must belong to an idea of the same user. The database enforces it.
+    foreignKey({
+      name: "idea_tags_idea_owner_fk",
+      columns: [t.ideaId, t.userId],
+      foreignColumns: [ideas.id, ideas.userId],
+    }).onDelete("cascade"),
+    check("idea_tags_tag_chk", sql`${t.tag} ~ '^[a-z0-9][a-z0-9-]{0,31}$'`),
+  ],
+);
+
+/* ---------- Tadabur ---------- */
+
+export const tadaburEntries = pgTable(
+  "tadabur_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    logDate: date("log_date", { mode: "string" }).notNull(),
+    surah: integer("surah").notNull(),
+    ayatFrom: integer("ayat_from").notNull(),
+    ayatTo: integer("ayat_to").notNull(),
+    reflection: text("reflection").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("tadabur_user_date_idx")
+      .on(t.userId, t.logDate, t.id)
+      .where(sql`${t.deletedAt} is null`),
+    check("tadabur_surah_chk", sql`${t.surah} between 1 and 114`),
+    check(
+      "tadabur_ayat_chk",
+      sql`${t.ayatFrom} >= 1 and ${t.ayatTo} >= ${t.ayatFrom} and ${t.ayatTo} <= 286`,
+    ),
+    check("tadabur_reflection_chk", sql`char_length(${t.reflection}) between 1 and 10000`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
