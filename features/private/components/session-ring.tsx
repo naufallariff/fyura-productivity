@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { t } from "@/lib/i18n";
 
 const TOTAL_MS = 10 * 60_000;
 const RADIUS = 28;
@@ -9,7 +10,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** Countdown ring for the private session. Shows remaining time and locks at zero. */
+/** Countdown ring for the private session. Sends the user back to unlock at zero. */
 export function SessionRing({ expiresAt }: { expiresAt: number }) {
   const router = useRouter();
   const [now, setNow] = useState<number | null>(null);
@@ -35,7 +36,7 @@ export function SessionRing({ expiresAt }: { expiresAt: number }) {
     <div
       className="relative grid size-16 place-items-center"
       role="timer"
-      aria-label="Time left in private session"
+      aria-label={t("privateSpace.session.timer")}
     >
       <svg viewBox="0 0 64 64" className="absolute inset-0 -rotate-90" aria-hidden>
         <circle cx="32" cy="32" r={RADIUS} className="stroke-accent/15 fill-none" strokeWidth="4" />

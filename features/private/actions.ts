@@ -1,21 +1,27 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/server/auth/auth";
 import { requireUser } from "@/server/auth/session";
+import { env } from "@/server/config/env";
 import { clearPrivateSession, grantPrivateSession } from "@/server/private/cookie";
 import { checkPrivatePin, setPrivatePin } from "@/server/private/gate";
-import { env } from "@/server/config/env";
 import { PRIVATE_COOKIE_NAME, verifyPrivateToken } from "@/server/private/session";
-import { cookies } from "next/headers";
 
-export type PinActionState = { status: "idle" } | { status: "error"; message: string };
+/** The server sends codes only. The UI translates them, so no display text lives here. */
+export type PinErrorCode = "FORMAT" | "ALREADY_SET" | "WRONG" | "LOCKED" | "NO_PIN" | "GENERIC";
 
-const PinSchema = z.string().regex(/^\d{6}$/, "PIN must be exactly 6 digits.");
+export type PinActionState =
+  | { status: "idle" }
+  | { status: "error"; code: PinErrorCode; attemptsLeft?: number; minutes?: number };
 
-function readPin(formData: FormData) {
-  return PinSchema.safeParse(String(formData.get("pin") ?? ""));
+const PinSchema = z.string().regex(/^\d{6}$/);
+
+function readPin(formData: FormData): string | null {
+  const parsed = PinSchema.safeParse(String(formData.get("pin") ?? ""));
+  return parsed.success ? parsed.data : null;
 }
 
 export async function setupPinAction(
@@ -23,16 +29,11 @@ export async function setupPinAction(
   formData: FormData,
 ): Promise<PinActionState> {
   const user = await requireUser();
+  const pin = readPin(formData);
+  if (pin === null) return { status: "error", code: "FORMAT" };
 
-  const parsed = readPin(formData);
-  if (!parsed.success) {
-    return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid PIN." };
-  }
-
-  const created = await setPrivatePin(user.id, parsed.data);
-  if (!created) {
-    return { status: "error", message: "A PIN is already set for this account." };
-  }
+  const created = await setPrivatePin(user.id, pin);
+  if (!created) return { status: "error", code: "ALREADY_SET" };
 
   await grantPrivateSession(user.id);
   redirect("/private");
@@ -43,32 +44,23 @@ export async function unlockPrivateAction(
   formData: FormData,
 ): Promise<PinActionState> {
   const user = await requireUser();
+  const pin = readPin(formData);
+  if (pin === null) return { status: "error", code: "FORMAT" };
 
-  const parsed = readPin(formData);
-  if (!parsed.success) {
-    return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid PIN." };
-  }
-
-  const result = await checkPrivatePin(user.id, parsed.data);
+  const result = await checkPrivatePin(user.id, pin);
 
   switch (result.status) {
     case "ok":
       await grantPrivateSession(user.id);
       redirect("/private");
     case "wrong":
-      return {
-        status: "error",
-        message: `Incorrect PIN. ${result.attemptsLeft} attempt(s) left before a short pause.`,
-      };
+      return { status: "error", code: "WRONG", attemptsLeft: result.attemptsLeft };
     case "locked": {
-      const minutes = Math.ceil((result.until.getTime() - Date.now()) / 60_000);
-      return {
-        status: "error",
-        message: `Too many attempts. Try again in about ${minutes} minute(s).`,
-      };
+      const minutes = Math.max(1, Math.ceil((result.until.getTime() - Date.now()) / 60_000));
+      return { status: "error", code: "LOCKED", minutes };
     }
     case "no-pin":
-      return { status: "error", message: "No PIN is set yet." };
+      return { status: "error", code: "NO_PIN" };
   }
 }
 
