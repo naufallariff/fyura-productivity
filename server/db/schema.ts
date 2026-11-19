@@ -12,6 +12,8 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  doublePrecision,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 
 /* ---------- Identity ---------- */
@@ -252,6 +254,196 @@ export const checklistEntries = pgTable(
     ),
     check("checklist_position_chk", sql`${t.position} >= 0`),
   ],
+);
+
+/* ---------- Projects (Trello-style boards) ---------- */
+
+export const boards = pgTable(
+  "boards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    hue: text("hue").notNull().default("indigo"),
+    starred: boolean("starred").notNull().default(false),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("boards_id_user_uq").on(t.id, t.userId),
+    index("boards_user_active_idx")
+      .on(t.userId, t.updatedAt)
+      .where(sql`${t.archivedAt} is null`),
+    check("boards_title_chk", sql`char_length(${t.title}) between 1 and 80`),
+    check(
+      "boards_hue_chk",
+      sql`${t.hue} in ('sky', 'violet', 'amber', 'rose', 'emerald', 'teal', 'orange', 'indigo')`,
+    ),
+  ],
+);
+
+export const boardLists = pgTable(
+  "board_lists",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    boardId: uuid("board_id").notNull(),
+    title: text("title").notNull(),
+    position: doublePrecision("position").notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("board_lists_id_board_user_uq").on(t.id, t.boardId, t.userId),
+    index("board_lists_board_pos_idx")
+      .on(t.boardId, t.position)
+      .where(sql`${t.archivedAt} is null`),
+    foreignKey({
+      name: "board_lists_board_owner_fk",
+      columns: [t.boardId, t.userId],
+      foreignColumns: [boards.id, boards.userId],
+    }).onDelete("cascade"),
+    check("board_lists_title_chk", sql`char_length(${t.title}) between 1 and 80`),
+  ],
+);
+
+export const boardCards = pgTable(
+  "board_cards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    boardId: uuid("board_id").notNull(),
+    listId: uuid("list_id").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    position: doublePrecision("position").notNull(),
+    dueOn: date("due_on", { mode: "string" }),
+    dueComplete: boolean("due_complete").notNull().default(false),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("board_cards_id_board_user_uq").on(t.id, t.boardId, t.userId),
+    index("board_cards_list_pos_idx")
+      .on(t.listId, t.position)
+      .where(sql`${t.archivedAt} is null`),
+    index("board_cards_board_due_idx")
+      .on(t.boardId, t.dueOn)
+      .where(sql`${t.archivedAt} is null`),
+    foreignKey({
+      name: "board_cards_board_owner_fk",
+      columns: [t.boardId, t.userId],
+      foreignColumns: [boards.id, boards.userId],
+    }).onDelete("cascade"),
+    // The list must belong to the same board as the card. The database enforces it.
+    foreignKey({
+      name: "board_cards_list_board_fk",
+      columns: [t.listId, t.boardId, t.userId],
+      foreignColumns: [boardLists.id, boardLists.boardId, boardLists.userId],
+    }).onDelete("cascade"),
+    check("board_cards_title_chk", sql`char_length(${t.title}) between 1 and 200`),
+    check(
+      "board_cards_description_chk",
+      sql`${t.description} is null or char_length(${t.description}) <= 10000`,
+    ),
+  ],
+);
+
+export const boardLabels = pgTable(
+  "board_labels",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    boardId: uuid("board_id").notNull(),
+    name: text("name").notNull(),
+    hue: text("hue").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("board_labels_id_board_user_uq").on(t.id, t.boardId, t.userId),
+    uniqueIndex("board_labels_board_name_uq").on(t.boardId, t.name),
+    foreignKey({
+      name: "board_labels_board_owner_fk",
+      columns: [t.boardId, t.userId],
+      foreignColumns: [boards.id, boards.userId],
+    }).onDelete("cascade"),
+    check("board_labels_name_chk", sql`char_length(${t.name}) between 1 and 40`),
+    check(
+      "board_labels_hue_chk",
+      sql`${t.hue} in ('sky', 'violet', 'amber', 'rose', 'emerald', 'teal', 'orange', 'indigo')`,
+    ),
+  ],
+);
+
+export const boardCardLabels = pgTable(
+  "board_card_labels",
+  {
+    userId: uuid("user_id").notNull(),
+    boardId: uuid("board_id").notNull(),
+    cardId: uuid("card_id").notNull(),
+    labelId: uuid("label_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.cardId, t.labelId] }),
+    index("board_card_labels_label_idx").on(t.labelId),
+    foreignKey({
+      name: "board_card_labels_card_fk",
+      columns: [t.cardId, t.boardId, t.userId],
+      foreignColumns: [boardCards.id, boardCards.boardId, boardCards.userId],
+    }).onDelete("cascade"),
+    // A label can only be attached to a card on the same board.
+    foreignKey({
+      name: "board_card_labels_label_fk",
+      columns: [t.labelId, t.boardId, t.userId],
+      foreignColumns: [boardLabels.id, boardLabels.boardId, boardLabels.userId],
+    }).onDelete("cascade"),
+  ],
+);
+
+export const boardChecklistItems = pgTable(
+  "board_checklist_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    boardId: uuid("board_id").notNull(),
+    cardId: uuid("card_id").notNull(),
+    title: text("title").notNull(),
+    isDone: boolean("is_done").notNull().default(false),
+    position: doublePrecision("position").notNull(),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("board_checklist_card_idx").on(t.cardId, t.position),
+    foreignKey({
+      name: "board_checklist_card_fk",
+      columns: [t.cardId, t.boardId, t.userId],
+      foreignColumns: [boardCards.id, boardCards.boardId, boardCards.userId],
+    }).onDelete("cascade"),
+    check("board_checklist_title_chk", sql`char_length(${t.title}) between 1 and 200`),
+  ],
+);
+
+/* ---------- Rate limit (fixed window per user and bucket) ---------- */
+
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bucket: text("bucket").notNull(),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.bucket] })],
 );
 
 export type User = typeof users.$inferSelect;
