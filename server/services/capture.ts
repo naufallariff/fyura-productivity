@@ -16,8 +16,8 @@ import {
 } from "@/server/db/repositories/capture";
 import { CreateIdeaInput, IdeasQuery, UpdateIdeaInput } from "@/server/validation/capture";
 import { normalizeTag, normalizeTags } from "@/domain/capture/tags";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
 
 export interface IdeaDto {
   readonly id: string;

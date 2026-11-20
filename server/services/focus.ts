@@ -4,8 +4,8 @@ import { z } from "zod";
 import { withUser, type Tx } from "@/server/db/tx";
 import { insertFocusSession, listRecentFocus, type FocusRow } from "@/server/db/repositories/focus";
 import { placeBlock } from "@/server/services/daily";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
 import {
   countsAsDeepWork,
   elapsedMinutes,

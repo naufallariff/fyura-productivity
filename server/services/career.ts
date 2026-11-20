@@ -3,7 +3,6 @@ import "server-only";
 import { withUser } from "@/server/db/tx";
 import { decodeCursor, toPage, type Page } from "@/server/db/cursor";
 import { definedFields } from "@/server/db/patch";
-import { env } from "@/server/config/env";
 import {
   bumpActivity,
   findJob,
@@ -30,8 +29,9 @@ import {
 import { JOB_STATUSES, asJobStatus, needsFollowUp, type JobStatus } from "@/domain/career/status";
 import { asActivityKind, totalsByKind } from "@/domain/career/activity";
 import { localIsoDate } from "@/domain/time/local-date";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
+import { todayFor } from "@/server/services/user";
 
 export interface JobSummaryDto {
   readonly id: string;
@@ -62,18 +62,19 @@ export interface JobDetailDto extends JobSummaryDto {
   readonly events: JobEventDto[];
 }
 
-function todayIso(): string {
-  return localIsoDate(new Date(), env.DEFAULT_TIMEZONE);
-}
-
 /** Empty text from a form is stored as null, so "no value" has one representation. */
 function blankToNull(value: string): string | null {
   return value === "" ? null : value;
 }
 
-function toSummary(row: JobRow, lastChange: Date | undefined, today: string): JobSummaryDto {
+function toSummary(
+  row: JobRow,
+  lastChange: Date | undefined,
+  timeZone: string,
+  today: string,
+): JobSummaryDto {
   const status = asJobStatus(row.status);
-  const lastChangedOn = localIsoDate(lastChange ?? row.createdAt, env.DEFAULT_TIMEZONE);
+  const lastChangedOn = localIsoDate(lastChange ?? row.createdAt, timeZone);
   return {
     id: row.id,
     company: row.company,
@@ -113,9 +114,9 @@ export async function listJobs(userId: string, input: unknown): Promise<Page<Job
   const query = parse(JobsQuery, input);
   const cursor = decodeCursor(query.cursor);
   const position = cursor ? parseJobCursor(cursor.key) : null;
-  const today = todayIso();
 
   return withUser(userId, async (tx) => {
+    const { timeZone, today } = await todayFor(tx, userId);
     const rows = await listJobsPage(
       tx,
       userId,
@@ -137,29 +138,15 @@ export async function listJobs(userId: string, input: unknown): Promise<Page<Job
       page.items.map((row) => row.id),
     );
     return {
-      items: page.items.map((row) => toSummary(row, changes.get(row.id), today)),
+      items: page.items.map((row) => toSummary(row, changes.get(row.id), timeZone, today)),
       nextCursor: page.nextCursor,
     };
   });
 }
 
-/** Every active job, for the board. The count is bounded in practice, so no pagination. */
-export async function listActiveJobsBoard(userId: string): Promise<JobSummaryDto[]> {
-  const today = todayIso();
-  return withUser(userId, async (tx) => {
-    const rows = await listJobsPage(tx, userId, { archived: false }, null, 500);
-    const changes = await lastStatusChanges(
-      tx,
-      userId,
-      rows.map((row) => row.id),
-    );
-    return rows.map((row) => toSummary(row, changes.get(row.id), today));
-  });
-}
-
 export async function getJob(userId: string, jobId: string): Promise<JobDetailDto> {
-  const today = todayIso();
   return withUser(userId, async (tx) => {
+    const { timeZone, today } = await todayFor(tx, userId);
     const row = await findJob(tx, userId, jobId);
     if (!row) throw new DomainError("NOT_FOUND", "Job not found");
 
@@ -169,7 +156,7 @@ export async function getJob(userId: string, jobId: string): Promise<JobDetailDt
     ]);
 
     return {
-      ...toSummary(row, changes.get(jobId), today),
+      ...toSummary(row, changes.get(jobId), timeZone, today),
       link: row.link,
       salaryInfo: row.salaryInfo,
       notes: row.notes,
@@ -181,9 +168,9 @@ export async function getJob(userId: string, jobId: string): Promise<JobDetailDt
 
 export async function createJob(userId: string, input: unknown): Promise<JobSummaryDto> {
   const parsed = parse(CreateJobInput, input);
-  const today = todayIso();
 
   return withUser(userId, async (tx) => {
+    const { timeZone, today } = await todayFor(tx, userId);
     const row = await insertJob(tx, {
       userId,
       company: parsed.company,
@@ -203,7 +190,21 @@ export async function createJob(userId: string, input: unknown): Promise<JobSumm
       fromStatus: null,
       toStatus: "APPLIED",
     });
-    return toSummary(row, undefined, today);
+    return toSummary(row, undefined, timeZone, today);
+  });
+}
+
+/** Every active job, for the board. The count is bounded in practice, so no pagination. */
+export async function listActiveJobsBoard(userId: string): Promise<JobSummaryDto[]> {
+  return withUser(userId, async (tx) => {
+    const { timeZone, today } = await todayFor(tx, userId);
+    const rows = await listJobsPage(tx, userId, { archived: false }, null, 500);
+    const changes = await lastStatusChanges(
+      tx,
+      userId,
+      rows.map((row) => row.id),
+    );
+    return rows.map((row) => toSummary(row, changes.get(row.id), timeZone, today));
   });
 }
 

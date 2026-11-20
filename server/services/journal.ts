@@ -1,6 +1,5 @@
 // server/services/journal.ts
 import "server-only";
-import { env } from "@/server/config/env";
 import { withUser } from "@/server/db/tx";
 import {
   insertJournalEntry,
@@ -20,8 +19,9 @@ import {
   type LearningDay,
 } from "@/domain/scoring/streak";
 import { localIsoDate } from "@/domain/time/local-date";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
+import { readTimeZone } from "@/server/services/user";
 
 export interface JournalEntryDto {
   readonly id: string;
@@ -50,6 +50,7 @@ export async function listJournalDay(
   kind?: JournalKind,
 ): Promise<JournalEntryDto[]> {
   return withUser(userId, async (tx) => {
+    const timeZone = await readTimeZone(tx, userId);
     const rows = await listJournalForDate(tx, userId, logDate);
     return rows
       .filter((row) => kind === undefined || row.kind === kind)
@@ -60,7 +61,7 @@ export async function listJournalDay(
         title: row.title,
         body: row.body,
         createdAt: row.createdAt.toISOString(),
-        late: isLateEntry(row.logDate, localIsoDate(row.createdAt, env.DEFAULT_TIMEZONE)),
+        late: isLateEntry(row.logDate, localIsoDate(row.createdAt, timeZone)),
       }));
   });
 }

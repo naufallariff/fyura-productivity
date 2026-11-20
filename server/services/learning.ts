@@ -3,7 +3,6 @@ import "server-only";
 import { withUser } from "@/server/db/tx";
 import { decodeCursor, toPage, type Page } from "@/server/db/cursor";
 import { definedFields } from "@/server/db/patch";
-import { env } from "@/server/config/env";
 import {
   completedUnitsByItem,
   countActiveSubjects,
@@ -49,9 +48,9 @@ import {
 } from "@/domain/learning/model";
 import { INITIAL_SM2_STATE, nextSm2State, toQuality } from "@/domain/learning/sm2";
 import { addDays } from "@/domain/time/logical-date";
-import { localIsoDate } from "@/domain/time/local-date";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
+import { todayFor } from "@/server/services/user";
 
 /* ---------- DTOs ---------- */
 
@@ -90,10 +89,6 @@ export interface ReviewDto {
   readonly intervalDays: number;
   readonly repetitions: number;
   readonly lastQuality: number | null;
-}
-
-function todayIso(): string {
-  return localIsoDate(new Date(), env.DEFAULT_TIMEZONE);
 }
 
 /** Empty text from a form is stored as null, so "no value" has one representation. */
@@ -350,9 +345,10 @@ export async function purgeItem(
 
 export async function createReviewCard(userId: string, input: unknown): Promise<ReviewDto> {
   const parsed = parse(CreateReviewInput, input);
-  const today = todayIso();
 
   return withUser(userId, async (tx) => {
+    const { today } = await todayFor(tx, userId);
+
     if (parsed.itemId !== null) {
       const item = await selectItem(tx, userId, parsed.itemId);
       if (!item) throw new DomainError("NOT_FOUND", "Item not found");
@@ -373,9 +369,9 @@ export async function createReviewCard(userId: string, input: unknown): Promise<
 
 export async function listDueReviews(userId: string, input: unknown): Promise<ReviewDto[]> {
   const query = parse(DueQuery, input);
-  const today = todayIso();
 
   return withUser(userId, async (tx) => {
+    const { today } = await todayFor(tx, userId);
     const rows = await selectDueCards(tx, userId, today, query.limit);
     return rows.map(toReviewDto);
   });
@@ -388,9 +384,10 @@ export async function listDueReviews(userId: string, input: unknown): Promise<Re
  */
 export async function submitReview(userId: string, input: unknown): Promise<ReviewDto> {
   const parsed = parse(SubmitReviewInput, input);
-  const today = todayIso();
 
   return withUser(userId, async (tx) => {
+    const { today } = await todayFor(tx, userId);
+
     const card = await lockReviewCard(tx, userId, parsed.cardId);
     if (!card) throw new DomainError("NOT_FOUND", "Review card not found");
     if (card.dueOn > today) throw new DomainError("CONFLICT", "This card is not due yet");

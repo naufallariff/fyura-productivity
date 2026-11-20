@@ -13,8 +13,8 @@ import { doneState, itemsForWeekday } from "@/domain/checklist/rules";
 import { scoreChecklistDay, type ChecklistEntry } from "@/domain/scoring/checklist";
 import { DAY_STATUSES, type DayScore, type DayStatus } from "@/domain/scoring/types";
 import { addDays, isoWeekday } from "@/domain/time/logical-date";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
 import { SetChecklistItemInput } from "@/server/validation/daily-tracker";
 
 export interface ChecklistItemView {

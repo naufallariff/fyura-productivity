@@ -13,10 +13,10 @@ import { calibrationState } from "@/domain/scoring/warmup";
 import { addDays } from "@/domain/time/logical-date";
 import { localIsoDate } from "@/domain/time/local-date";
 import { weekOf } from "@/domain/time/week";
-import { careerSummary } from "./career";
-import { getChecklistScores } from "./checklist";
-import { getLearningStreak } from "./journal";
-import { getUserTimeZone } from "./user";
+import { careerSummary } from "@/server/services/career";
+import { getChecklistScores } from "@/server/services/checklist";
+import { getLearningStreak } from "@/server/services/journal";
+import { getUserTimeZone } from "@/server/services/user";
 
 /**
  * Everything the dashboard shows. Private data is never read here, so nothing from

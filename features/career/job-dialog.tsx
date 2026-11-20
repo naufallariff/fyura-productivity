@@ -19,11 +19,13 @@ export function JobDialog({
   userId,
   jobId,
   creating,
+  today,
   onClose,
 }: {
   readonly userId: string;
   readonly jobId: string | null;
   readonly creating: boolean;
+  readonly today: string;
   readonly onClose: () => void;
 }) {
   const open = creating || jobId !== null;
@@ -36,7 +38,7 @@ export function JobDialog({
     >
       {open && creating && <JobCreateForm userId={userId} onClose={onClose} />}
       {open && !creating && jobId !== null && (
-        <JobEditForm userId={userId} jobId={jobId} onClose={onClose} />
+        <JobEditForm userId={userId} jobId={jobId} today={today} onClose={onClose} />
       )}
     </Dialog>
   );
@@ -101,10 +103,12 @@ function JobCreateForm({
 function JobEditForm({
   userId,
   jobId,
+  today,
   onClose,
 }: {
   readonly userId: string;
   readonly jobId: string;
+  readonly today: string;
   readonly onClose: () => void;
 }) {
   const detail = useJobDetail(userId, jobId);
@@ -116,16 +120,26 @@ function JobEditForm({
       </p>
     );
   }
-  return <JobEditor key={detail.data.id} userId={userId} job={detail.data} onClose={onClose} />;
+  return (
+    <JobEditor
+      key={detail.data.id}
+      userId={userId}
+      job={detail.data}
+      today={today}
+      onClose={onClose}
+    />
+  );
 }
 
 function JobEditor({
   userId,
   job,
+  today,
   onClose,
 }: {
   readonly userId: string;
   readonly job: NonNullable<ReturnType<typeof useJobDetail>["data"]>;
+  readonly today: string;
   readonly onClose: () => void;
 }) {
   const update = useUpdateJob(userId);
@@ -234,7 +248,7 @@ function JobEditor({
         </ol>
       </section>
 
-      <ActivityCounters userId={userId} />
+      <ActivityCounters userId={userId} today={today} />
     </div>
   );
 }

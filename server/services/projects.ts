@@ -57,13 +57,12 @@ import {
   UpdateLabelInput,
   UpdateListInput,
 } from "@/server/validation/projects";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
 import { POSITION_STEP, positionBetween, respacedPositions } from "@/domain/projects/position";
 import { dueState, type DueState } from "@/domain/projects/due";
 import { addDays } from "@/domain/time/logical-date";
-import { localIsoDate } from "@/domain/time/local-date";
-import { env } from "@/server/config/env";
+import { todayFor } from "@/server/services/user";
 
 /* ---------- DTOs (what the client receives) ---------- */
 
@@ -158,12 +157,13 @@ function toChecklistDto(row: ChecklistRow): ChecklistItemDto {
   };
 }
 
-function todayIso(): string {
-  return localIsoDate(new Date(), env.DEFAULT_TIMEZONE);
-}
-
 /** Adds labels and checklist progress to a batch of card rows, using two queries in total. */
-async function hydrateCards(tx: Tx, userId: string, rows: readonly CardRow[]): Promise<CardDto[]> {
+async function hydrateCards(
+  tx: Tx,
+  userId: string,
+  rows: readonly CardRow[],
+  today: string,
+): Promise<CardDto[]> {
   const ids = rows.map((row) => row.id);
   const [links, items] = await Promise.all([
     labelLinksForCards(tx, userId, ids),
@@ -185,7 +185,6 @@ async function hydrateCards(tx: Tx, userId: string, rows: readonly CardRow[]): P
     checklistByCard.set(item.cardId, progress);
   }
 
-  const today = todayIso();
   return rows.map((row) => ({
     id: row.id,
     boardId: row.boardId,
@@ -414,9 +413,9 @@ export async function listCards(
   const query = parse(CardsQuery, input);
   const cursor = decodeCursor(query.cursor);
   const position = cursor ? parseCardCursor(cursor.key) : null;
-  const today = todayIso();
 
   return withUser(userId, async (tx) => {
+    const { today } = await todayFor(tx, userId);
     const list = await findList(tx, userId, listId);
     if (!list) throw new DomainError("NOT_FOUND", "List not found");
 
@@ -440,17 +439,21 @@ export async function listCards(
       key: `${row.position}|${row.id}`,
       id: row.id,
     }));
-    return { items: await hydrateCards(tx, userId, page.items), nextCursor: page.nextCursor };
+    return {
+      items: await hydrateCards(tx, userId, page.items, today),
+      nextCursor: page.nextCursor,
+    };
   });
 }
 
 export async function getCard(userId: string, cardId: string): Promise<CardDetailDto> {
   return withUser(userId, async (tx) => {
+    const { today } = await todayFor(tx, userId);
     const card = await findCard(tx, userId, cardId);
     if (!card) throw new DomainError("NOT_FOUND", "Card not found");
 
     const [dtos, items] = await Promise.all([
-      hydrateCards(tx, userId, [card]),
+      hydrateCards(tx, userId, [card], today),
       checklistForCard(tx, userId, cardId),
     ]);
     const dto = dtos[0];
@@ -468,6 +471,7 @@ export async function createCard(userId: string, input: unknown): Promise<CardDt
   const parsed = parse(CreateCardInput, input);
 
   return withUser(userId, async (tx) => {
+    const { today } = await todayFor(tx, userId);
     const list = await findList(tx, userId, parsed.listId);
     if (!list || list.archivedAt) throw new DomainError("NOT_FOUND", "List not found");
 
@@ -487,7 +491,7 @@ export async function createCard(userId: string, input: unknown): Promise<CardDt
       title: parsed.title,
       position,
     });
-    const [dto] = await hydrateCards(tx, userId, [row]);
+    const [dto] = await hydrateCards(tx, userId, [row], today);
     if (!dto) throw new Error("createCard: hydration returned nothing");
     return dto;
   });

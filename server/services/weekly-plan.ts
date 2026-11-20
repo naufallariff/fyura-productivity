@@ -17,8 +17,8 @@ import {
 } from "@/server/validation/weekly-plan";
 import { toCategory } from "@/domain/categories";
 import type { PlanItem } from "@/domain/plan/types";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
 
 function toDto(row: PlanItemRow): PlanItem {
   return {

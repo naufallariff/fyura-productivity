@@ -14,7 +14,7 @@ import { JobDialog } from "./job-dialog";
 import type { JobSummary } from "./schemas";
 import { useCareerBoard, useUpdateJob } from "./use-career";
 
-export function JobBoard({ userId }: { readonly userId: string }) {
+export function JobBoard({ userId, today }: { readonly userId: string; readonly today: string }) {
   const board = useCareerBoard(userId);
   const [creating, setCreating] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -72,6 +72,7 @@ export function JobBoard({ userId }: { readonly userId: string }) {
         userId={userId}
         jobId={openId}
         creating={creating}
+        today={today}
         onClose={() => {
           setOpenId(null);
           setCreating(false);

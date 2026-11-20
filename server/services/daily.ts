@@ -18,8 +18,8 @@ import {
 } from "@/server/validation/daily";
 import { splitBlock } from "@/domain/time/split-block";
 import type { DayStatus } from "@/domain/scoring/types";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
 
 const idSchema = z.uuid();
 

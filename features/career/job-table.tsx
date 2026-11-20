@@ -17,7 +17,7 @@ import { useJobsTable, type JobFilters } from "./use-career";
 const SELECT =
   "min-h-11 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
-export function JobTable({ userId }: { readonly userId: string }) {
+export function JobTable({ userId, today }: { readonly userId: string; readonly today: string }) {
   const [status, setStatus] = useState("");
   const [archived, setArchived] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -153,7 +153,13 @@ export function JobTable({ userId }: { readonly userId: string }) {
         </div>
       )}
 
-      <JobDialog userId={userId} jobId={openId} creating={false} onClose={() => setOpenId(null)} />
+      <JobDialog
+        userId={userId}
+        jobId={openId}
+        creating={false}
+        today={today}
+        onClose={() => setOpenId(null)}
+      />
     </section>
   );
 }

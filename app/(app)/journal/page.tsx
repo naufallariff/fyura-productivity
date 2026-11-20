@@ -1,4 +1,3 @@
-// app/(app)/journal/page.tsx
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { PageFrame, PageHeader } from "@/components/shell/page-header";
@@ -8,11 +7,11 @@ import { JournalTabs, type JournalTab } from "@/features/journal/journal-tabs";
 import { StreakCard } from "@/features/journal/streak-card";
 import { TadaburTab } from "@/features/journal/tadabur/tadabur-tab";
 import { JOURNAL_KINDS, type JournalKind } from "@/domain/journal/kinds";
-import { isValidIsoDate, localIsoDate } from "@/domain/time/local-date";
+import { isValidIsoDate } from "@/domain/time/local-date";
 import { t } from "@/lib/i18n";
 import { requireUser } from "@/server/auth/session";
-import { env } from "@/server/config/env";
 import { getLearningStreak, listJournalDay } from "@/server/services/journal";
+import { getUserDay } from "@/server/services/user";
 
 type SearchParams = Promise<{
   tab?: string | string[];
@@ -31,9 +30,9 @@ export default function JournalPage({ searchParams }: { searchParams: SearchPara
 async function JournalContent({ searchParams }: { searchParams: SearchParams }) {
   await connection();
   const user = await requireUser();
+  const { timeZone, today } = await getUserDay(user.id);
   const params = await searchParams;
 
-  const today = localIsoDate(new Date(), env.DEFAULT_TIMEZONE);
   const tab: JournalTab = params.tab === "tadabur" ? "tadabur" : "jurnal";
   const rawDate = typeof params.date === "string" ? params.date : "";
   const logDate = isValidIsoDate(rawDate) ? rawDate : today;
@@ -48,7 +47,13 @@ async function JournalContent({ searchParams }: { searchParams: SearchParams }) 
       </div>
 
       {tab === "jurnal" ? (
-        <JournalPanel userId={user.id} logDate={logDate} today={today} kind={kind} />
+        <JournalPanel
+          userId={user.id}
+          logDate={logDate}
+          today={today}
+          timeZone={timeZone}
+          kind={kind}
+        />
       ) : (
         <TadaburTab userId={user.id} today={today} />
       )}
@@ -60,16 +65,18 @@ async function JournalPanel({
   userId,
   logDate,
   today,
+  timeZone,
   kind,
 }: {
   readonly userId: string;
   readonly logDate: string;
   readonly today: string;
+  readonly timeZone: string;
   readonly kind: JournalKind | undefined;
 }) {
   const [entries, streak] = await Promise.all([
     listJournalDay(userId, logDate, kind),
-    getLearningStreak(userId, today, env.DEFAULT_TIMEZONE),
+    getLearningStreak(userId, today, timeZone),
   ]);
 
   return (

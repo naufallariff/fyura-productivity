@@ -19,8 +19,8 @@ import {
   UpdateTadaburInput,
 } from "@/server/validation/tadabur";
 import { isValidIsoDate } from "@/domain/time/local-date";
-import { DomainError } from "./errors";
-import { parse } from "./parse";
+import { DomainError } from "@/server/services/errors";
+import { parse } from "@/server/services/parse";
 
 export interface TadaburDto {
   readonly id: string;
