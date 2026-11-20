@@ -12,11 +12,11 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate && node scripts/sort-migration.mjs",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "prepare": "husky",
-    "test:db": "cross-env RUN_DB_TESTS=1 vitest run tests/db"
+    "test:db": "cross-env RUN_DB_TESTS=1 vitest run tests/server/db"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,json,md,css}": [
@@ -24,8 +24,12 @@
     ]
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@node-rs/argon2": "^2.2.2",
     "@sentry/nextjs": "^11.11.0",
+    "@tanstack/react-query": "^5.107.1",
     "dotenv": "^18.0.9",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.70.0",
@@ -38,6 +42,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^22.20.5",
     "@types/react": "^19",
@@ -49,6 +54,7 @@
     "eslint-config-next": "16.4.5",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
+    "postcss": "^8.5.33",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",

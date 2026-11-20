@@ -1,0 +1,301 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import postgres from "postgres";
+import { RUN_DB_TESTS, createTestSql, createTestUser, deleteTestUser } from "./helpers";
+
+describe.skipIf(!RUN_DB_TESTS)("daily services (requires database)", () => {
+  let sql: postgres.Sql;
+  let userId = "";
+  let createTimeBlock: typeof import("@/server/services/daily").createTimeBlock;
+
+  beforeAll(async () => {
+    sql = createTestSql();
+    userId = await createTestUser(sql, "block");
+    ({ createTimeBlock } = await import("@/server/services/daily"));
+  });
+
+  afterAll(async () => {
+    if (userId) await deleteTestUser(sql, userId);
+    await sql.end();
+  });
+
+  // Read rows as the owner of the test user, inside a transaction with app.user_id set.
+  const rowsFor = (uid: string) =>
+    sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${uid}, true)`;
+      return tx<
+        {
+          log_date: string;
+          activity: string;
+          start_minute: number;
+          end_minute: number;
+          split_group_id: string | null;
+          category: string;
+        }[]
+      >`
+            select to_char(log_date, 'YYYY-MM-DD') as log_date,
+                activity, start_minute, end_minute, split_group_id, category
+            from time_blocks
+            where user_id = ${uid} and deleted_at is null
+            order by log_date, start_minute`;
+    });
+
+  it("stores a 23:00 to 01:00 block as two linked rows on two logical days", async () => {
+    await createTimeBlock(userId, {
+      logDate: "2026-10-06",
+      startMinute: 1380,
+      durationMinutes: 120,
+      category: "LEARNING",
+      activity: "Night study",
+      source: "MANUAL",
+    });
+
+    const rows = (await rowsFor(userId)).filter((r) => r.log_date >= "2026-10-06");
+    expect(rows).toHaveLength(2);
+
+    const [tuesday, wednesday] = rows;
+    expect(tuesday).toMatchObject({
+      log_date: "2026-10-06",
+      start_minute: 1380,
+      end_minute: 1440,
+    });
+    expect(wednesday).toMatchObject({
+      log_date: "2026-10-07",
+      start_minute: 0,
+      end_minute: 60,
+    });
+    expect(tuesday?.split_group_id).not.toBeNull();
+    expect(tuesday?.split_group_id).toBe(wednesday?.split_group_id);
+    expect(tuesday?.category).toBe("LEARNING");
+  });
+
+  it("stores a block inside one day without a split group", async () => {
+    await createTimeBlock(userId, {
+      logDate: "2026-10-10",
+      startMinute: 540,
+      durationMinutes: 90,
+      category: "WORK",
+      activity: "Deep work",
+      source: "MANUAL",
+    });
+
+    const rows = (await rowsFor(userId)).filter((r) => r.log_date === "2026-10-10");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.split_group_id).toBeNull();
+  });
+
+  it("rejects an invalid payload before touching the database", async () => {
+    await expect(
+      createTimeBlock(userId, {
+        logDate: "2026-10-06",
+        startMinute: 1380,
+        durationMinutes: 120,
+        category: "LEARNING",
+        activity: "x",
+        userId: "someone-else",
+      }),
+    ).rejects.toThrow(/invalid/i);
+  });
+
+  it("keeps one user's blocks invisible to another user", async () => {
+    const otherId = await createTestUser(sql, "other");
+    try {
+      const rows = await sql.begin(async (tx) => {
+        await tx`select set_config('app.user_id', ${otherId}, true)`;
+        return tx`select id from time_blocks`;
+      });
+      expect(rows).toHaveLength(0);
+    } finally {
+      await deleteTestUser(sql, otherId);
+    }
+  });
+
+  it("rejects a block that overlaps an existing block on the same day", async () => {
+    await createTimeBlock(userId, {
+      logDate: "2026-10-12",
+      startMinute: 540,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "First",
+      source: "MANUAL",
+    });
+
+    await expect(
+      createTimeBlock(userId, {
+        logDate: "2026-10-12",
+        startMinute: 570,
+        durationMinutes: 60,
+        category: "WORK",
+        activity: "Second",
+        source: "MANUAL",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("moves a block and rejects a move that overlaps another block", async () => {
+    const { moveTimeBlock } = await import("@/server/services/daily");
+
+    const first = await createTimeBlock(userId, {
+      logDate: "2026-10-14",
+      startMinute: 540,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "A",
+      source: "MANUAL",
+    });
+    await createTimeBlock(userId, {
+      logDate: "2026-10-14",
+      startMinute: 720,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "B",
+      source: "MANUAL",
+    });
+
+    await moveTimeBlock(userId, { blockId: first, startMinute: 600, endMinute: 660 });
+    await expect(
+      moveTimeBlock(userId, { blockId: first, startMinute: 700, endMinute: 760 }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("a completed deep session creates a deep work block and counts toward habits", async () => {
+    const { logFocusSession } = await import("@/server/services/focus");
+    const start = new Date("2026-10-25T01:00:00Z");
+    await logFocusSession(userId, {
+      logDate: "2026-10-25",
+      kind: "DEEP",
+      plannedMinutes: 25,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+      startMinute: 600, // <--- Tambahkan ini (misal 600 untuk 10:00)
+    });
+
+    const rows = await sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${userId}, true)`;
+      return tx`select activity, source from time_blocks
+        where user_id = ${userId} and log_date = '2026-10-25' and deleted_at is null`;
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ activity: "Deep work", source: "TIMER" });
+  });
+
+  it("a stopped deep session is recorded but creates no block", async () => {
+    const { logFocusSession } = await import("@/server/services/focus");
+    const start = new Date("2026-10-26T01:00:00Z");
+    await logFocusSession(userId, {
+      logDate: "2026-10-26",
+      kind: "DEEP",
+      plannedMinutes: 50,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 10 * 60_000).toISOString(),
+      startMinute: 180,
+    });
+
+    const rows = await sql.begin(async (tx) => {
+      await tx`select set_config('app.user_id', ${userId}, true)`;
+      return tx`select id from time_blocks
+        where user_id = ${userId} and log_date = '2026-10-26' and deleted_at is null`;
+    });
+    expect(rows).toHaveLength(0);
+  });
+
+  it("counts a learning day only when a learning block and a learning entry both exist", async () => {
+    const { getLearningStreak, createJournalEntry } = await import("@/server/services/journal");
+    await createTimeBlock(userId, {
+      logDate: "2026-10-27",
+      startMinute: 540,
+      durationMinutes: 45,
+      category: "LEARNING",
+      activity: "Reading",
+      source: "MANUAL",
+    });
+
+    const before = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(before.todayComplete).toBe(false);
+
+    await createJournalEntry(userId, {
+      logDate: "2026-10-27",
+      kind: "LEARNING",
+      title: "",
+      body: "Chapter 3 summary",
+    });
+
+    const after = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(after.todayComplete).toBe(true);
+    expect(after.current).toBe(1);
+  });
+
+  it("flags a learning entry written days after its date as late", async () => {
+    const { getLearningStreak } = await import("@/server/services/journal");
+    // The entry above was written today, which is more than one day after 2026-10-27.
+    const streak = await getLearningStreak(userId, "2026-10-27", "Asia/Jakarta");
+    expect(streak.lateDays).toBe(1);
+  });
+
+  it("keeps journal entries invisible to other users", async () => {
+    const { createJournalEntry } = await import("@/server/services/journal");
+    await createJournalEntry(userId, {
+      logDate: "2026-10-28",
+      kind: "DAILY",
+      title: "",
+      body: "Private line",
+    });
+
+    const otherId = await createTestUser(sql, "journal-other");
+    try {
+      const rows = await sql.begin(async (tx) => {
+        await tx`select set_config('app.user_id', ${otherId}, true)`;
+        return tx`select id from journal_entries`;
+      });
+      expect(rows).toHaveLength(0);
+    } finally {
+      await deleteTestUser(sql, otherId);
+    }
+  });
+
+  it("keeps a completed deep session and skips the block when it overlaps", async () => {
+    const { logFocusSession } = await import("@/server/services/focus");
+
+    await createTimeBlock(userId, {
+      logDate: "2026-10-28",
+      startMinute: 600,
+      durationMinutes: 60,
+      category: "WORK",
+      activity: "Existing",
+      source: "MANUAL",
+    });
+
+    const start = new Date("2026-10-28T03:10:00Z");
+    const result = await logFocusSession(userId, {
+      logDate: "2026-10-28",
+      kind: "DEEP",
+      plannedMinutes: 25,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+      startMinute: 610,
+    });
+
+    expect(result).toMatchObject({ completed: true, blockCreated: false });
+  });
+
+  it("splits a deep work block that crosses midnight into two linked rows", async () => {
+    const { logFocusSession } = await import("@/server/services/focus");
+
+    const start = new Date("2026-10-29T16:50:00Z");
+    const result = await logFocusSession(userId, {
+      logDate: "2026-10-30",
+      kind: "DEEP",
+      plannedMinutes: 25,
+      startedAt: start.toISOString(),
+      endedAt: new Date(start.getTime() + 25 * 60_000).toISOString(),
+      startMinute: 1430,
+    });
+    expect(result).toMatchObject({ completed: true, blockCreated: true });
+
+    const rows = await rowsFor(userId);
+    const crossing = rows.filter(
+      (row) => row.activity === "Deep work" && row.log_date >= "2026-10-30",
+    );
+    expect(crossing).toHaveLength(2);
+    expect(crossing[0]?.split_group_id).toBe(crossing[1]?.split_group_id);
+  });
+});

@@ -1,54 +1,26 @@
 import { describe, expect, it } from "vitest";
-import {
-  DEFAULT_SELECTION,
-  ThemeSelectionSchema,
-  resolveMode,
-  themeAttributes,
-} from "@/lib/theme/resolve";
-import { PALETTE_IDS } from "@/lib/theme/palettes";
-import { STYLE_IDS } from "@/lib/theme/styles";
+import { DEFAULT_SELECTION, parseSelection } from "@/lib/theme/resolve";
 
-describe("theme selection", () => {
-  it("defaults to flat, navy, dark", () => {
-    expect(DEFAULT_SELECTION).toEqual({ style: "flat", palette: "navy", mode: "dark" });
-    expect(ThemeSelectionSchema.safeParse(DEFAULT_SELECTION).success).toBe(true);
+describe("parseSelection", () => {
+  it("accepts a valid bundle and mode", () => {
+    expect(parseSelection({ bundle: "sage", mode: "dark" })).toEqual({
+      bundle: "sage",
+      mode: "dark",
+    });
   });
 
-  it("resolves system mode from the OS preference", () => {
-    expect(resolveMode("system", true)).toBe("dark");
-    expect(resolveMode("system", false)).toBe("light");
+  it("falls back to the default for unknown values", () => {
+    expect(parseSelection({ bundle: "rose", mode: "dark" })).toEqual(DEFAULT_SELECTION);
   });
 
-  it("ignores the OS preference when mode is explicit", () => {
-    expect(resolveMode("light", true)).toBe("light");
-    expect(resolveMode("dark", false)).toBe("dark");
-  });
-
-  it("rejects an unknown palette or style", () => {
-    expect(ThemeSelectionSchema.safeParse({ ...DEFAULT_SELECTION, palette: "neon" }).success).toBe(
-      false,
-    );
-    expect(ThemeSelectionSchema.safeParse({ ...DEFAULT_SELECTION, style: "chrome" }).success).toBe(
-      false,
+  it("rejects extra fields instead of ignoring them", () => {
+    expect(parseSelection({ bundle: "ocean", mode: "light", style: "glass" })).toEqual(
+      DEFAULT_SELECTION,
     );
   });
 
-  it("produces valid attributes for every combination of style, palette, and mode", () => {
-    let count = 0;
-    for (const style of STYLE_IDS) {
-      for (const palette of PALETTE_IDS) {
-        for (const mode of ["light", "dark", "system"] as const) {
-          const selection = { style, palette, mode };
-          expect(ThemeSelectionSchema.safeParse(selection).success).toBe(true);
-
-          const attrs = themeAttributes(selection, true);
-          expect(attrs["data-style"]).toBe(style);
-          expect(attrs["data-palette"]).toBe(palette);
-          expect(["light", "dark"]).toContain(attrs["data-mode"]);
-          count++;
-        }
-      }
-    }
-    expect(count).toBe(5 * 6 * 3);
+  it("falls back for null and non-object input", () => {
+    expect(parseSelection(null)).toEqual(DEFAULT_SELECTION);
+    expect(parseSelection("ocean")).toEqual(DEFAULT_SELECTION);
   });
 });

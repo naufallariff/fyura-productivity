@@ -52,3 +52,5 @@ pnpm-debug.log*
 coverage/
 
 roadmap.md
+migrate.log
+tsconfig.tsbuildinfo

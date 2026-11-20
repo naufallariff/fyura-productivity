@@ -5,78 +5,64 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1794212227678,
-      "tag": "0000_absent_rhino",
+      "when": 1795051057283,
+      "tag": "0000_green_lethal_legion",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1794212424444,
-      "tag": "0001_rls_grants_fn",
+      "when": 1795051140866,
+      "tag": "0001_baseline_rls",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1794290173734,
-      "tag": "0002_messy_nehzno",
+      "when": 1795077113111,
+      "tag": "0002_fair_lockheed",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "7",
-      "when": 1794304748840,
-      "tag": "0003_sticky_kingpin",
+      "when": 1795077191151,
+      "tag": "0003_rls_capture_tadabur",
       "breakpoints": true
     },
     {
       "idx": 4,
       "version": "7",
-      "when": 1794304764097,
-      "tag": "0004_rls_daily_tables",
+      "when": 1795080537186,
+      "tag": "0004_fast_whiplash",
       "breakpoints": true
     },
     {
       "idx": 5,
       "version": "7",
-      "when": 1794306625726,
-      "tag": "0005_wonderful_whistler",
+      "when": 1795080564549,
+      "tag": "0005_rls_career",
       "breakpoints": true
     },
     {
       "idx": 6,
       "version": "7",
-      "when": 1794307838655,
-      "tag": "0006_composite_owner_fk",
+      "when": 1795082074815,
+      "tag": "0006_flawless_frightful_four",
       "breakpoints": true
     },
     {
       "idx": 7,
       "version": "7",
-      "when": 1794367239327,
-      "tag": "0007_new_roughhouse",
+      "when": 1795082101145,
+      "tag": "0007_rls_learning",
       "breakpoints": true
     },
     {
       "idx": 8,
       "version": "7",
-      "when": 1794367248832,
-      "tag": "0008_rls_focus_sessions",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1794373320920,
-      "tag": "0009_jittery_wiccan",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1794373338163,
-      "tag": "0010_rls_journal_entries",
+      "when": 1795084674151,
+      "tag": "0008_flimsy_energizer",
       "breakpoints": true
     }
   ]

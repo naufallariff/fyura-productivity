@@ -2,32 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { Ellipsis, X } from "lucide-react";
-import { PRIMARY_NAV, SECONDARY_NAV, isActivePath } from "@/lib/nav/items";
+import { useState } from "react";
+import { Ellipsis } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
 import { t } from "@/lib/i18n";
+import { isActivePath, MOBILE_PRIMARY, NAV_SECTIONS } from "@/lib/nav/sections";
+import { cn } from "@/lib/ui/cn";
+import { SignOutButton } from "./sign-out-button";
 
 export function MobileNav() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const sheet = useRef<HTMLDialogElement>(null);
-
-  // Sync the native dialog with React state. This is an external system (the DOM).
-  useEffect(() => {
-    const dialog = sheet.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const secondary = NAV_SECTIONS.filter((section) => section.id !== "main");
 
   return (
     <>
       <nav
         aria-label={t("nav.primaryLabel")}
-        className="elevated rounded-card border-line bg-surface fixed inset-x-3 bottom-3 z-40 flex items-center justify-around border p-2 md:hidden"
+        className="glass fixed inset-x-3 bottom-3 z-40 flex items-stretch gap-1 p-2 md:hidden"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
-        {PRIMARY_NAV.map((item) => {
+        {MOBILE_PRIMARY.map((item) => {
           const active = isActivePath(pathname, item.href);
           const Icon = item.icon;
           return (
@@ -35,61 +30,71 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`rounded-control ease-spring flex min-h-12 min-w-14 flex-col items-center justify-center gap-1 px-2 text-[11px] font-medium transition-transform duration-200 active:scale-95 ${
-                active ? "text-accent" : "text-muted"
-              }`}
+              className={cn(
+                "rounded-control ease-spring flex min-h-12 min-w-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-transform duration-200 motion-safe:active:scale-95",
+                active ? "text-accent" : "text-ink-muted",
+              )}
             >
               <Icon aria-hidden className="size-5" strokeWidth={1.75} />
-              <span>{t(item.labelKey)}</span>
+              <span className="truncate">{t(item.labelKey)}</span>
             </Link>
           );
         })}
         <button
           type="button"
-          onClick={() => setOpen(true)}
           aria-haspopup="dialog"
-          className="rounded-control text-muted ease-spring flex min-h-12 min-w-14 flex-col items-center justify-center gap-1 px-2 text-[11px] font-medium transition-transform duration-200 active:scale-95"
+          onClick={() => setMoreOpen(true)}
+          className="rounded-control text-ink-muted ease-spring flex min-h-12 min-w-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-transform duration-200 motion-safe:active:scale-95"
         >
           <Ellipsis aria-hidden className="size-5" strokeWidth={1.75} />
-          <span>{t("nav.more")}</span>
+          <span>{t("shell.more")}</span>
         </button>
       </nav>
 
-      <dialog
-        ref={sheet}
-        onClose={() => setOpen(false)}
-        aria-label={t("nav.more")}
-        className="border-line bg-surface text-text m-0 mt-auto w-full max-w-none rounded-t-[28px] border-x-0 border-t border-b-0 p-6 backdrop:bg-black/40 md:hidden"
+      <Dialog
+        open={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        title={t("shell.more")}
+        closeLabel={t("shell.close")}
       >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold">{t("nav.more")}</h2>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label={t("shell.close")}
-            className="bg-surface-raised text-muted grid size-9 place-items-center rounded-full"
-          >
-            <X aria-hidden className="size-4" />
-          </button>
+        <div className="space-y-6">
+          {secondary.map((section) => (
+            <section key={section.id} className="space-y-2">
+              <h3 className="text-ink-muted text-xs font-medium tracking-widest uppercase">
+                {t(section.labelKey)}
+              </h3>
+              <ul className="grid grid-cols-2 gap-2">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setMoreOpen(false)}
+                        className="rounded-control border-line text-ink flex min-h-12 items-center gap-3 border p-3 text-sm font-medium transition-colors duration-200 [background:var(--glass-bg)] hover:[background:var(--accent-soft)]"
+                      >
+                        <Icon aria-hidden className="size-4.5 shrink-0" strokeWidth={1.75} />
+                        <span className="truncate">{t(item.labelKey)}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+
+          <div className="border-line space-y-1 border-t pt-4">
+            <Link
+              href="/settings"
+              onClick={() => setMoreOpen(false)}
+              className="rounded-control text-ink-muted hover:bg-accent-soft hover:text-ink flex min-h-11 items-center gap-3 px-3 text-sm font-medium"
+            >
+              {t("shell.settings")}
+            </Link>
+            <SignOutButton />
+          </div>
         </div>
-        <ul className="grid grid-cols-3 gap-3 pb-4">
-          {SECONDARY_NAV.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="rounded-card border-line bg-surface-raised flex flex-col items-center gap-2 border p-4 text-center text-xs font-medium"
-                >
-                  <Icon aria-hidden className="text-accent size-5" strokeWidth={1.75} />
-                  <span>{t(item.labelKey)}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </dialog>
+      </Dialog>
     </>
   );
 }

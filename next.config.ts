@@ -1,16 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
-  partialPrefetching: true,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
+  async redirects() {
+    return [
+      { source: "/today", destination: "/daily-tracker", permanent: false },
+      { source: "/habits", destination: "/daily-tracker", permanent: false },
+      { source: "/focus", destination: "/daily-tracker", permanent: false },
+      { source: "/calendar", destination: "/daily-tracker", permanent: false },
+      { source: "/plan", destination: "/weekly-plan", permanent: false },
+      { source: "/review", destination: "/learning", permanent: false },
+      { source: "/tadabur", destination: "/journal", permanent: false },
+      { source: "/notifications", destination: "/dashboard", permanent: false },
+    ];
   },
 };
 

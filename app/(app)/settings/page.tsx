@@ -1,31 +1,41 @@
 import { Suspense } from "react";
-import { ThemePicker } from "@/components/settings/theme-picker";
-import { requireUser } from "@/lib/auth/session";
-import { getUserSettings } from "@/lib/db/settings";
-
-async function SettingsContent() {
-  const user = await requireUser();
-  const settings = await getUserSettings(user.id);
-
-  return (
-    <main className="mx-auto max-w-5xl px-5 py-10 sm:py-14">
-      <header className="mb-10 space-y-2">
-        <h1 className="text-[28px] font-semibold tracking-[-0.02em]">Settings</h1>
-        <p className="text-muted text-sm">
-          Appearance is saved to your account and applies on every device.
-        </p>
-      </header>
-      <section className="elevated rounded-card border-line bg-surface border p-6 sm:p-8">
-        <ThemePicker current={settings} />
-      </section>
-    </main>
-  );
-}
+import { connection } from "next/server";
+import { PageFrame, PageHeader } from "@/components/shell/page-header";
+import { PageSkeleton } from "@/components/ui/skeleton";
+import { ThemePicker } from "@/features/settings/theme-picker";
+import { TimeZoneForm } from "@/features/settings/timezone-form";
+import { t } from "@/lib/i18n";
+import { requireUser } from "@/server/auth/session";
+import { getThemeSelection } from "@/server/db/settings";
+import { getUserTimeZone } from "@/server/services/user";
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <SettingsContent />
     </Suspense>
+  );
+}
+
+async function SettingsContent() {
+  await connection();
+  const user = await requireUser();
+  const [theme, timeZone] = await Promise.all([
+    getThemeSelection(user.id),
+    getUserTimeZone(user.id),
+  ]);
+
+  return (
+    <PageFrame>
+      <PageHeader title={t("settings.title")} lead={t("settings.lead")} />
+      <div className="space-y-6">
+        <section className="glass p-5 sm:p-7">
+          <ThemePicker current={theme} />
+        </section>
+        <section className="glass p-5 sm:p-7">
+          <TimeZoneForm current={timeZone} />
+        </section>
+      </div>
+    </PageFrame>
   );
 }

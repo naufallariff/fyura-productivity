@@ -52,13 +52,11 @@ describe("message catalogs", () => {
 
 describe("translation helpers", () => {
   it("interpolates parameters", () => {
-    expect(t("score.calibration.progress", { count: 3, required: 7 })).toBe(
-      "Calibrating: 3 of 7 days",
-    );
+    expect(t("weeklyPlan.requiredMinutes", { minutes: 45 })).toBe("Required time: 45 min");
   });
 
   it("throws on a missing parameter instead of printing a placeholder", () => {
-    expect(() => t("score.calibration.progress", { count: 3 })).toThrow(/required/);
+    expect(() => t("weeklyPlan.requiredMinutes", {})).toThrow(/minutes/);
   });
 
   it("selects the plural form", () => {
