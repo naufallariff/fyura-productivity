@@ -51,6 +51,6 @@ pnpm-debug.log*
 # Cache
 coverage/
 
-roadmap.md
+v01-docs-plan-(changed).md
 migrate.log
 tsconfig.tsbuildinfo

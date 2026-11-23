@@ -4,6 +4,9 @@ trigger: always_on
 
 # Token & Context Governance (Mandatory)
 
+0. **Read-Only Codebase Lock (Active Phase):**
+   - NEVER modify, create, or delete files inside `app/`, `features/`, `components/`, `server/`, `domain/`, `client/`, `lib/`, `proxy.ts`, or `next.config.ts`.
+   - Your ONLY writable outputs are `docs/REFACTOR-STATE.md`, `docs/AUDIT-FINDINGS.md`, and `docs/MASTER-REFACTOR-PLAN.md`.
 1. **Hard Blacklist (NEVER read, search, or open these files/directories):**
    - `node_modules/**`, `.next/**`, `.husky/**`, `.git/**`
    - `pnpm-lock.yaml`, `pnpm-workspace.yaml`

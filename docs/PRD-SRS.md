@@ -3,20 +3,21 @@
 | Attribute     | Value                                                                |
 | ------------- | -------------------------------------------------------------------- |
 | Document      | PRD and SRS, combined                                                |
-| Version       | 2.0 (living document)                                                |
-| Date          | 20 November 2026                                                     |
-| Status        | Draft for owner review                                               |
+| Version       | 2.1 (living document)                                                |
+| Date          | 24 November 2026                                                     |
+| Status        | Active baseline for v2 UI architecture audit and refactor            |
 | Owner         | Repository owner (single user)                                       |
 | Repository    | github.com/naufallariff/fyura-productivity                           |
-| Active branch | `refactor/redesign`                                                  |
+| Active branch | `refactor/v2-ui-architecture` (branched from `main` @ `1ab2bef`)     |
 | Languages     | English (interface and this document), Indonesian (locale catalogue) |
 
 ## Revision History
 
-| Version | Date        | Change                                                                                               |
-| ------- | ----------- | ---------------------------------------------------------------------------------------------------- |
-| 1.0     | 20 Nov 2026 | First combined draft                                                                                 |
-| 2.0     | 20 Nov 2026 | Adds design system, UI architecture, token model, palette specification, and full technical baseline |
+| Version | Date        | Change                                                                                                                          |
+| ------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 20 Nov 2026 | First combined draft                                                                                                            |
+| 2.0     | 20 Nov 2026 | Added design system, UI architecture, token model, palette specification, and full technical baseline                           |
+| 2.1     | 24 Nov 2026 | Synced post-PR #4 Git baseline (`1ab2bef`), upgraded design tokens to OKLCH 60-30-10, capped glass blur, and added v2 module UX |
 
 ---
 
@@ -45,11 +46,11 @@
 
 ### 1.1 Purpose
 
-This document specifies what Fyura Productivity must do, how it is built, and how its quality is verified. It serves three readers: the owner deciding priorities, the engineer implementing a batch, and the reviewer checking whether a batch is complete.
+This document specifies what Fyura Productivity must do, how it is built, and how its quality is verified. It serves three readers: the owner deciding priorities, the engineer or AI agent implementing a batch, and the reviewer checking whether a batch is complete.
 
 ### 1.2 Scope
 
-Fyura Productivity is a personal, single-user web application. It replaces a Google Apps Script system that could not be extended safely. The application covers daily time tracking, derived checklists, consistency scoring, planning, project boards, job applications, spaced-repetition learning, journaling, reflection, idea capture, and a private space protected by a second credential.
+Fyura Productivity is a personal, single-user web application. It replaces a Google Apps Script system that could not be extended safely. The application covers daily time tracking, derived checklists, consistency scoring, planning, project boards, job applications, spaced-repetition learning, rich-text journaling, reflection, idea capture, and a private space protected by a second credential.
 
 Out of scope for version 1: multi-user collaboration, native mobile applications, payment or financial integration, browser tab blocking, and any neurobiological claims about behaviour.
 
@@ -78,7 +79,7 @@ Out of scope for version 1: multi-user collaboration, native mobile applications
 - W3C. _Media Queries Level 5_, including `prefers-reduced-motion` and `prefers-reduced-transparency`.
 - Indonesia. _Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi_. Principles of minimisation, purpose limitation, and erasure.
 - European Union. _General Data Protection Regulation_, Articles 5 and 17. Used as a comparison for minimisation and erasure.
-- Vendor documentation: Next.js 16, Auth.js, Drizzle ORM, Supabase, TanStack Query, dnd-kit, Tailwind CSS 4, Zod 4.
+- Vendor documentation: Next.js 16, Auth.js, Drizzle ORM, Supabase, TanStack Query, dnd-kit, Tailwind CSS 4, Zod 4, TipTap, DOMPurify.
 
 ---
 
@@ -130,21 +131,21 @@ Usage contexts: a desktop browser for planning and review, and a phone for quick
 
 ### 2.6 Scope by module
 
-| Module         | Capabilities                                                                         | Build status                        |
-| -------------- | ------------------------------------------------------------------------------------ | ----------------------------------- |
-| Authentication | Google sign-in, allowlist, 30-day session, client cache cleared on sign-out          | Built                               |
-| Settings       | Colour bundle, mode, time zone with device suggestion                                | Built                               |
-| Weekly plan    | Seven day cards, required and optional items, ordering                               | Built                               |
-| Daily tracker  | Timeline, status, checklist, focus timer, history                                    | Built, browser verification partial |
-| Dashboard      | Consistency, trend, today, output, frequent misses, career, learning streak          | Built, browser verification pending |
-| Projects       | Boards, lists, cards, labels, checklists, due dates, drag, filters                   | Built                               |
-| Career         | Board, table, status history, follow-ups, activity counters, summary                 | Built, one route pending (see 14.3) |
-| Learning       | Subjects with WIP warning, materials, daily progress, two-step deletion, SM-2 review | Built                               |
-| Journal        | Entries by type, late marking, learning streak, reflection tab                       | Built                               |
-| Capture        | Ideas, statuses, tags, literal search, tag cloud                                     | Built                               |
-| Private space  | PIN gate, lockout, session, idle guard                                               | Built, browser verification pending |
+| Module         | Capabilities                                                                         | Build status                            |
+| -------------- | ------------------------------------------------------------------------------------ | --------------------------------------- |
+| Authentication | Google sign-in, allowlist, 30-day session, client cache cleared on sign-out          | Built and verified in Git (`1ab2bef`)   |
+| Settings       | Colour bundle, mode, time zone with device suggestion                                | Built                                   |
+| Weekly plan    | Seven day cards, required and optional items, ordering                               | Built                                   |
+| Daily tracker  | Timeline, status, checklist, focus timer, history                                    | Built, v2 calendar UX planned           |
+| Dashboard      | Consistency, trend, today, output, frequent misses, career, learning streak          | Built, v2 Bento UX planned              |
+| Projects       | Boards, lists, cards, labels, checklists, due dates, drag, filters                   | Built, v2 Trello UX planned             |
+| Career         | Board, table, status history, follow-ups, activity counters, summary                 | Built (`GET /api/v1/career/jobs` fixed) |
+| Learning       | Subjects with WIP warning, materials, daily progress, two-step deletion, SM-2 review | Built                                   |
+| Journal        | Entries by type, late marking, learning streak, reflection tab                       | Built, v2 rich-text toolbar planned     |
+| Capture        | Ideas, statuses, tags, literal search, tag cloud                                     | Built                                   |
+| Private space  | PIN gate, lockout, session, idle guard                                               | Built, browser verification pending     |
 
-**Not yet built:** recovery log, reflection analytics, notifications, calendar synchronisation, weekly and monthly reviews, data export, account deletion, keyboard shortcuts for global capture.
+**Not yet built:** recovery log, reflection analytics, notifications, calendar synchronisation, weekly and monthly reviews, data export, account deletion, global `Cmd+K` command palette.
 
 ### 2.7 Functional summary
 
@@ -162,7 +163,7 @@ Each module is specified in detail in Section 9. The summary below lists the pri
 | US-08 | track projects on a board                        | I can see progress without a separate tool |
 | US-09 | track job applications and follow-ups            | no opportunity is forgotten                |
 | US-10 | review material on a schedule                    | I retain what I study                      |
-| US-11 | write a journal entry and see my learning streak | my effort is visible and honest            |
+| US-11 | write a formatted journal entry and track streak | my effort is visible and honest            |
 | US-12 | capture an idea in seconds                       | ideas are not lost                         |
 | US-13 | store private entries behind a second PIN        | sensitive notes stay separate              |
 
@@ -196,14 +197,14 @@ Each module is specified in detail in Section 9. The summary below lists the pri
 
 ```
 /login                        Google sign-in
-/dashboard                    Consistency, trend, today, output, misses, career, streak
-/daily-tracker                Timeline, checklist, focus timer, history
+/dashboard                    Bento command center: consistency, trend, today, focus, career, streak
+/daily-tracker                Google Calendar-style timeline, status, checklist, focus timer, history
 /weekly-plan                  Seven-day plan
 /projects                     Board index
-/projects/[boardId]           Board workspace
+/projects/[boardId]           Trello-style Kanban workspace and floating dock
 /career                       Summary, board, table
 /learning                     Materials tab, reviews tab
-/journal                      Journal tab, tadabur tab
+/journal                      Rich-text journal tab, tadabur tab
 /capture                      Ideas and tags
 /private                      PIN gate, then private session
 /settings                     Colour bundle, mode, time zone
@@ -213,7 +214,7 @@ Legacy routes (`/today`, `/habits`, `/focus`, `/calendar`, `/plan`, `/review`, `
 
 ### 3.2 Navigation model
 
-The shell has three sections, identified in the sidebar with a small uppercase label. On desktop the sidebar is fixed and collapsible. On mobile a bottom bar carries the four primary destinations, and a "More" sheet carries the rest.
+The shell follows a Notion-inspired collapsible structure with three sections, identified in the sidebar with a small uppercase label. On desktop the sidebar is collapsible, paired with a top breadcrumb bar and a `0 ms` Command Palette (`Cmd+K` or `Ctrl+K`) for instant navigation and quick capture. On mobile a bottom bar carries the four primary destinations, and a "More" sheet carries the rest.
 
 | Section   | Items                                           |
 | --------- | ----------------------------------------------- |
@@ -230,9 +231,9 @@ The account menu sits at the foot of the sidebar. It holds settings, a notificat
 1. Open Daily Tracker. The default date is today in the user's zone.
 2. Set the day status if it differs from Normal.
 3. Check items in the checklist. The first check freezes the day.
-4. Record blocks by dragging on the timeline or using the block dialog.
+4. Record blocks by dragging across 15-minute slots on the timeline or using the block dialog.
 5. Start a focus session if needed. A completed deep-work session adds a block.
-6. Write a learning journal entry when relevant. The streak updates on the dashboard.
+6. Write a learning journal entry with rich formatting when relevant. The streak updates on the dashboard.
 
 **Weekly flow.**
 
@@ -241,8 +242,8 @@ The account menu sits at the foot of the sidebar. It holds settings, a notificat
 
 **Project flow.**
 
-1. Create a board. Add lists and cards.
-2. Move cards with a drag, or use the card dialog on narrow screens.
+1. Create a board. Add lists and cards inline with `+ Add a card`.
+2. Move cards and lists with a drag, or use the card dialog on narrow screens.
 3. Filter by label, due date, or text. Dragging pauses while a filter is active, so positions stay consistent.
 
 **Career flow.**
@@ -265,11 +266,14 @@ The account menu sits at the foot of the sidebar. It holds settings, a notificat
 
 ### 3.4 Empty, loading, and error states
 
-Every module defines three states, and each is designed rather than left to default:
+Every module defines six resilient UI states:
 
 - **Empty:** explains the next useful action in one sentence.
-- **Loading:** a skeleton of the final layout, with `aria-busy` set.
-- **Error:** a message with a retry action. The message names the failure without blaming the user.
+- **Loading:** a structural skeleton of the final layout, with `aria-busy` set.
+- **Error:** a clear message with a retry action that names the failure without blaming the user.
+- **Stale:** subtle indicator when background revalidation is in progress.
+- **Partial:** graceful degradation when optional widgets or metrics are still in calibration.
+- **Overflow:** strict truncation, horizontal scroll-snap containers, or cursor pagination so long titles never break layout geometry.
 
 ---
 
@@ -277,23 +281,28 @@ Every module defines three states, and each is designed rather than left to defa
 
 ### 4.1 Design principles
 
-| Principle | Expression                                                       |
-| --------- | ---------------------------------------------------------------- |
-| Calm      | Low contrast surfaces, generous spacing, no sudden motion        |
-| Precise   | Tabular numerals for all figures, consistent alignment           |
-| Honest    | Numbers always accompanied by their meaning                      |
-| Tactile   | Immediate press feedback, springs that respect momentum          |
-| Inclusive | WCAG 2.2 AA, reduced motion, reduced transparency, 44 px targets |
+| Principle | Expression                                                                       |
+| --------- | -------------------------------------------------------------------------------- |
+| Calm      | Tinted neutral surfaces, 35% to 45% negative space, zero sudden layout shifts    |
+| Precise   | Tabular numerals (`tabular-nums`) for all figures, 4 pt / 8 pt spatial alignment |
+| Honest    | Numbers always accompanied by their baseline meaning in one plain sentence       |
+| Tactile   | Immediate press feedback, snappy Apple-style deceleration curves                 |
+| Inclusive | WCAG 2.2 AA, reduced motion, reduced transparency, minimum 44 px touch targets   |
 
-### 4.2 Visual language: glass
+### 4.2 Visual language: Apple HIG clarity + Notion modularity
 
-The interface uses a glass material. Surfaces are semi-transparent with a backdrop blur, a hairline border, and a soft shadow. The material is applied through a single `glass` utility, so every surface can be adjusted in one place.
+The interface synthesizes Apple Human Interface Guidelines (crisp spatial hierarchy, restrained translucency, tactile micro-physics) with Notion's modular workspace calm.
 
-Glass is used for cards, panels, sheets, and the sidebar. Dialogs use the same material on a dimmed backdrop. Text is never placed directly on a blurred background without a solid or near-solid surface behind it.
+- **Glassmorphism Dose Cap**: Translucent `backdrop-filter: blur(16px)` surfaces are strictly capped to **at most 2 focal layers per viewport** (the collapsible navigation shell, floating bottom docks, and active modals or popovers).
+- **Elevated Data Cards**: Dashboard cards, Kanban cards, and timeline blocks use solid or near-solid stepped elevation surfaces (`--bg-surface`, `--bg-surface-elevated`) with `1 px` hairline borders (`--border-subtle`) and soft elevation shadows. Text is never placed over unshielded background blur.
 
-### 4.3 Colour bundles
+### 4.3 Colour architecture (60-30-10 Anti-Slop Discipline)
 
-A bundle defines the base palette for backgrounds, accents, and glow. Three bundles ship:
+- **60% Tinted Neutral Canvas (`--bg-canvas`)**: Warm or cool tinted off-white in light mode (`L: 0.98`) and deep slate-navy in dark mode (`L: 0.145`), eliminating eye strain and flat `#000000` black.
+- **30% Stepped Surfaces (`--bg-surface`, `--bg-surface-elevated`)**: Crisp white cards in light mode (`L: 1.00`) and stepped dark surfaces (`L: 0.188` to `L: 0.228`) in dark mode.
+- **10% Calibrated Categorical Accents**: Purposeful pastel/tonal washes paired with crisp saturated foregrounds for KPI cards, calendar blocks, and project labels. Single viewport clusters limit active hues to 3 or 4 colours so the interface feels vibrant and structured rather than chaotic AI slop.
+
+Three colour bundles ship for global chrome accents:
 
 | Bundle          | Character            | Use                      |
 | --------------- | -------------------- | ------------------------ |
@@ -301,75 +310,43 @@ A bundle defines the base palette for backgrounds, accents, and glow. Three bund
 | Sage            | Muted green, quiet   | Low-stimulation sessions |
 | Dusk            | Warm violet, evening | Night use                |
 
-A bundle changes the background, glow, and accent only. Text colours and status colours are fixed across all bundles, so meaning never depends on the chosen bundle.
+A bundle changes the background tint, subtle ambient glow, and primary chrome accent only. Text colours and status colours are fixed across all bundles.
 
 ### 4.4 Modes
 
-Two modes exist: **light** (default) and **dark**. There is no "follow system" option, because the owner chose a deliberate default. Mode and bundle are stored per account and applied before first paint through server-rendered data attributes.
+Two modes exist: **light** (default) and **dark**. There is no "follow system" option, because the owner chose a deliberate default. Mode and bundle are stored per account and applied before first paint through server-rendered `data-mode` and `data-bundle` attributes.
 
 ### 4.5 Token architecture
 
-Tokens are defined in three layers. Components read only the semantic layer.
+Tokens are defined in three layers using perceptual **OKLCH** colour space (`oklch(L C H)`) in `app/globals.css`. Components read only the semantic layer; zero raw hex literals are permitted in `.tsx` files.
 
-| Layer     | Purpose                               | Example                                           |
-| --------- | ------------------------------------- | ------------------------------------------------- |
-| Primitive | Raw values from the palette generator | `ocean-600: #1a6fa3`                              |
-| Semantic  | Role in the interface                 | `--color-accent`, `--color-ink`, `--color-canvas` |
-| Component | Usage in a component                  | `button.primary.bg`                               |
+| Layer     | Purpose                       | Example                                        |
+| --------- | ----------------------------- | ---------------------------------------------- |
+| Primitive | Perceptual OKLCH scale values | `--ocean-600: oklch(0.52 0.12 240)`            |
+| Semantic  | Role in the interface         | `--color-accent`, `--color-ink`, `--bg-canvas` |
+| Component | Scoped usage in a component   | `--card-bg`, `--dock-surface`                  |
 
-The semantic layer is generated from each bundle's seed values. Seeds are: canvas, glow (two stops), accent, and the ink ramp. Derived values such as hover, border, and muted ink are computed by `lib/theme/derive.ts`.
+Derived values such as hover, border, soft category washes, and muted ink are computed by `lib/theme/derive.ts` and exported as semantic CSS custom properties.
 
-### 4.6 Palette specification
+### 4.6 Contrast and category colour rules
 
-#### 4.6.1 Mode constants
-
-These values are fixed across bundles.
-
-| Token               | Light                  | Dark                      | Purpose                |
-| ------------------- | ---------------------- | ------------------------- | ---------------------- |
-| `--color-ink`       | `#0b1d2e`              | `#eef4f8`                 | Primary text           |
-| `--color-ink-muted` | `#4f6375`              | `#9fb1c2`                 | Secondary text         |
-| `--color-negative`  | `#b42318`              | `#f97066`                 | Errors and overdue     |
-| `--color-positive`  | `#067647`              | `#4ade80`                 | Completion             |
-| `--color-warning`   | `#b54708`              | `#fdb022`                 | Due today and cautions |
-| `--color-line`      | `rgb(11 29 46 / 0.12)` | `rgb(238 244 248 / 0.14)` | Hairline borders       |
-
-#### 4.6.2 Bundle seeds
-
-| Seed   | Ocean light | Ocean dark | Sage light | Sage dark | Dusk light | Dusk dark |
-| ------ | ----------- | ---------- | ---------- | --------- | ---------- | --------- |
-| Canvas | `#eef6fb`   | `#07131f`  | `#f1f6f1`  | `#0b1510` | `#f6f3fb`  | `#120d1d` |
-| Glow A | `#8ec9ea`   | `#1d4f78`  | `#a9d3b4`  | `#2b5a3f` | `#c5b4e6`  | `#3e2f63` |
-| Glow B | `#c3e4f5`   | `#144061`  | `#d3ead9`  | `#1f4632` | `#e3d9f3`  | `#2a1f47` |
-| Accent | `#1a6fa3`   | `#5ab4e6`  | `#2e7d4f`  | `#6fc795` | `#6b4fb3`  | `#a58ae0` |
-
-#### 4.6.3 Derived tokens
-
-| Token                   | Derivation                                                                         |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| `--color-accent-soft`   | Accent at 14 percent alpha over the glass surface                                  |
-| `--color-accent-strong` | Accent darkened by 12 percent (light) or lightened by 12 percent (dark)            |
-| `--glass-bg`            | Surface at 72 percent alpha (light) or 42 percent (dark)                           |
-| `--glass-solid`         | Surface blended with canvas at 92 percent, for text areas and reduced transparency |
-| `--glass-border`        | White at 60 percent (light) or 12 percent (dark)                                   |
-
-#### 4.6.4 Contrast requirements
+#### 4.6.1 Contrast requirements
 
 Every text token must meet its ratio against the surface it sits on:
 
 | Pair                      | Minimum ratio | Standard                             |
 | ------------------------- | ------------- | ------------------------------------ |
-| Ink on glass-solid        | 4.5 : 1       | WCAG 2.2 AA, normal text             |
-| Ink-muted on glass-solid  | 4.5 : 1       | WCAG 2.2 AA, normal text             |
+| Ink on surface            | 4.5 : 1       | WCAG 2.2 AA, normal text             |
+| Ink-muted on surface      | 4.5 : 1       | WCAG 2.2 AA, normal text             |
 | Accent on canvas          | 3 : 1         | WCAG 2.2 AA, non-text and large text |
 | Text on accent (button)   | 4.5 : 1       | WCAG 2.2 AA                          |
 | Negative and warning text | 4.5 : 1       | WCAG 2.2 AA                          |
 
 `lib/theme/validate.ts` checks each bundle in both modes. The check runs in unit tests, so a palette that fails cannot merge.
 
-#### 4.6.5 Category hues
+#### 4.6.2 Category hues
 
-Measured categories and the block timeline use hue tokens, separate from the bundle accent, so colour carries category meaning:
+Measured categories and the block timeline use perceptual OKLCH hue tokens, separate from the bundle accent, so colour carries category meaning:
 
 | Category | Hue     |
 | -------- | ------- |
@@ -382,53 +359,55 @@ Measured categories and the block timeline use hue tokens, separate from the bun
 | Social   | amber   |
 | Leisure  | violet  |
 
-Each hue has a deep and a bright variant. Category colour is never the only signal: every block also carries its label.
+Each hue provides a tonal soft background (`--cat-*-soft`) and a high-contrast foreground (`--cat-*`). Category colour is never the only signal: every block also carries its text label.
 
 ### 4.7 Typography
 
 | Role              | Size        | Weight | Tracking                            | Leading |
 | ----------------- | ----------- | ------ | ----------------------------------- | ------- |
-| Display (figures) | 40 to 72 px | 600    | -0.04 em                            | 1.05    |
+| Display (figures) | 36 to 64 px | 600    | -0.04 em                            | 1.05    |
 | Page title        | 24 to 30 px | 600    | -0.02 em                            | 1.2     |
 | Section title     | 14 px       | 600    | 0                                   | 1.4     |
 | Body              | 14 to 16 px | 400    | 0                                   | 1.5     |
 | Label and caption | 11 to 12 px | 500    | 0.02 em, uppercase for group labels | 1.4     |
 
-Figures use tabular numerals (`tabular-nums`) so columns align. The type stack is the system UI stack, with the font loaded only if the system stack is insufficient.
+Figures use tabular numerals (`tabular-nums`) so columns align. Prose blocks in Journal and Tadabur are constrained to a readable measure of `55ch` to `75ch`.
 
-Body text on phones is 16 px to prevent automatic zoom on input focus.
+Body text and form inputs on phones use a minimum of `16 px` to prevent automatic zoom on input focus.
 
 ### 4.8 Spacing, radius, and elevation
 
-| Token          | Value                      | Use                         |
-| -------------- | -------------------------- | --------------------------- |
-| Spacing scale  | 4 px base (Tailwind scale) | All gaps and padding        |
-| Radius control | 14 px                      | Buttons, inputs, list items |
-| Radius card    | 22 px                      | Panels and cards            |
-| Radius sheet   | 28 px (top corners)        | Mobile sheets               |
-| Radius pill    | 999 px                     | Chips and status pills      |
-| Shadow raised  | 0 8 24 rgb(0 0 0 / 0.08)   | Floating glass              |
+| Token          | Value                          | Use                         |
+| -------------- | ------------------------------ | --------------------------- |
+| Spacing scale  | 4 px / 8 px base rhythm        | All gaps and padding        |
+| Radius control | 10 px (`rounded-lg`)           | Buttons, inputs, list items |
+| Radius inner   | 12 px (`rounded-xl`)           | Kanban cards, inner tiles   |
+| Radius card    | 16 to 20 px (`rounded-2xl`)    | Bento panels and containers |
+| Radius sheet   | 28 px (top corners)            | Mobile bottom sheets        |
+| Radius pill    | 9999 px (`rounded-full`)       | Chips, docks, status pills  |
+| Shadow raised  | 0 8px 24px oklch(0 0 0 / 0.06) | Floating docks and popovers |
 
 ### 4.9 Iconography
 
-Icons come from Lucide (`lucide-react`) at stroke width 1.75. Sizes: 16 px in dense rows, 18 px in buttons, 20 px in navigation. Icon-only buttons always carry an accessible name. Text in the interface contains no symbols, arrows, or emoji.
+Icons come from Lucide (`lucide-react`) at stroke width 1.75. Sizes: 16 px in dense rows, 18 px in buttons, 20 px in navigation. Icon-only buttons always carry an accessible name.
 
 ### 4.10 Motion
 
-| Interaction           | Duration or model                | Property                    |
-| --------------------- | -------------------------------- | --------------------------- |
-| Press feedback        | Scale to 0.97 or 0.90, immediate | `transform`                 |
-| Sidebar collapse      | 300 ms, spring easing            | `width` (layout transition) |
-| Card and item reorder | Library default                  | `transform`                 |
-| Pin entry             | 300 ms                           | `transform`, `opacity`      |
-| Session ring          | 1 s linear                       | `stroke-dashoffset`         |
+| Interaction           | Duration or model                | Property               |
+| --------------------- | -------------------------------- | ---------------------- |
+| Keyboard palette      | `0 ms` (instant response)        | `opacity`, `transform` |
+| Press feedback        | `120 ms`, `active:scale-[0.97]`  | `transform`            |
+| Popover and dock      | `160 ms` to `200 ms`, snappy out | `transform`, `opacity` |
+| Card and item reorder | `dnd-kit` spring physics         | `transform`            |
+| Pin entry             | `220 ms`                         | `transform`, `opacity` |
+| Session ring          | `1 s` linear                     | `stroke-dashoffset`    |
 
 Rules:
 
-- Animate only `transform` and `opacity` where possible.
-- Spring easing: `cubic-bezier(0.34, 1.56, 0.64, 1)`.
-- `prefers-reduced-motion: reduce` removes transforms and keeps opacity changes.
-- `prefers-reduced-transparency: reduce` replaces glass with solid surfaces and disables backdrop blur.
+- Animate strictly GPU-composited properties (`transform`, `opacity`, `clip-path`). Never use `transition-all` or animate layout `width`/`height` directly.
+- Standard deceleration curve: `--ease-out-snappy: cubic-bezier(0.23, 1, 0.32, 1)`.
+- `prefers-reduced-motion: reduce` removes transforms and keeps instant opacity transitions.
+- `prefers-reduced-transparency: reduce` replaces translucent chrome with solid surfaces and disables backdrop blur.
 
 ### 4.11 Responsive breakpoints
 
@@ -444,14 +423,14 @@ The minimum supported width is 390 px. Horizontal scroll is used only for boards
 
 ### 4.12 Component inventory
 
-| Family          | Components                                                                                                                        |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Surfaces        | `Card`, `CardHeader`, `Panel` (pattern), `Dialog` (native, bottom sheet on mobile)                                                |
-| Controls        | `Button` (primary, secondary, ghost, danger, pending state), `Field`, `Input`, `Textarea`, `Segmented`, `TabNav`                  |
-| Data display    | `KpiCard`, `Sparkline`, `Ring`, `ProgressBar`, `Pill`, `Avatar`                                                                   |
-| Feedback        | `EmptyState`, `Skeleton`, `PageSkeleton`, `Tooltip`                                                                               |
-| Shell           | `Sidebar`, `SidebarProfile`, `MobileNav`, `PageHeader`, `PageFrame`, `SignOutButton`                                              |
-| Module-specific | Timeline grid, block card, mini month, checklist row, board, list column, card face, job card, streak fire, pin pad, session ring |
+| Family          | Components                                                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Surfaces        | `Card`, `CardHeader`, `Panel`, `Dialog` (native, bottom sheet on mobile), `FloatingDock`                                                        |
+| Controls        | `Button` (primary, secondary, ghost, danger, pending state), `Field`, `Input`, `Textarea`, `RichTextEditor`, `Segmented`, `TabNav`              |
+| Data display    | `KpiCard`, `Sparkline`, `Ring`, `ProgressBar`, `Pill`, `Avatar`                                                                                 |
+| Feedback        | `EmptyState`, `Skeleton`, `PageSkeleton`, `Tooltip`                                                                                             |
+| Shell           | `Sidebar`, `SidebarProfile`, `MobileNav`, `CommandPalette`, `PageHeader`, `PageFrame`, `SignOutButton`                                          |
+| Module-specific | Timeline grid, block card, mini month, checklist row, board, list column, card face, inline card composer, job card, streak fire, pin pad, ring |
 
 Every primitive accepts an accessible label and forwards refs where a library needs them.
 
@@ -459,9 +438,9 @@ Every primitive accepts an accessible label and forwards refs where a library ne
 
 | Requirement                     | Implementation                                                                        |
 | ------------------------------- | ------------------------------------------------------------------------------------- |
-| Keyboard operation              | Every action reachable by Tab. Drag has keyboard sensors and a dialog alternative     |
+| Keyboard operation              | Every action reachable by Tab or `Cmd+K`. Drag has keyboard sensors and dialog backup |
 | Focus visibility                | Two-pixel accent ring on `:focus-visible`                                             |
-| Touch targets                   | Minimum 44 px in both dimensions                                                      |
+| Touch targets                   | Minimum 44 px in both dimensions with at least 8 px gap                               |
 | Names                           | Icon-only buttons have `aria-label`. Form fields have associated labels               |
 | Live regions                    | Validation and save results use `role="status"` or `role="alert"`                     |
 | Current state                   | `aria-current` on navigation, `aria-pressed` on toggles, `aria-checked` on checkboxes |
@@ -469,6 +448,15 @@ Every primitive accepts an accessible label and forwards refs where a library ne
 | Skip link                       | First focusable element jumps to main content                                         |
 | Contrast                        | Enforced by unit tests on every bundle and mode                                       |
 | Reduced motion and transparency | Honoured through media queries                                                        |
+
+### 4.14 Copywriting and microcopy hygiene
+
+- **Tone**: Calm, direct, and honest.
+- **Action labels**: Concise `Verb + Object` labels (`Create block`, `Add card`, `Lock private space`, `Start focus`).
+- **Banned patterns**:
+  - Zero em-dashes (`—`) inside UI headings, labels, tooltips, or helper text.
+  - Zero hollow marketing clichés (`Seamless`, `Unlock`, `Supercharge`, `AI-powered`, `Revolutionary`).
+  - Zero symbols or emoji inside interface text.
 
 ---
 
@@ -499,33 +487,34 @@ Supporting: Google OAuth, Sentry, GitHub Actions, Vercel (planned)
 
 ### 5.2 Technology stack
 
-| Layer                      | Package                                              | Version                 |
-| -------------------------- | ---------------------------------------------------- | ----------------------- |
-| Framework                  | next                                                 | 16.4.5                  |
-| UI runtime                 | react, react-dom                                     | 19.3.0                  |
-| Language                   | typescript                                           | ^5                      |
-| Styling                    | tailwindcss, @tailwindcss/postcss                    | ^4, ^4.3.5              |
-| Turbopack styling          | @tailwindcss/turbopack                               | ^4                      |
-| Authentication             | next-auth                                            | 5.0.0-beta.32           |
-| Database client            | postgres                                             | ^3.4.9                  |
-| ORM                        | drizzle-orm                                          | ^0.45.4                 |
-| Migrations                 | drizzle-kit                                          | ^0.31.11                |
-| Validation                 | zod                                                  | ^4.6.7                  |
-| PIN hashing                | @node-rs/argon2                                      | ^2.2.2                  |
-| Server state               | @tanstack/react-query                                | ^5.107.1                |
-| Drag and drop              | @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities | ^6.3.1, ^10.0.0, ^3.2.2 |
-| Icons                      | lucide-react                                         | ^1.70.0                 |
-| Error reporting            | @sentry/nextjs                                       | ^11.11.0                |
-| Environment                | dotenv                                               | ^18.0.9                 |
-| Server-only guard          | server-only                                          | ^0.0.1                  |
-| Unit and integration tests | vitest, @vitest/coverage-v8                          | ^5.1.0                  |
-| Linting                    | eslint, eslint-config-next                           | ^9, 16.4.5              |
-| Formatting                 | prettier, prettier-plugin-tailwindcss                | ^3.9.10, ^0.8.1         |
-| Git hooks                  | husky, lint-staged                                   | ^9.1.7, ^17.6.0         |
-| Script runner              | tsx                                                  | ^4.23.15                |
-| Cross-platform env         | cross-env                                            | ^10.1.0                 |
-| Package manager            | pnpm                                                 | 12.18.0                 |
-| Runtime types              | @types/node, @types/react, @types/react-dom          | ^22.20.5, ^19, ^19      |
+| Layer                      | Package                                                  | Version                 |
+| -------------------------- | -------------------------------------------------------- | ----------------------- |
+| Framework                  | next                                                     | 16.4.5                  |
+| UI runtime                 | react, react-dom                                         | 19.3.0                  |
+| Language                   | typescript                                               | ^5                      |
+| Styling                    | tailwindcss, @tailwindcss/postcss                        | ^4, ^4.3.5              |
+| Turbopack styling          | @tailwindcss/turbopack                                   | ^4                      |
+| Authentication             | next-auth                                                | 5.0.0-beta.32           |
+| Database client            | postgres                                                 | ^3.4.9                  |
+| ORM                        | drizzle-orm                                              | ^0.45.4                 |
+| Migrations                 | drizzle-kit                                              | ^0.31.11                |
+| Validation                 | zod                                                      | ^4.6.7                  |
+| PIN hashing                | @node-rs/argon2                                          | ^2.2.2                  |
+| Server state               | @tanstack/react-query                                    | ^5.107.1                |
+| Drag and drop              | @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities     | ^6.3.1, ^10.0.0, ^3.2.2 |
+| Rich text (planned v2)     | @tiptap/react, @tiptap/starter-kit, isomorphic-dompurify | Planned in v2 batch     |
+| Icons                      | lucide-react                                             | ^1.70.0                 |
+| Error reporting            | @sentry/nextjs                                           | ^11.11.0                |
+| Environment                | dotenv                                                   | ^18.0.9                 |
+| Server-only guard          | server-only                                              | ^0.0.1                  |
+| Unit and integration tests | vitest, @vitest/coverage-v8                              | ^5.1.0                  |
+| Linting                    | eslint, eslint-config-next                               | ^9, 16.4.5              |
+| Formatting                 | prettier, prettier-plugin-tailwindcss                    | ^3.9.10, ^0.8.1         |
+| Git hooks                  | husky, lint-staged                                       | ^9.1.7, ^17.6.0         |
+| Script runner              | tsx                                                      | ^4.23.15                |
+| Cross-platform env         | cross-env                                                | ^10.1.0                 |
+| Package manager            | pnpm                                                     | 12.18.0                 |
+| Runtime types              | @types/node, @types/react, @types/react-dom              | ^22.20.5, ^19, ^19      |
 
 ### 5.3 Repository layout
 
@@ -706,7 +695,7 @@ Total: 27 tables.
 | Jobs, boards, lists, cards, learning items | Archive                  | Restore from the archive view                       |
 | Learning items                             | Permanent, after archive | Not recoverable. Review cards are detached and kept |
 | Journal entries                            | Soft delete              | Not exposed                                         |
-| Account                                    | Not yet available        | Planned (see 15.2, U12)                             |
+| Account                                    | Not yet available        | Planned (see 14.4, U12)                             |
 
 ---
 
@@ -723,7 +712,7 @@ Total: 27 tables.
 | PIN guessing                                  | Private space | Lockout with progressive delay                           |
 | PIN database leak                             | Private space | Argon2id with server-side pepper                         |
 | Session cookie forgery                        | Private space | HMAC signature with `AUTH_SECRET`                        |
-| Injection through input                       | All data      | Parameterised queries, strict Zod schemas                |
+| Injection or XSS through input                | All data      | Parameterised queries, strict Zod schemas, DOMPurify     |
 | Cached sensitive responses                    | All data      | `no-store` headers                                       |
 | Leakage through logs                          | All data      | Logs carry names and identifiers only                    |
 | Abuse through request volume                  | Availability  | Per-user fixed-window rate limits                        |
@@ -761,20 +750,22 @@ The application connects as `app_runtime` through the pooler with `prepare: fals
 
 ### 7.6 Private space
 
-| Control        | Requirement                                                                                              |
-| -------------- | -------------------------------------------------------------------------------------------------------- |
-| PIN format     | Exactly six digits                                                                                       |
-| Storage        | Argon2id hash with pepper from `PRIVATE_PIN_PEPPER`. The plaintext is never stored                       |
-| Lockout        | After five failures, a delay that grows with repeated failures. Failure count resets on success          |
-| Session        | HMAC-signed cookie valid for ten minutes, extended on activity                                           |
-| Idle guard     | Pings the server on user activity, at most once per minute. Returns to the gate when the session expires |
-| Manual lock    | Clears the session cookie immediately                                                                    |
-| Data isolation | No private table is read by the dashboard, reviews, or any shared service                                |
-| Disclosure     | PIN recovery is not available in version 1. This is stated on the creation screen                        |
+| Control        | Requirement                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------- |
+| PIN format     | Exactly six digits                                                                                         |
+| Storage        | Argon2id hash with pepper from `PRIVATE_PIN_PEPPER`. The plaintext is never stored                         |
+| Encryption     | Sensitive private records encrypted at rest via AES-256-GCM (`server/crypto/column-cipher.ts`, tracked U9) |
+| Lockout        | After five failures, a delay that grows with repeated failures. Failure count resets on success            |
+| Session        | HMAC-signed cookie valid for ten minutes, extended on activity                                             |
+| Idle guard     | Pings the server on user activity, at most once per minute. Returns to the gate when the session expires   |
+| Manual lock    | Clears the session cookie immediately                                                                      |
+| Data isolation | No private table is read by the dashboard, reviews, or any shared service                                  |
+| Disclosure     | PIN recovery is not available in version 1. This is stated on the creation screen                          |
 
 ### 7.7 Input and output
 
 - Every boundary validates input with a Zod schema in strict mode, so unknown fields are rejected.
+- Rich-text HTML from Journal and Tadabur editors must be sanitized with `DOMPurify` (allowing only safe formatting tags and `https://` links) before storage and rendering.
 - Search text is escaped for `LIKE` wildcards, so `%` and `_` match literally.
 - Links must use `https`.
 - Responses carry `Cache-Control: no-store` when sensitive and `private, no-cache` otherwise.
@@ -795,17 +786,19 @@ Storage in PostgreSQL makes the limit hold across serverless instances. The incr
 - `.env.local` is excluded from version control.
 - `.env.example` documents every variable with no real values.
 - The pepper and the auth secret must be unique per environment.
+- Cron endpoints must verify bearer secrets using `crypto.timingSafeEqual` (`server/cron/auth.ts`, tracked U10).
 
 ### 7.10 Headers (target)
 
-| Header                    | Value                                       | Status                   |
-| ------------------------- | ------------------------------------------- | ------------------------ |
-| Content-Security-Policy   | Restrictive, with nonces for inline scripts | Target, not yet verified |
-| X-Frame-Options           | `DENY`                                      | Target                   |
-| Referrer-Policy           | `strict-origin-when-cross-origin`           | Target                   |
-| Strict-Transport-Security | Set by the hosting platform                 | Platform                 |
+| Header                    | Value                                              | Status               |
+| ------------------------- | -------------------------------------------------- | -------------------- |
+| Content-Security-Policy   | Restrictive, with per-request nonces in `proxy.ts` | Target (tracked U11) |
+| X-Frame-Options           | `DENY`                                             | Target (tracked U11) |
+| X-Content-Type-Options    | `nosniff`                                          | Target (tracked U11) |
+| Referrer-Policy           | `strict-origin-when-cross-origin`                  | Target (tracked U11) |
+| Strict-Transport-Security | Set by the hosting platform                        | Platform             |
 
-Adding these in `next.config.ts` is tracked as U11.
+Adding per-request CSP nonces in `proxy.ts` and static security headers in `next.config.ts` is tracked as U11.
 
 ### 7.11 Privacy principles
 
@@ -821,7 +814,7 @@ Adding these in `next.config.ts` is tracked as U11.
 | ID     | Category        | Requirement                                                                   | Verification                              |
 | ------ | --------------- | ----------------------------------------------------------------------------- | ----------------------------------------- |
 | NFR-01 | Performance     | INP under 200 ms; LCP under 2.5 s; cached dashboard under 300 ms              | Lighthouse and DevTools. Not yet measured |
-| NFR-02 | Performance     | Animation uses `transform` and `opacity` only                                 | Code review                               |
+| NFR-02 | Performance     | Animation uses `transform`, `opacity`, and `clip-path` only                   | Code review                               |
 | NFR-03 | Performance     | Lists paginate with cursors, 25 items per page, maximum 50                    | Database tests                            |
 | NFR-04 | Performance     | Search input debounced at 300 ms                                              | Code review                               |
 | NFR-05 | Security        | RLS with FORCE on all user tables, except `users`                             | `rls-coverage` test                       |
@@ -882,36 +875,36 @@ Requirement format: identifier, statement, acceptance criteria.
 | ID        | Requirement                     | Acceptance                                                                                                             |
 | --------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | FR-DTK-01 | Set day status                  | Normal, Sick, Flexible, or Off. Status changes scoring                                                                 |
-| FR-DTK-02 | Create a time block             | Overlapping blocks on the same day are refused                                                                         |
-| FR-DTK-03 | Move and resize a block         | Snap to 15 minutes. Overlap refused and the change rolls back                                                          |
-| FR-DTK-04 | Block across midnight           | Stored as two linked rows. Edited as a pair in the dialog                                                              |
+| FR-DTK-02 | Google Calendar-style time grid | Hourly timeline (`00:00` to `23:59`, user time zone gutter) supporting Day and Week views with live current-time line  |
+| FR-DTK-03 | Drag-to-create and resize       | Click-drag across empty 15-min slots to create with live preview; move or resize bottom edge in 15-min snaps           |
+| FR-DTK-04 | Block across midnight           | Stored as two linked rows. Edited as a pair in the dialog. Overlapping blocks refused with rollback                    |
 | FR-DTK-05 | Daily checklist                 | A check writes the desired state, not a toggle. The first check freezes the day                                        |
 | FR-DTK-06 | Focus timer                     | Durations 1 to 240 minutes. Session always recorded. Completed deep-work sessions add a block when it does not overlap |
 | FR-DTK-07 | History                         | Filters for date, category, and text. Literal text search. Pages of 25                                                 |
-| FR-DTK-08 | Category filter on the timeline | Unselected categories are dimmed, not hidden                                                                           |
+| FR-DTK-08 | Category filter and mini-month  | Left rail mini-month navigator and category checkboxes that dim unselected categories rather than hiding them          |
 
 ### 9.5 Dashboard (FR-DSB)
 
-| ID        | Requirement                 | Acceptance                                                             |
-| --------- | --------------------------- | ---------------------------------------------------------------------- |
-| FR-DSB-01 | Weekly consistency          | Share of required items completed on recorded days                     |
-| FR-DSB-02 | 30-day trend                | EWMA with alpha 0.25 over daily ratios; days without a plan skipped    |
-| FR-DSB-03 | Calibration                 | Comparisons hidden until seven recorded days                           |
-| FR-DSB-04 | Frequent unchecked items    | Counted only on Normal days, over the last seven days; neutral wording |
-| FR-DSB-05 | No private data             | The dashboard service reads no private table                           |
-| FR-DSB-06 | Explanation for each figure | Each figure has an accompanying sentence                               |
+| ID        | Requirement                 | Acceptance                                                                                       |
+| --------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| FR-DSB-01 | Bento command center layout | Four tonal KPI cards on top row, split 8:4 middle workspace with execution log and side widgets  |
+| FR-DSB-02 | Weekly consistency & trend  | Share of required items completed on recorded days; 30-day EWMA (`alpha = 0.25`) sparkline chart |
+| FR-DSB-03 | Calibration                 | Comparisons hidden and labelled `Calibration` until seven recorded days                          |
+| FR-DSB-04 | Embedded focus & calendar   | Right-hand sidebar embeds interactive mini-month calendar and Pomodoro focus timer switcher      |
+| FR-DSB-05 | Frequent unchecked items    | Counted only on Normal days, over the last seven days; neutral wording                           |
+| FR-DSB-06 | No private data & clarity   | Dashboard service reads no private table; every figure has an accompanying explanatory sentence  |
 
 ### 9.6 Projects (FR-PRJ)
 
-| ID        | Requirement              | Acceptance                                                               |
-| --------- | ------------------------ | ------------------------------------------------------------------------ |
-| FR-PRJ-01 | Boards, lists, cards     | A card belongs to one list at a time                                     |
-| FR-PRJ-02 | Move cards and lists     | Positions computed by the server. Optimistic update with rollback        |
-| FR-PRJ-03 | Labels belong to a board | A label from another board is refused                                    |
-| FR-PRJ-04 | Due dates                | Status: none, complete, overdue, today, or upcoming                      |
-| FR-PRJ-05 | Card checklists          | Progress shown on the card                                               |
-| FR-PRJ-06 | Filters and dragging     | Dragging disabled while a filter is active                               |
-| FR-PRJ-07 | Archive                  | Boards, lists, and cards archive. No permanent deletion in the interface |
+| ID        | Requirement            | Acceptance                                                                                   |
+| --------- | ---------------------- | -------------------------------------------------------------------------------------------- |
+| FR-PRJ-01 | Trello-exact Kanban    | Horizontal scroll-snap columns (`280 px`), column card count, and `...` column actions       |
+| FR-PRJ-02 | Move cards and lists   | 60 fps drag-and-drop for both cards and lists. Positions computed on server with rollback    |
+| FR-PRJ-03 | Inline card composer   | `+ Add a card` at the bottom of every column opens an inline input submitting on `Enter`     |
+| FR-PRJ-04 | Card face & checklists | Shows label bars, due date status (`overdue`, `today`, `upcoming`), and checklist count pill |
+| FR-PRJ-05 | Floating bottom dock   | Centered glass dock at viewport bottom for `Inbox`, `Planner`, `Board`, and `Switch Boards`  |
+| FR-PRJ-06 | Filters and dragging   | Dragging disabled while a filter is active                                                   |
+| FR-PRJ-07 | Archive                | Boards, lists, and cards archive. No permanent deletion in the interface                     |
 
 ### 9.7 Career (FR-CAR)
 
@@ -939,15 +932,15 @@ Requirement format: identifier, statement, acceptance criteria.
 
 ### 9.9 Journal and reflection (FR-JRN, FR-TAD)
 
-| ID        | Requirement               | Acceptance                                                                     |
-| --------- | ------------------------- | ------------------------------------------------------------------------------ |
-| FR-JRN-01 | Entries by date and type  | Five types. Body required                                                      |
-| FR-JRN-02 | Late marking              | Marked when written more than one day after its date. Never refused            |
-| FR-JRN-03 | Learning streak           | A day counts when a Learning block and a LEARNING entry share the logical date |
-| FR-JRN-04 | Deletion                  | Soft                                                                           |
-| FR-TAD-01 | Reflection by verse range | Surah 1 to 114. Last verse not before first. Upper bound 286                   |
-| FR-TAD-02 | Filters in the URL        | Surah and date filters survive reload and back navigation                      |
-| FR-TAD-03 | Soft deletion             | A second delete of the same entry reports not found                            |
+| ID        | Requirement               | Acceptance                                                                                     |
+| --------- | ------------------------- | ---------------------------------------------------------------------------------------------- |
+| FR-JRN-01 | Notion-style rich editor  | TipTap editor with floating selection bubble toolbar, sticky block toolbar, and `/` slash menu |
+| FR-JRN-02 | Entries by date and type  | Five types. Body required and sanitized via `DOMPurify`                                        |
+| FR-JRN-03 | Late marking              | Marked when written more than one day after its date. Never refused                            |
+| FR-JRN-04 | Learning streak & delete  | Day counts when Learning block and `LEARNING` entry share logical date; soft deletion          |
+| FR-TAD-01 | Reflection by verse range | Surah 1 to 114. Last verse not before first. Upper bound 286                                   |
+| FR-TAD-02 | Filters in the URL        | Surah and date filters survive reload and back navigation                                      |
+| FR-TAD-03 | Soft deletion             | A second delete of the same entry reports not found                                            |
 
 ### 9.10 Capture (FR-CAP)
 
@@ -982,14 +975,14 @@ Planned for Phase 5. Not implemented.
 | Route                 | Purpose                             | Primary data                                         |
 | --------------------- | ----------------------------------- | ---------------------------------------------------- |
 | `/login`              | Google sign-in                      | Session                                              |
-| `/dashboard`          | Summary of the week                 | Scores, trend, today, output, misses, career, streak |
-| `/daily-tracker`      | Timeline, checklist, focus, history | Blocks, status, snapshot, sessions                   |
+| `/dashboard`          | Bento command center                | Scores, trend, today, output, misses, career, streak |
+| `/daily-tracker`      | Calendar timeline, checklist, focus | Blocks, status, snapshot, sessions                   |
 | `/weekly-plan`        | Seven day cards                     | Plan items                                           |
 | `/projects`           | Board index                         | Boards                                               |
-| `/projects/[boardId]` | Board workspace                     | Lists, cards, labels                                 |
+| `/projects/[boardId]` | Trello-style Kanban workspace       | Lists, cards, labels                                 |
 | `/career`             | Summary, board, table               | Jobs, events, activities                             |
 | `/learning`           | Materials and reviews               | Subjects, items, progress, cards                     |
-| `/journal`            | Journal and tadabur                 | Entries, streak, reflections                         |
+| `/journal`            | Rich-text journal and tadabur       | Entries, streak, reflections                         |
 | `/capture`            | Ideas and tags                      | Ideas, tags                                          |
 | `/private`            | Gate and private session            | PIN, session                                         |
 | `/settings`           | Preferences                         | Bundle, mode, time zone                              |
@@ -1007,7 +1000,7 @@ Planned for Phase 5. Not implemented.
 | `GET /api/v1/projects/boards/[boardId]`     | Board, lists, labels          |
 | `GET /api/v1/projects/lists/[listId]/cards` | Cards in a list, cursor paged |
 | `GET /api/v1/projects/cards/[cardId]`       | Card detail                   |
-| `GET /api/v1/career/jobs`                   | Job list (pending, see 14.3)  |
+| `GET /api/v1/career/jobs`                   | Job list (implemented)        |
 | `GET /api/v1/career/jobs/[jobId]`           | Job detail with history       |
 | `GET /api/v1/career/board`                  | All active jobs               |
 | `GET /api/v1/career/summary`                | Summary counts                |
@@ -1051,7 +1044,7 @@ Current versions of Chrome, Edge, Firefox, and Safari. Mobile Safari and Chrome 
 | Catalogue audit | Script                        | Unused and missing keys                                  | Manual           |
 | Types           | TypeScript                    | Whole project                                            | Yes              |
 | Lint            | ESLint with React hooks rules | Whole project                                            | Yes              |
-| End-to-end      | Playwright                    | Core flows                                               | Not yet written  |
+| End-to-end      | Playwright                    | Core flows (pending setup)                               | Planned          |
 
 ### 11.2 Coverage of critical rules
 
@@ -1115,22 +1108,22 @@ Current versions of Chrome, Edge, Firefox, and Safari. Mobile Safari and Chrome 
 
 ### 12.2 Components
 
-| Component                       | Role                            | Status                                                   |
-| ------------------------------- | ------------------------------- | -------------------------------------------------------- |
-| Supabase PostgreSQL (Singapore) | Persistent data                 | Active                                                   |
-| Google Cloud OAuth client       | Sign-in                         | Active                                                   |
-| GitHub repository               | Source, branches, pull requests | Active. Branches: `main`, `phase-1`, `refactor/redesign` |
-| GitHub Actions                  | Quality gates                   | Configured since Phase 0. Current status not recorded    |
-| Branch protection               | Required checks before merge    | Configured. Required check names to be verified          |
-| Sentry                          | Error reporting                 | Installed. Inactive without DSN                          |
-| Husky and lint-staged           | Pre-commit formatting           | Active                                                   |
-| Vercel                          | Hosting and cron                | Planned                                                  |
-| Email provider                  | Notifications                   | Not selected                                             |
+| Component                       | Role                            | Status                                                                   |
+| ------------------------------- | ------------------------------- | ------------------------------------------------------------------------ |
+| Supabase PostgreSQL (Singapore) | Persistent data                 | Active                                                                   |
+| Google Cloud OAuth client       | Sign-in                         | Active                                                                   |
+| GitHub repository               | Source, branches, pull requests | Active. `main` @ `1ab2bef`; active work on `refactor/v2-ui-architecture` |
+| GitHub Actions                  | Quality gates                   | Configured since Phase 0                                                 |
+| Branch protection               | Required checks before merge    | Configured                                                               |
+| Sentry                          | Error reporting                 | Installed. Inactive without DSN                                          |
+| Husky and lint-staged           | Pre-commit formatting           | Active                                                                   |
+| Vercel                          | Hosting and cron                | Planned                                                                  |
+| Email provider                  | Notifications                   | Not selected                                                             |
 
 ### 12.3 Deployment procedure (target)
 
 1. Merge the release branch into `main` after all gates pass.
-2. Tag the release (for example `v0.2.0`).
+2. Tag the release (for example `v0.3.0`).
 3. Create the production database, apply migrations with `pnpm db:migrate` using the migration connection.
 4. Set environment variables in the hosting platform, including `AUTH_SECRET`, `PRIVATE_PIN_PEPPER`, and `ALLOWED_EMAILS`.
 5. Deploy. Verify sign-in, one daily entry, and the private gate.
@@ -1166,18 +1159,19 @@ Single user. Expected load is far below the free or entry tiers of Supabase and 
 
 ### 13.1 Phases
 
-| Phase | Name                       | Objective                                                          | Exit criteria                                                                           | Status                                  |
-| ----- | -------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- | --------------------------------------- |
-| 0     | Foundation                 | Repository, authentication, core schema, PIN gate, i18n, theme, CI | Sign-in works, gate works, tests green                                                  | Complete                                |
-| 1     | Daily MVP                  | Tracker, checklist, focus, dashboard, journal                      | Seven consecutive days logged without defects; three sample days match hand calculation | Built. Browser verification in progress |
-| 2     | Plan and career            | Weekly plan, projects, career                                      | One application followed to its final status with history intact                        | Built                                   |
-| 3     | Learning and reflection    | Learning, SM-2, tadabur, capture                                   | Three test cards produce the hand-calculated intervals                                  | Built                                   |
-| 4     | Private space complete     | Recovery log, reflection analytics                                 | Access tests pass; no private data reaches shared endpoints                             | Planned                                 |
-| 5     | Notifications and calendar | Outbox, email, in-app, calendar read then write                    | Seven days of testing with no duplicate reminders                                       | Planned                                 |
-| 6     | Review and calibration     | Weekly and monthly reviews; constant calibration                   | Constant changes recorded with data-based reasons                                       | Planned                                 |
-| 7     | Expansion                  | Full Indonesian coverage, theme editor, data export                | Phases 0 to 6 stable                                                                    | Considered                              |
+| Phase | Name                       | Objective                                                                       | Exit criteria                                                                           | Status                                 |
+| ----- | -------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------- |
+| 0     | Foundation                 | Repository, authentication, core schema, PIN gate, i18n, theme, CI              | Sign-in works, gate works, tests green                                                  | Complete                               |
+| 1     | Daily MVP                  | Tracker, checklist, focus, dashboard, journal                                   | Seven consecutive days logged without defects; three sample days match hand calculation | Built                                  |
+| 2     | Plan and career            | Weekly plan, projects, career                                                   | One application followed to its final status with history intact                        | Built                                  |
+| 3     | Learning and reflection    | Learning, SM-2, tadabur, capture                                                | Three test cards produce the hand-calculated intervals                                  | Built                                  |
+| 3.5   | v2 UI & Security Overhaul  | OKLCH tokens, Bento dashboard, Trello Kanban, Calendar grid, TipTap, CSP/cipher | Browser audit complete; all v2 batches verified cleanly                                 | Active (`refactor/v2-ui-architecture`) |
+| 4     | Private space complete     | Recovery log, reflection analytics                                              | Access tests pass; no private data reaches shared endpoints                             | Planned                                |
+| 5     | Notifications and calendar | Outbox, email, in-app, calendar read then write                                 | Seven days of testing with no duplicate reminders                                       | Planned                                |
+| 6     | Review and calibration     | Weekly and monthly reviews; constant calibration                                | Constant changes recorded with data-based reasons                                       | Planned                                |
+| 7     | Expansion                  | Full Indonesian coverage, theme editor, data export                             | Phases 0 to 6 stable                                                                    | Considered                             |
 
-### 13.2 Batch history (redesign)
+### 13.2 Batch history (redesign v1 — merged in PR #4)
 
 | Batch | Scope                                                        | Status   |
 | ----- | ------------------------------------------------------------ | -------- |
@@ -1215,57 +1209,57 @@ The product stays single-user. Its value is in the quality of its records and ex
 
 ## 14. Current Status
 
-**As of 20 November 2026.**
+**As of 24 November 2026.**
 
 ### 14.1 Summary
 
-Foundation, data layer, and interface for all planned modules through Phase 3 are built. Private gate, dashboard, and time zone are built. Automated checks pass. Remaining work is browser verification of several modules, a production build record, two missing routes or verifications, and Phases 4 to 6.
+Foundation, data layer, and v1 interfaces through Phase 3 are built and merged into `main` at commit `1ab2bef` (PR #4). Active work on `refactor/v2-ui-architecture` begins with a strict read-only codebase and browser audit to produce `docs/AUDIT-FINDINGS.md` and `docs/MASTER-REFACTOR-PLAN.md` before executing the v2 UI and security overhaul.
 
 ### 14.2 Verification status
 
-| Check                  | Result      |
-| ---------------------- | ----------- |
-| Type check             | Zero errors |
-| Lint                   | Zero errors |
-| Unit and UI tests      | Passing     |
-| Database tests         | Passing     |
-| Catalogue audit        | Clean       |
-| Legacy import search   | Clean       |
-| `new Date()` in `app/` | Clean       |
-| Production build       | Pending     |
-| Browser verification   | Partial     |
+| Check                  | Result                           |
+| ---------------------- | -------------------------------- |
+| Type check             | Zero errors (baseline `1ab2bef`) |
+| Lint                   | Zero errors (baseline `1ab2bef`) |
+| Unit and UI tests      | Passing (baseline `1ab2bef`)     |
+| Database tests         | Passing (baseline `1ab2bef`)     |
+| Catalogue audit        | Clean                            |
+| Legacy import search   | Clean                            |
+| `new Date()` in `app/` | Clean                            |
+| Production build       | Pending verification (`T3`)      |
+| Browser verification   | Pending full v2 audit (`T4`)     |
 
 ### 14.3 Open items
 
-| ID  | Item                      | Impact                                               | Action                                                                                                            |
-| --- | ------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| T1  | `GET /api/v1/career/jobs` | Career table cannot load                             | Route added in a recent commit; confirm it is present and that `app/api/v1/jobs/route.ts` is removed if it exists |
-| T2  | Sign-out action location  | Sign-out may fail if imports point to a missing file | Confirm `features/auth/actions.ts` exists, or that the import resolves                                            |
-| T3  | Production build          | Deployment risk                                      | Run `pnpm build` and record the result                                                                            |
-| T4  | Browser verification      | Regressions undetected                               | Verify dashboard, private gate, time zone, and daily tracker                                                      |
-| T5  | Remote branch             | Local work not backed up                             | Push `refactor/redesign`                                                                                          |
-| T6  | Pull request to `main`    | Refactor not yet integrated                          | Open after CI passes                                                                                              |
+| ID  | Item                      | Status / Impact                                     | Action                                                                    |
+| --- | ------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
+| T1  | `GET /api/v1/career/jobs` | **Resolved** (`eee3dae`, merged in `1ab2bef`)       | Closed                                                                    |
+| T2  | Sign-out action location  | **Resolved** (`eee3dae`, merged in `1ab2bef`)       | Closed                                                                    |
+| T3  | Production build          | Deployment risk                                     | Run `pnpm build` and record the result                                    |
+| T4  | Browser verification      | Regressions and v2 UI gaps                          | Audit `/dashboard`, `/daily-tracker`, `/projects`, `/journal`, `/private` |
+| T5  | Remote branch             | **Resolved** (`refactor/redesign` pushed & merged)  | Closed                                                                    |
+| T6  | Pull request to `main`    | **Resolved** (PR #4 merged into `main` @ `1ab2bef`) | Closed                                                                    |
 
 ### 14.4 Technical debt
 
-| ID  | Item                                              | Priority | Plan                                                                     |
-| --- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------ |
-| U1  | Obsolete habit error code (`HABIT_ARCHIVED`)      | Low      | Remove from error codes and status map                                   |
-| U2  | Prop named `todayIso` in daily tracker components | Low      | Rename to `today`                                                        |
-| U3  | Board list capped at 500 without pagination       | Medium   | Add pagination when the cap approaches                                   |
-| U4  | Learning streak reads all history                 | Medium   | Limit to the last 366 days                                               |
-| U5  | Balance score computed but not shown              | Low      | Show in Phase 6, or remove                                               |
-| U6  | Streak fire component not on the journal card     | Low      | Mount `Fire` in `StreakCard`                                             |
-| U7  | Review cards not linked to materials in the UI    | Low      | Add a material selector to the card dialog                               |
-| U8  | No end-to-end tests                               | High     | Write five flows: sign-in, log a block, board, application, private gate |
-| U9  | Column cipher not yet used                        | Medium   | Apply to private fields in Phase 4                                       |
-| U10 | Scheduled route handlers are stubs                | Medium   | Mark as stubs or remove before deployment                                |
-| U11 | Security headers not verified                     | High     | Add in `next.config.ts` and verify                                       |
-| U12 | Account export and erasure missing                | High     | Add before any use beyond personal                                       |
-| U13 | Notification settings missing                     | Low      | Add in Phase 5                                                           |
-| U14 | Build artifacts in working tree                   | Low      | Confirm ignored and untracked                                            |
-| U15 | Legacy redirects are temporary                    | Low      | Make permanent once stable                                               |
-| U16 | Branch not yet pushed                             | High     | Push                                                                     |
+| ID  | Item                                                  | Priority     | Plan                                                                         |
+| --- | ----------------------------------------------------- | ------------ | ---------------------------------------------------------------------------- |
+| U1  | Obsolete habit error code (`HABIT_ARCHIVED`)          | Low          | Remove from error codes and status map                                       |
+| U2  | Prop named `todayIso` in daily tracker components     | Low          | Rename to `today`                                                            |
+| U3  | Board list capped at 500 without pagination           | Medium       | Add pagination when the cap approaches                                       |
+| U4  | Learning streak reads all history                     | Medium       | Limit to the last 366 days                                                   |
+| U5  | Balance score computed but not shown                  | Low          | Show in Phase 6, or remove                                                   |
+| U6  | Streak fire component not on the journal card         | Low          | Mount `Fire` in `StreakCard`                                                 |
+| U7  | Review cards not linked to materials in the UI        | Low          | Add a material selector to the card dialog                                   |
+| U8  | No end-to-end tests                                   | High         | Configure `playwright.config.ts` and write 5 core flows                      |
+| U9  | Column cipher stub (`server/crypto/column-cipher.ts`) | High         | Implement AES-256-GCM authenticated encryption in v2 Batch 1                 |
+| U10 | Cron auth and scheduled route stubs                   | Medium       | Add `crypto.timingSafeEqual` in `server/cron/auth.ts` and mark stubs         |
+| U11 | Security headers and CSP nonces                       | High         | Enforce per-request CSP nonces in `proxy.ts` and headers in `next.config.ts` |
+| U12 | Account export and erasure missing                    | High         | Add before any use beyond personal                                           |
+| U13 | Notification settings missing                         | Low          | Add in Phase 5                                                               |
+| U14 | Build artifacts in working tree                       | **Resolved** | Cleaned and untracked in `eee3dae`                                           |
+| U15 | Legacy redirects are temporary                        | Low          | Make permanent once stable                                                   |
+| U16 | Remote branch backup                                  | **Resolved** | Merged into `main` @ `1ab2bef`                                               |
 
 ---
 
@@ -1284,19 +1278,20 @@ Foundation, data layer, and interface for all planned modules through Phase 3 ar
 | R-07 | Schema drift outside migrations                     | Low        | High   | Migrations only; sorting script; applied migrations never edited |
 | R-08 | Beta dependency (`next-auth` 5.0.0-beta.32) changes | Medium     | Medium | Pin exact version; review on upgrade                             |
 | R-09 | Pooler incompatibility with prepared statements     | Low        | Medium | `prepare: false` enforced                                        |
-| R-10 | Accessibility regressions in glass surfaces         | Medium     | Medium | Reduced-transparency rule; manual audit                          |
+| R-10 | Contrast degradation or blur jank on glass surfaces | Medium     | Medium | Cap `backdrop-filter` to 2 layers; use solid stepped cards       |
+| R-11 | XSS via rich-text journal HTML                      | Medium     | High   | Sanitize all TipTap HTML output with `DOMPurify`                 |
 
 ### 15.2 Open decisions
 
-| ID  | Decision                            | Options                            | Owner's input |
-| --- | ----------------------------------- | ---------------------------------- | ------------- |
-| D1  | Scope of Phase 4                    | Full, or staged                    | Pending       |
-| D2  | Minimum visible flame level         | Yes, or no                         | Pending       |
-| D3  | Email provider                      | Resend, Postmark, other            | Pending       |
-| D4  | Passkey beside PIN                  | Add later, or not                  | Pending       |
-| D5  | Hosting                             | Vercel, or other                   | Pending       |
-| D6  | Target of five of seven logged days | Accept, or revise                  | Pending       |
-| D7  | Merge timing for the refactor       | Now, or after browser verification | Pending       |
+| ID  | Decision                            | Options                             | Owner's input            |
+| --- | ----------------------------------- | ----------------------------------- | ------------------------ |
+| D1  | Scope of Phase 4                    | Full, or staged                     | Pending                  |
+| D2  | Minimum visible flame level         | Yes, or no                          | Pending                  |
+| D3  | Email provider                      | Resend, Postmark, other             | Pending                  |
+| D4  | Passkey beside PIN                  | Add later, or not                   | Pending                  |
+| D5  | Hosting                             | Vercel, or other                    | Pending                  |
+| D6  | Target of five of seven logged days | Accept, or revise                   | Pending                  |
+| D7  | Merge timing for v1 refactor        | Already merged in PR #4 (`1ab2bef`) | **Resolved** (`1ab2bef`) |
 
 ### 15.3 Assumptions to revisit
 
@@ -1320,6 +1315,7 @@ Foundation, data layer, and interface for all planned modules through Phase 3 ar
 | DomainError        | Expected failure with a stable code               |
 | EWMA               | Exponentially weighted moving average             |
 | Logical day        | Calendar date in the user's zone                  |
+| OKLCH              | Perceptually uniform colour space (`L C H`)       |
 | RLS                | Row-level security                                |
 | Seed               | A base colour value from which tokens are derived |
 | SM-2               | Spaced-repetition algorithm                       |
