@@ -1,6 +1,15 @@
 {
-  "css.lint.unknownAtRules": "ignore",
-  "[sql]": {
-    "editor.formatOnSave": false
-  }
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.husky": true,
+    "**/pnpm-lock.yaml": true,
+    "**/drizzle/meta": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/drizzle/meta/**": true
+  },
+  "css.lint.unknownAtRules": "ignore"
 }
