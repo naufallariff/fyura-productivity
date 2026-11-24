@@ -1,7 +1,7 @@
 // features/daily-tracker/pomodoro/timer.tsx
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useShellCommand } from "@/client/hooks/use-shell-command";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -20,10 +20,17 @@ import type { FocusLogResult } from "@/server/services/focus";
 import { logFocusAction } from "./actions";
 
 type Phase = "idle" | "running" | "saving";
-type Notice = "completed" | "blockConflict" | "stopped";
+type Notice = "completed" | "blockConflict" | "stopped" | "breakComplete";
+type Mode = "focus" | "short" | "long";
+const MODES = [
+  { id: "focus", minutes: 25 },
+  { id: "short", minutes: 5 },
+  { id: "long", minutes: 15 },
+] as const;
 
 interface Run {
   readonly kind: FocusKind;
+  readonly mode: Mode;
   readonly plannedMinutes: number;
   readonly startedAt: number;
   readonly endsAt: number;
@@ -35,6 +42,7 @@ const NOTICE_KEY: Record<Notice, string> = {
   completed: "focus.notice.completed",
   blockConflict: "focus.notice.blockConflict",
   stopped: "focus.notice.stopped",
+  breakComplete: "dashboard.pomodoro.breakComplete",
 };
 
 function noticeFor(
@@ -47,7 +55,22 @@ function noticeFor(
   return "completed";
 }
 
-export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: string }) {
+interface TimerProps {
+  readonly logDate: string;
+  readonly timeZone: string;
+}
+
+export function FocusTimer(props: TimerProps) {
+  return <Timer {...props} compact={false} />;
+}
+
+export function EmbeddablePomodoroTimer(props: TimerProps) {
+  return <Timer {...props} compact />;
+}
+
+function Timer({ logDate, timeZone, compact }: TimerProps & { readonly compact: boolean }) {
+  const modeGroup = useId();
+  const [mode, setMode] = useState<(typeof MODES)[number]>(MODES[0]);
   const [input, setInput] = useState("25");
   const [kind, setKind] = useState<FocusKind>("DEEP");
   const [phase, setPhase] = useState<Phase>("idle");
@@ -56,13 +79,20 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
   const [saveError, setSaveError] = useState<string | null>(null);
   const run = useRef<Run | null>(null);
 
-  const minutes = Number(input);
+  const minutes = compact ? mode.minutes : Number(input);
   const valid = isValidFocusMinutes(minutes);
   const inputError = input !== "" && !valid ? t("focus.customInvalid") : undefined;
 
   // Stable identity keeps the animation effect from restarting on every render.
   const save = useCallback(
     async (current: Run, endedAt: number, reason: "completed" | "stopped") => {
+      if (current.mode !== "focus") {
+        if (reason === "completed") setNotice("breakComplete");
+        setPhase("idle");
+        setShownMs(0);
+        return;
+      }
+
       setPhase("saving");
       setSaveError(null);
       try {
@@ -86,11 +116,11 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
     [logDate, timeZone],
   );
 
-  // One animation loop, active only while a session runs.
+  // Only update at countdown boundaries. The deadline remains accurate after tab throttling.
   useEffect(() => {
     if (phase !== "running") return;
 
-    let frame = 0;
+    let timeout: ReturnType<typeof setTimeout>;
     const tick = () => {
       const current = run.current;
       if (!current) return;
@@ -100,15 +130,15 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
 
       if (left === 0) {
         run.current = null;
-        // The planned end is recorded, not the frame time, so the duration is exact.
+        // Record the deadline so tab throttling cannot inflate logged focus.
         void save(current, current.endsAt, "completed");
         return;
       }
-      frame = requestAnimationFrame(tick);
+      timeout = setTimeout(tick, left % 1000 || 1000);
     };
 
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    timeout = setTimeout(tick, 1000);
+    return () => clearTimeout(timeout);
   }, [phase, save]);
 
   // Clears the running session if the component unmounts.
@@ -123,6 +153,7 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
     const startedAt = Date.now();
     run.current = {
       kind,
+      mode: compact ? mode.id : "focus",
       plannedMinutes: minutes,
       startedAt,
       endsAt: startedAt + minutes * MS_PER_MINUTE,
@@ -133,10 +164,14 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
     setPhase("running");
   };
 
-  useShellCommand("startFocus", () => {
-    document.getElementById("focus-title")?.scrollIntoView({ block: "center" });
-    start();
-  });
+  useShellCommand(
+    "startFocus",
+    () => {
+      document.getElementById("focus-title")?.scrollIntoView({ block: "center" });
+      start();
+    },
+    !compact,
+  );
 
   const stop = () => {
     const current = run.current;
@@ -156,6 +191,70 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
   ] as const;
 
   const display = phase === "idle" ? (valid ? minutes * MS_PER_MINUTE : 0) : shownMs;
+
+  if (compact) {
+    return (
+      <section
+        aria-labelledby="dashboard-pomodoro"
+        className="grid min-w-0 gap-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) sm:gap-6 sm:p-6"
+      >
+        <h2 id="dashboard-pomodoro" className="font-semibold">
+          {t("dashboard.pomodoro.title")}
+        </h2>
+        <fieldset
+          disabled={phase !== "idle"}
+          className="min-w-0 rounded-full border border-(--border-subtle) bg-(--bg-surface-elevated) p-1 disabled:opacity-60"
+        >
+          <legend className="sr-only">{t("dashboard.pomodoro.mode")}</legend>
+          <div className="grid grid-cols-3 gap-1">
+            {MODES.map((option) => (
+              <label key={option.id} className="press-feedback min-w-0 cursor-pointer rounded-full">
+                <input
+                  type="radio"
+                  name={modeGroup}
+                  checked={mode.id === option.id}
+                  onChange={() => {
+                    setMode(option);
+                    setNotice(null);
+                    setSaveError(null);
+                  }}
+                  className="peer sr-only"
+                />
+                <span className="text-ink-muted peer-checked:bg-accent peer-checked:text-on-accent peer-focus-visible:ring-accent grid min-h-11 place-items-center rounded-full px-1 text-center text-xs font-medium peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2">
+                  {t(`dashboard.pomodoro.${option.id}`)}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <p role="timer" className="text-center text-5xl font-semibold tracking-tight tabular-nums">
+          {formatCountdown(display)}
+        </p>
+        {phase === "idle" && (
+          <Button onClick={start} className="press-feedback">
+            {t("dashboard.pomodoro.start")}
+          </Button>
+        )}
+        {phase === "running" && (
+          <Button variant="secondary" onClick={stop} className="press-feedback">
+            {t("focus.stop")}
+          </Button>
+        )}
+        {phase === "saving" && <Button pending>{t("common.saving")}</Button>}
+        {notice && (
+          <p role="status" className="text-ink-muted text-center text-sm">
+            {t(NOTICE_KEY[notice])}
+          </p>
+        )}
+        {saveError && (
+          <p role="alert" className="text-negative text-center text-sm">
+            {saveError}
+          </p>
+        )}
+      </section>
+    );
+  }
 
   return (
     <>

@@ -44,6 +44,16 @@
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .press-feedback {
+    transition: scale 120ms var(--ease-out-snappy);
+  }
+
+  .press-feedback:active {
+    scale: 0.97;
+  }
+}
+
 @layer components {
   .palette-group [cmdk-group-heading] {
     padding: 0.5rem 0.75rem;

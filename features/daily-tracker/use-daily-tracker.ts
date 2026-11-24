@@ -61,11 +61,12 @@ const HistoryItemSchema = z.object({
 
 export type HistoryItem = z.infer<typeof HistoryItemSchema>;
 
-export function useChecklist(userId: string, date: string) {
+export function useChecklist(userId: string, date: string, initialData?: ChecklistView) {
   return useQuery({
     queryKey: scopedKey(userId, CHECKLIST, date),
     queryFn: ({ signal }) =>
       apiGet("/api/v1/daily-tracker/checklist", { date }, ChecklistSchema, signal),
+    initialData,
     ...CACHE_POLICY.standard,
   });
 }

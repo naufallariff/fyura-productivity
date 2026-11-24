@@ -9,7 +9,7 @@ export function monthCells(year: number, month: number): Array<string | null> {
   const firstDay = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
   const leading = (firstDay + 6) % 7;
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const prefix = `${year}-${String(month).padStart(2, "0")}`;
+  const prefix = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}`;
 
   const cells: Array<string | null> = Array.from({ length: leading }, () => null);
   for (let day = 1; day <= daysInMonth; day += 1) {
@@ -29,5 +29,5 @@ export function shiftMonth(yearMonth: string, delta: number): string {
   const index = year * 12 + (month - 1) + delta;
   const nextYear = Math.floor(index / 12);
   const nextMonth = (index % 12) + 1;
-  return `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
+  return `${String(nextYear).padStart(4, "0")}-${String(nextMonth).padStart(2, "0")}`;
 }

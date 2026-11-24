@@ -46,12 +46,18 @@ describe.skipIf(!RUN_DB_TESTS)("dashboard (requires database)", () => {
       plannedMinutes: null,
     });
 
+    const before = await dashboard.getDashboard(userId);
+    expect(before.calibration.recordedDays).toBe(0);
+    expect(before.recordedDates).not.toContain(today);
+
     // The first check freezes today, so the second item stays unchecked in the snapshot.
     await checklist.setChecklistItem(userId, { logDate: today, sourceItemId: done.id, done: true });
 
     const data = await dashboard.getDashboard(userId);
     expect(data.timeZone).toBe("Asia/Jakarta");
     expect(data.today).toBe(today);
+    expect(data.recordedDates).toContain(today);
+    expect(data.calibration.recordedDays).toBe(1);
     expect(data.misses.map((miss) => miss.title)).toContain("Forgotten item");
   }, 60_000);
 

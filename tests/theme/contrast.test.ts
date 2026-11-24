@@ -52,6 +52,9 @@ describe.each(THEMES)("$bundle / $mode", ({ bundle, mode }) => {
         [...STATUSES, "--color-accent"].map((ink) => [ink, surface] as const),
       ),
       ...CATEGORIES.map((category) => [category, `${category}-soft`] as const),
+      ...["consistency", "trend", "focus", "streak"].map(
+        (hue) => [`--kpi-${hue}-fg`, `--kpi-${hue}-bg`] as const,
+      ),
       ["--color-accent", "--color-accent-soft"],
       ["--color-on-accent", "--color-accent"],
       ["--color-on-accent", "--color-accent-hover"],

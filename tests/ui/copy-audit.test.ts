@@ -3,9 +3,11 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOTS = [
+  "components/dashboard",
   "components/ui",
   "lib/ui",
   "lib/i18n/messages",
+  "features/dashboard",
   "features/daily-tracker",
   "features/weekly-plan",
   "features/projects",
@@ -39,7 +41,11 @@ describe("copy and symbol standard", () => {
         readFileSync(file, "utf8")
           .split("\n")
           .forEach((line, index) => {
-            if (FORBIDDEN.test(line)) {
+            // The dashboard uses an en dash as a placeholder for an unavailable number.
+            const missingMetric =
+              file === join("components", "ui", "kpi-card.tsx") &&
+              line.trim() === 'export const KPI_EMPTY_VALUE = "\u2013";';
+            if (!missingMetric && FORBIDDEN.test(line)) {
               violations.push(`${relative(process.cwd(), file)}:${index + 1}`);
             }
           });

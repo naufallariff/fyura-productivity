@@ -27,6 +27,6 @@ describe("bundles", () => {
     expect(blocks).toHaveLength(BUNDLE_IDS.length * MODES.length);
     expect(css).toContain("--bg-surface-elevated");
     expect(css).toContain("--cat-rest-soft");
-    expect(css).toContain("--kpi-icon-fg:var(--cat-rest)");
+    expect(css).toContain("--kpi-consistency-fg:var(--cat-learning)");
   });
 });

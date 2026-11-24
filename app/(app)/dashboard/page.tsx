@@ -23,7 +23,7 @@ async function DashboardContent() {
   return (
     <PageFrame>
       <PageHeader title={t("dashboard.title")} lead={t("dashboard.lead")} />
-      <DashboardView data={data} />
+      <DashboardView userId={user.id} data={data} />
     </PageFrame>
   );
 }

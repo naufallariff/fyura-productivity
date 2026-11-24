@@ -1,6 +1,13 @@
 import { BUNDLE_IDS, BUNDLES, MODES, PALETTE } from "./bundles";
 import { deriveTokens, type ThemeTokens } from "./derive";
-import { CATEGORY_BY_HUE, HUE_NAMES } from "./hues";
+import { CATEGORY_BY_HUE, HUE_NAMES, type Hue } from "./hues";
+
+const KPI_HUES = {
+  consistency: "indigo",
+  trend: "emerald",
+  focus: "amber",
+  streak: "violet",
+} as const satisfies Record<string, Hue>;
 
 function themeVariables(t: ThemeTokens): Record<string, string> {
   const variables: Record<string, string> = {
@@ -45,6 +52,11 @@ function themeVariables(t: ThemeTokens): Record<string, string> {
     variables[`--cat-${category}`] = t.categories[hue].ink;
     variables[`--cat-${category}-soft`] = t.categories[hue].wash;
   }
+  for (const [name, hue] of Object.entries(KPI_HUES)) {
+    const category = CATEGORY_BY_HUE[hue];
+    variables[`--kpi-${name}-bg`] = `var(--cat-${category}-soft)`;
+    variables[`--kpi-${name}-fg`] = `var(--cat-${category})`;
+  }
   return variables;
 }
 
@@ -65,9 +77,5 @@ export function buildThemeCss(): string {
       return `[data-bundle="${bundleId}"][data-mode="${mode}"]{color-scheme:${mode};${declarations(themeVariables(tokens))}}`;
     }),
   );
-  const component = HUE_NAMES.map((hue) => {
-    const category = CATEGORY_BY_HUE[hue];
-    return `.kpi-card[data-hue="${hue}"]{--kpi-icon-bg:var(--cat-${category}-soft);--kpi-icon-fg:var(--cat-${category});}`;
-  });
-  return [`:root{${declarations(palette)}}`, ...schemes, ...component].join("\n");
+  return [`:root{${declarations(palette)}}`, ...schemes].join("\n");
 }

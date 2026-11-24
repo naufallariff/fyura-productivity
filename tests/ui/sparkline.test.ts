@@ -8,10 +8,12 @@ describe("sparklinePath", () => {
   });
 
   it("maps the lowest value to the bottom and the highest to the top", () => {
-    expect(sparklinePath([1, 2], 120, 36)).toBe("M2.00 34.00 L118.00 2.00");
+    expect(sparklinePath([1, 2], 120, 36)).toBe("M2.00 34.00 C60.00 34.00 60.00 2.00 118.00 2.00");
   });
 
   it("draws a flat line through the middle when all values are equal", () => {
-    expect(sparklinePath([5, 5, 5], 120, 36)).toBe("M2.00 18.00 L60.00 18.00 L118.00 18.00");
+    expect(sparklinePath([5, 5, 5], 120, 36)).toBe(
+      "M2.00 18.00 C31.00 18.00 31.00 18.00 60.00 18.00 C89.00 18.00 89.00 18.00 118.00 18.00",
+    );
   });
 });

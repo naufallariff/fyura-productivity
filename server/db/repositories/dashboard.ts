@@ -1,8 +1,68 @@
 // server/db/repositories/dashboard.ts
 import "server-only";
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import type { Tx } from "@/server/db/tx";
-import { checklistEntries, dayLogs, focusSessions, readingProgress } from "@/server/db/schema";
+import {
+  boardCards,
+  boardChecklistItems,
+  boardLists,
+  checklistEntries,
+  dayLogs,
+  focusSessions,
+  readingProgress,
+  timeBlocks,
+} from "@/server/db/schema";
+
+/** Only persisted Daily Tracker activity contributes dates to the calendar. */
+export async function listRecordedDates(tx: Tx, userId: string): Promise<string[]> {
+  const dates = await tx
+    .select({ date: dayLogs.logDate })
+    .from(dayLogs)
+    .where(eq(dayLogs.userId, userId))
+    .union(
+      tx
+        .select({ date: checklistEntries.logDate })
+        .from(checklistEntries)
+        .where(eq(checklistEntries.userId, userId)),
+    )
+    .union(
+      tx
+        .select({ date: timeBlocks.logDate })
+        .from(timeBlocks)
+        .where(and(eq(timeBlocks.userId, userId), isNull(timeBlocks.deletedAt))),
+    )
+    .union(
+      tx
+        .select({ date: focusSessions.logDate })
+        .from(focusSessions)
+        .where(eq(focusSessions.userId, userId)),
+    );
+  return dates.map(({ date }) => date);
+}
+
+/** Completion of checklist items on active cards and lists in the selected boards. */
+export async function projectChecklistProgress(tx: Tx, userId: string, boardIds: string[]) {
+  if (boardIds.length === 0) return [];
+
+  return tx
+    .select({
+      boardId: boardChecklistItems.boardId,
+      total: sql<number>`count(*)::int`,
+      done: sql<number>`(count(*) filter (where ${boardChecklistItems.isDone}))::int`,
+    })
+    .from(boardChecklistItems)
+    .innerJoin(boardCards, eq(boardCards.id, boardChecklistItems.cardId))
+    .innerJoin(boardLists, eq(boardLists.id, boardCards.listId))
+    .where(
+      and(
+        eq(boardChecklistItems.userId, userId),
+        inArray(boardChecklistItems.boardId, boardIds),
+        isNull(boardCards.archivedAt),
+        isNull(boardLists.archivedAt),
+      ),
+    )
+    .groupBy(boardChecklistItems.boardId);
+}
 
 /** Completed deep work minutes in an inclusive date range. */
 export async function sumDeepFocusMinutes(

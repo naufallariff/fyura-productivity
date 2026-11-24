@@ -16,6 +16,8 @@ Stack: Next.js 16.4.5 (App Router, Cache Components, `proxy.ts`), React 19.3, Ty
 
   `Co-authored-by: OpenAI Codex <codex@openai.com>`
 
+- Immediately after every batch commit, run `index_repository` on the `codebase-memory` MCP for this repository to keep the symbol graph synchronized across threads.
+
 ## Living Documentation (Read On-Demand Only)
 
 - Full Specification & Formulas: @docs/PRD-SRS.md
