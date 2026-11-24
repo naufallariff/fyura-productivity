@@ -11,6 +11,7 @@ const STATUS: Record<Exclude<DomainErrorCode, "INTERNAL">, number> = {
   CONFLICT: 409,
   HABIT_ARCHIVED: 409,
   RATE_LIMITED: 429,
+  PRIVATE_LOCKED: 403,
 };
 
 const NO_STORE = { "Cache-Control": "no-store" };

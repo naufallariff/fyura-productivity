@@ -2,6 +2,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { plainTextToEditorHtml } from "@/components/editor/rich-text-content";
+import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/field";
@@ -9,9 +11,6 @@ import { t } from "@/lib/i18n";
 import { failureCode, tadaburErrorText } from "./errors";
 import type { TadaburItem } from "./schemas";
 import { useCreateTadabur, useUpdateTadabur, type TadaburDraft } from "./use-tadabur";
-
-const TEXTAREA =
-  "min-h-28 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 py-2 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 /** Client-side check. The server repeats it, so a passing check is never the only protection. */
 function checkDraft(draft: TadaburDraft): string | null {
@@ -47,6 +46,7 @@ export function EntryDialog({
       onClose={onClose}
       title={entry ? t("tadabur.dialog.editTitle") : t("tadabur.dialog.createTitle")}
       closeLabel={t("shell.close")}
+      solid
     >
       {open && (
         <EntryForm
@@ -76,7 +76,11 @@ function EntryForm({
   const [surah, setSurah] = useState(entry ? String(entry.surah) : "");
   const [from, setFrom] = useState(entry ? String(entry.ayatFrom) : "");
   const [to, setTo] = useState(entry ? String(entry.ayatTo) : "");
-  const [reflection, setReflection] = useState(entry?.reflection ?? "");
+  const initialReflection =
+    entry && !entry.reflectionIsHtml
+      ? plainTextToEditorHtml(entry.reflection)
+      : (entry?.reflection ?? "");
+  const [reflection, setReflection] = useState(initialReflection);
   const [error, setError] = useState<string | null>(null);
 
   const create = useCreateTadabur(userId);
@@ -101,8 +105,17 @@ function EntryForm({
     setError(null);
 
     const onError = (failure: unknown) => setError(tadaburErrorText(failureCode(failure)));
-    if (entry) update.mutate({ entryId: entry.id, ...draft }, { onSuccess: onClose, onError });
-    else create.mutate(draft, { onSuccess: onClose, onError });
+    if (entry) {
+      const { reflection: html, ...fields } = draft;
+      update.mutate(
+        {
+          entryId: entry.id,
+          ...fields,
+          ...(html === initialReflection ? {} : { reflection: html }),
+        },
+        { onSuccess: onClose, onError },
+      );
+    } else create.mutate(draft, { onSuccess: onClose, onError });
   };
 
   return (
@@ -157,16 +170,11 @@ function EntryForm({
         </Field>
       </div>
 
-      <Field id="tadabur-reflection" label={t("tadabur.field.reflection")}>
-        <textarea
-          id="tadabur-reflection"
-          value={reflection}
-          onChange={(event) => setReflection(event.target.value)}
-          maxLength={10000}
-          required
-          className={TEXTAREA}
-        />
-      </Field>
+      <RichTextEditor
+        label={t("tadabur.field.reflection")}
+        initialHtml={initialReflection}
+        onUpdate={setReflection}
+      />
 
       {error && (
         <p role="alert" className="text-negative text-sm">

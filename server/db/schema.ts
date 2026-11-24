@@ -55,6 +55,26 @@ export const privatePin = pgTable("private_pin", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const privateRecords = pgTable(
+  "private_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    titleCiphertext: text("title_ciphertext").notNull(),
+    bodyCiphertext: text("body_ciphertext").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("private_records_user_updated_idx")
+      .on(t.userId, t.updatedAt.desc(), t.id.desc())
+      .where(sql`${t.deletedAt} is null`),
+  ],
+);
+
 /* ---------- Audit ---------- */
 
 export const auditLog = pgTable(
@@ -167,6 +187,7 @@ export const journalEntries = pgTable(
     kind: text("kind").notNull(), // 'DAILY' | 'LEARNING' | 'ENGLISH' | 'COURSE' | 'FREE'
     title: text("title"),
     body: text("body").notNull(),
+    bodyIsHtml: boolean("body_is_html").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -505,6 +526,7 @@ export const tadaburEntries = pgTable(
     ayatFrom: integer("ayat_from").notNull(),
     ayatTo: integer("ayat_to").notNull(),
     reflection: text("reflection").notNull(),
+    reflectionIsHtml: boolean("reflection_is_html").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),

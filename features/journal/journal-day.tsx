@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { BookText, Trash2 } from "lucide-react";
+import { RichTextContent } from "@/components/editor/rich-text-content";
+import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field, Input } from "@/components/ui/field";
 import { Pill } from "@/components/ui/pill";
@@ -17,8 +20,6 @@ import { createJournalAction, deleteJournalAction } from "./actions";
 
 const CONTROL =
   "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
-const TEXTAREA =
-  "min-h-32 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 py-2 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 function journalHref(date: string, kind: JournalKind | undefined): string {
   const params = new URLSearchParams({ tab: "jurnal", date });
@@ -44,11 +45,12 @@ export function JournalDay({
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [editorKey, setEditorKey] = useState(0);
   const [entryKind, setEntryKind] = useState<JournalKind>("DAILY");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const onSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,18 +74,16 @@ export function JournalDay({
     }
     setTitle("");
     setBody("");
+    setEditorKey((key) => key + 1);
     router.refresh();
   };
 
-  const onDelete = async (entryId: string) => {
-    if (confirmId !== entryId) {
-      setConfirmId(entryId);
-      return;
-    }
-    setBusyId(entryId);
+  const onDelete = async () => {
+    if (!confirmId || deleting) return;
+    setDeleting(true);
     setError(null);
-    const result = await deleteJournalAction({ entryId });
-    setBusyId(null);
+    const result = await deleteJournalAction({ entryId: confirmId });
+    setDeleting(false);
     setConfirmId(null);
     if (!result.ok) {
       setError(errorText(result.code));
@@ -170,16 +170,7 @@ export function JournalDay({
             </select>
           </Field>
         </div>
-        <Field id="journal-body" label={t("journal.form.title")}>
-          <textarea
-            id="journal-body"
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            maxLength={20000}
-            required
-            className={TEXTAREA}
-          />
-        </Field>
+        <RichTextEditor key={editorKey} label={t("journal.form.title")} onUpdate={setBody} />
         {error && (
           <p role="alert" className="text-negative text-sm">
             {error}
@@ -206,23 +197,31 @@ export function JournalDay({
                 {entry.late && <Pill tone="warning">{t("journal.late")}</Pill>}
                 {entry.title && <p className="text-sm font-semibold">{entry.title}</p>}
               </div>
-              <p className="text-ink text-sm leading-relaxed whitespace-pre-line">{entry.body}</p>
+              <RichTextContent body={entry.body} isHtml={entry.bodyIsHtml} />
               <div className="flex justify-end">
                 <Button
                   variant="ghost"
                   size="sm"
                   icon={Trash2}
-                  pending={busyId === entry.id}
-                  className={cn(confirmId === entry.id && "text-negative")}
-                  onClick={() => onDelete(entry.id)}
+                  disabled={deleting}
+                  onClick={() => setConfirmId(entry.id)}
                 >
-                  {confirmId === entry.id ? t("tadabur.confirmDelete") : t("journal.delete")}
+                  {t("journal.delete")}
                 </Button>
               </div>
             </li>
           ))}
         </ul>
       )}
+      <ConfirmDialog
+        open={confirmId !== null}
+        title={t("journal.deleteTitle")}
+        description={t("common.deleteDescription")}
+        confirmLabel={t("journal.delete")}
+        pending={deleting}
+        onClose={() => setConfirmId(null)}
+        onConfirm={onDelete}
+      />
     </section>
   );
 }

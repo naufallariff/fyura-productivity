@@ -9,6 +9,7 @@ import {
   softDeleteJournalEntry,
 } from "@/server/db/repositories/journal";
 import { CreateJournalInput, DeleteJournalInput } from "@/server/validation/journal";
+import { sanitizeHtml } from "@/server/validation/sanitize";
 import type { JournalKind } from "@/domain/journal/kinds";
 import {
   bestStreak,
@@ -29,6 +30,7 @@ export interface JournalEntryDto {
   readonly kind: JournalKind;
   readonly title: string | null;
   readonly body: string;
+  readonly bodyIsHtml: boolean;
   readonly createdAt: string;
   /** True when the entry was written more than one day after its log date. Marked, never rejected. */
   readonly late: boolean;
@@ -59,14 +61,19 @@ export async function listJournalDay(
         logDate: row.logDate,
         kind: row.kind as JournalKind,
         title: row.title,
-        body: row.body,
+        body: row.bodyIsHtml ? sanitizeHtml(row.body) : row.body,
+        bodyIsHtml: row.bodyIsHtml,
         createdAt: row.createdAt.toISOString(),
         late: isLateEntry(row.logDate, localIsoDate(row.createdAt, timeZone)),
       }));
   });
 }
 
-export async function createJournalEntry(userId: string, input: unknown): Promise<string> {
+export async function createJournalEntry(
+  userId: string,
+  input: unknown,
+  format: "text" | "html" = "text",
+): Promise<string> {
   const parsed = parse(CreateJournalInput, input);
   return withUser(userId, (tx) =>
     insertJournalEntry(tx, {
@@ -75,6 +82,7 @@ export async function createJournalEntry(userId: string, input: unknown): Promis
       kind: parsed.kind,
       title: parsed.title.length > 0 ? parsed.title : null,
       body: parsed.body,
+      bodyIsHtml: format === "html",
     }),
   );
 }

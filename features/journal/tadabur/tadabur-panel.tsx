@@ -3,12 +3,13 @@
 
 import { useState } from "react";
 import { BookOpenText, Pencil, Plus, Trash2 } from "lucide-react";
+import { RichTextContent } from "@/components/editor/rich-text-content";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field, Input } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { t } from "@/lib/i18n";
-import { cn } from "@/lib/ui/cn";
 import { EntryDialog } from "./entry-dialog";
 import { failureCode, tadaburErrorText } from "./errors";
 import type { TadaburItem } from "./schemas";
@@ -39,14 +40,11 @@ export function TadaburPanel({
   const setFilter = (key: keyof TadaburFilters, value: string) =>
     onFiltersChange({ ...filters, [key]: value === "" ? undefined : value });
 
-  const onDelete = (entryId: string) => {
-    if (confirmId !== entryId) {
-      setConfirmId(entryId);
-      return;
-    }
+  const onDelete = () => {
+    if (!confirmId || remove.isPending) return;
     setError(null);
     remove.mutate(
-      { entryId },
+      { entryId: confirmId },
       {
         onSettled: () => setConfirmId(null),
         onError: (failure) => setError(tadaburErrorText(failureCode(failure))),
@@ -134,9 +132,7 @@ export function TadaburPanel({
               </p>
               <p className="text-ink-muted text-xs tabular-nums">{entry.logDate}</p>
             </div>
-            <p className="text-ink line-clamp-3 text-sm leading-relaxed whitespace-pre-line">
-              {entry.reflection}
-            </p>
+            <RichTextContent body={entry.reflection} isHtml={entry.reflectionIsHtml} />
             <div className="flex justify-end gap-1">
               <Button variant="ghost" size="sm" icon={Pencil} onClick={() => setEditing(entry)}>
                 {t("tadabur.edit")}
@@ -145,11 +141,10 @@ export function TadaburPanel({
                 variant="ghost"
                 size="sm"
                 icon={Trash2}
-                pending={remove.isPending && remove.variables?.entryId === entry.id}
-                className={cn(confirmId === entry.id && "text-negative")}
-                onClick={() => onDelete(entry.id)}
+                disabled={remove.isPending}
+                onClick={() => setConfirmId(entry.id)}
               >
-                {confirmId === entry.id ? t("tadabur.confirmDelete") : t("tadabur.delete")}
+                {t("tadabur.delete")}
               </Button>
             </div>
           </li>
@@ -183,6 +178,15 @@ export function TadaburPanel({
           setCreating(false);
           setEditing(null);
         }}
+      />
+      <ConfirmDialog
+        open={confirmId !== null}
+        title={t("tadabur.deleteTitle")}
+        description={t("common.deleteDescription")}
+        confirmLabel={t("tadabur.delete")}
+        pending={remove.isPending}
+        onClose={() => setConfirmId(null)}
+        onConfirm={onDelete}
       />
     </section>
   );

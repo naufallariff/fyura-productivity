@@ -7,7 +7,7 @@ export type JournalRow = typeof journalEntries.$inferSelect;
 
 export async function insertJournalEntry(
   tx: Tx,
-  row: Pick<JournalRow, "userId" | "logDate" | "kind" | "title" | "body">,
+  row: Pick<JournalRow, "userId" | "logDate" | "kind" | "title" | "body" | "bodyIsHtml">,
 ): Promise<string> {
   const [inserted] = await tx
     .insert(journalEntries)

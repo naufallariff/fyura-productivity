@@ -64,6 +64,13 @@
       "when": 1795084674151,
       "tag": "0008_flimsy_energizer",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795533760083,
+      "tag": "0009_typical_warpath",
+      "breakpoints": true
     }
   ]
 }

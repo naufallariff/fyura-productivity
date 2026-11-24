@@ -1,21 +1,26 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/server/auth/auth";
 import { requireUser } from "@/server/auth/session";
-import { env } from "@/server/config/env";
 import { clearPrivateSession, grantPrivateSession } from "@/server/private/cookie";
 import { checkPrivatePin, setPrivatePin } from "@/server/private/gate";
-import { PRIVATE_COOKIE_NAME, verifyPrivateToken } from "@/server/private/session";
+import { getPrivateExpiry } from "@/server/private/guard";
+import { getLockoutCountdown } from "@/server/private/lockout";
 
 /** The server sends codes only. The UI translates them, so no display text lives here. */
-export type PinErrorCode = "FORMAT" | "ALREADY_SET" | "WRONG" | "LOCKED" | "NO_PIN" | "GENERIC";
+export type PinErrorCode = "FORMAT" | "ALREADY_SET" | "WRONG" | "NO_PIN" | "GENERIC";
+
+export type PinLockout = {
+  status: "error";
+  code: "LOCKED";
+  lockedUntil: number;
+  secondsLeft: number;
+};
 
 export type PinActionState =
-  | { status: "idle" }
-  | { status: "error"; code: PinErrorCode; attemptsLeft?: number; minutes?: number };
+  { status: "idle" } | PinLockout | { status: "error"; code: PinErrorCode; attemptsLeft?: number };
 
 const PinSchema = z.string().regex(/^\d{6}$/);
 
@@ -55,10 +60,8 @@ export async function unlockPrivateAction(
       redirect("/private");
     case "wrong":
       return { status: "error", code: "WRONG", attemptsLeft: result.attemptsLeft };
-    case "locked": {
-      const minutes = Math.max(1, Math.ceil((result.until.getTime() - Date.now()) / 60_000));
-      return { status: "error", code: "LOCKED", minutes };
-    }
+    case "locked":
+      return { status: "error", code: "LOCKED", ...getLockoutCountdown(result.until) };
     case "no-pin":
       return { status: "error", code: "NO_PIN" };
   }
@@ -71,17 +74,11 @@ export async function lockPrivateAction(): Promise<void> {
 
 /**
  * Extends the private session while the user is active.
- * Returns false instead of redirecting, so the client can send the user to unlock.
+ * Returns the new expiry or null when the user has to unlock again.
  */
-export async function touchPrivateAction(): Promise<boolean> {
+export async function touchPrivateAction(): Promise<number | null> {
   const session = await auth();
   const userId = session?.user?.id;
-  if (!userId) return false;
-
-  const jar = await cookies();
-  const token = jar.get(PRIVATE_COOKIE_NAME)?.value;
-  if (!verifyPrivateToken(token, userId, Date.now(), env.AUTH_SECRET)) return false;
-
-  await grantPrivateSession(userId);
-  return true;
+  if (!userId || (await getPrivateExpiry(userId)) === null) return null;
+  return grantPrivateSession(userId);
 }

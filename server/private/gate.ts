@@ -12,14 +12,16 @@ export type UnlockResult =
   | { status: "locked"; until: Date }
   | { status: "no-pin" };
 
-export async function hasPrivatePin(userId: string): Promise<boolean> {
+export async function readPrivateGate(
+  userId: string,
+): Promise<{ lockedUntil: Date | null } | null> {
   return withUser(userId, async (tx) => {
-    const rows = await tx
-      .select({ userId: privatePin.userId })
+    const [row] = await tx
+      .select({ lockedUntil: privatePin.lockedUntil })
       .from(privatePin)
       .where(eq(privatePin.userId, userId))
       .limit(1);
-    return rows.length > 0;
+    return row ?? null;
   });
 }
 

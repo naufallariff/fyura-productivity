@@ -1,7 +1,7 @@
 # Fyura Productivity — Audit & Refactor State
 
 - **Branch:** `refactor/v2-ui-architecture` (branched from `main` / `refactor/redesign` @ `1ab2bef`)
-- **Current Phase:** Batch 5 complete
+- **Current Phase:** All six core implementation batches complete
 - **ACTIVE EXECUTION MODE: BATCH EXECUTION (v2 UI & Security Overhaul)**
 - **Session 1 Status:** Completed on 2026-11-24 (Quality Gates, Security & Isolation Audit, Design Token Readiness)
 - **Session 2 Status:** Completed on 2026-11-24 (Shell, Dashboard Bento, Daily Tracker Audit & Dev Server Startup)
@@ -26,6 +26,17 @@
 - [x] `U10` — Module-load validation of `CRON_SECRET` and timing-safe checks on both cron routes.
 - [x] `U11` — Per-request CSP nonces and security headers, with Partial Prefetching enabled in Next.js.
 
+| PRD item | Status   | Evidence                                                                                        |
+| :------- | :------- | :---------------------------------------------------------------------------------------------- |
+| `U1`     | Open     | `HABIT_ARCHIVED` remains in the service error codes and HTTP status map.                        |
+| `U2`     | Open     | Daily tracker calendar components still use `todayIso`.                                         |
+| `U3`     | Complete | The boards index uses cursor pagination and provides a load-more control.                       |
+| `U4`     | Open     | The learning streak query still reads the full history.                                         |
+| `U5`     | Complete | The balance score function is covered by unit tests and has zero production callers.            |
+| `U6`     | Open     | The journal streak card uses a static flame icon.                                               |
+| `U7`     | Open     | Review card creation submits `itemId: null`.                                                    |
+| `U8`     | Open     | The Playwright configuration is empty. The master plan tracks end-to-end test setup separately. |
+
 ## Module Audit Checklist (Populate into `docs/AUDIT-FINDINGS.md`)
 
 - [x] `security` & `private` (PIN gate, session ring, `column-cipher.ts`, CSP nonces, RLS edge cases - Audited in Session 1 & 3)
@@ -44,14 +55,14 @@
 
 ## Batch Execution Tracker
 
-| Batch | Scope                                               | Status     | Verification Gate                                                              |
-| :---- | :-------------------------------------------------- | :--------- | :----------------------------------------------------------------------------- |
-| **1** | Security Hardening & Design Token Foundation        | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
-| **2** | App Shell, Command Palette & Theme Infrastructure   | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
-| **3** | Dashboard Bento Command Center                      | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
-| **4** | Daily Tracker — Google Calendar Grid                | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
-| **5** | Projects Kanban & Secondary Module Polish           | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
-| **6** | Journal Rich-Text Editor & Private Space Encryption | ⬜ Pending | Same                                                                           |
+| Batch | Scope                                               | Status   | Verification Gate                                                              |
+| :---- | :-------------------------------------------------- | :------- | :----------------------------------------------------------------------------- |
+| **1** | Security Hardening & Design Token Foundation        | Complete | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
+| **2** | App Shell, Command Palette & Theme Infrastructure   | Complete | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
+| **3** | Dashboard Bento Command Center                      | Complete | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
+| **4** | Daily Tracker — Google Calendar Grid                | Complete | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
+| **5** | Projects Kanban & Secondary Module Polish           | Complete | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
+| **6** | Journal Rich-Text Editor & Private Space Encryption | Complete | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
 
 ### Batch 1 Verification (2026-11-24)
 
@@ -86,3 +97,10 @@
 - `pnpm.cmd vitest run` passed all 228 enabled tests in 48 files. The standard gate skipped 75 opt-in database integration tests, including the new due-date sort and list deletion cases.
 - Chrome fixtures at 390px and 1280px verified the dock shortcuts, popover focus and placement, 44px targets, multiline composer growth and submission, and instant theme changes with `SameSite=Lax` cookies. The fixture covered queued saves and rollback using mocked writes.
 - Due-date sorting persists the order of the full active column and puts undated cards last. Confirmed list deletion removes the list and its cards.
+
+### Batch 6 Verification (2026-11-24)
+
+- `pnpm.cmd typecheck`, `pnpm.cmd lint`, and `pnpm.cmd build` passed. The production build used Cache Components and Partial Prefetching and required permission to create Windows dependency junctions.
+- `pnpm.cmd vitest run` passed 235 tests in 50 files. The standard gate skipped 75 opt-in database tests. New tests cover HTML sanitization, private session enforcement, and encrypted record writes and reads.
+- Chrome fixtures at 1280px and 390px verified slash commands, selection formatting, HTTPS links, Escape in the editor dialog, and the PIN countdown and reset. The fixtures used local component data.
+- `pnpm.cmd db:generate` produced migration `0009_typical_warpath.sql`. It preserves the plaintext format of existing entries and adds `private_records` with forced row-level security. Migration application and live database verification were skipped because no local database connection was available.

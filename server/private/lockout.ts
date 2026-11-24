@@ -2,6 +2,11 @@ export const MAX_ATTEMPTS_BEFORE_LOCK = 5;
 const BASE_LOCK_MS = 5 * 60_000;
 const MAX_LOCK_MS = 60 * 60_000;
 
+export function getLockoutCountdown(until: Date, now = Date.now()) {
+  const lockedUntil = until.getTime();
+  return { lockedUntil, secondsLeft: Math.max(0, Math.ceil((lockedUntil - now) / 1000)) };
+}
+
 /**
  * Returns the time the lock ends, or null if the account is not locked.
  * 5 failures: 5 min. 6: 10 min. 7: 20 min. Capped at 60 min.
