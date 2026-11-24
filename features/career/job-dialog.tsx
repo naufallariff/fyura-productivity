@@ -11,9 +11,9 @@ import { ActivityCounters } from "./activity-counters";
 import { useCreateJob, useJobDetail, useUpdateJob } from "./use-career";
 
 const TEXTAREA =
-  "min-h-24 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 py-2.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
+  "min-h-24 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 py-2 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 const SELECT =
-  "min-h-11 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 export function JobDialog({
   userId,

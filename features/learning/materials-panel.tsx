@@ -53,7 +53,7 @@ export function MaterialsPanel({
   const selected = visible.find((subject) => subject.id === selectedId) ?? visible[0] ?? null;
 
   return (
-    <section aria-labelledby="materials-title" className="space-y-5">
+    <section aria-labelledby="materials-title" className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h2 id="materials-title" className="text-sm font-semibold">
@@ -261,7 +261,7 @@ function ItemRow({
   };
 
   return (
-    <article className="glass space-y-3 p-4">
+    <article className="space-y-3 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-sm font-semibold">{item.title}</p>
         <Pill>{t(`learning.itemKind.${item.kind}`)}</Pill>

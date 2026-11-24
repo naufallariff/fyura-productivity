@@ -44,7 +44,7 @@ export function CapturePanel({ userId }: { readonly userId: string }) {
   const items = ideas.data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
-    <section aria-labelledby="capture-title" className="space-y-5">
+    <section aria-labelledby="capture-title" className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h2 id="capture-title" className="text-sm font-semibold">
@@ -85,7 +85,7 @@ export function CapturePanel({ userId }: { readonly userId: string }) {
                   aria-pressed={tag === entry.tag}
                   onClick={() => setTag(tag === entry.tag ? "" : entry.tag)}
                   className={cn(
-                    "focus-visible:ring-accent inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium focus-visible:ring-2",
+                    "focus-visible:ring-accent inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-xs font-medium focus-visible:ring-2",
                     tag === entry.tag
                       ? "border-accent bg-accent-soft"
                       : "border-line text-ink-muted",
@@ -124,7 +124,7 @@ export function CapturePanel({ userId }: { readonly userId: string }) {
             <button
               type="button"
               onClick={() => setEditing(idea)}
-              className="glass focus-visible:ring-accent rounded-card block w-full space-y-2 p-4 text-left focus-visible:ring-2"
+              className="focus-visible:ring-accent block w-full space-y-2 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 text-left shadow-(--shadow-card) focus-visible:ring-2"
             >
               <span className="flex flex-wrap items-center gap-2">
                 <Pill>{t(`capture.status.${idea.status.toLowerCase()}`)}</Pill>
@@ -136,7 +136,7 @@ export function CapturePanel({ userId }: { readonly userId: string }) {
                 </span>
               )}
               {idea.tags.length > 0 && (
-                <span className="flex flex-wrap gap-1.5">
+                <span className="flex flex-wrap gap-2">
                   {idea.tags.map((value) => (
                     <Pill key={value}>#{value}</Pill>
                   ))}
@@ -233,7 +233,7 @@ function NewIdeaDialog({
             onChange={(event) => setBody(event.target.value)}
             maxLength={20000}
             rows={4}
-            className="rounded-control border-line text-ink focus-visible:ring-accent min-h-24 w-full border bg-(--glass-solid) px-3.5 py-2.5 text-base outline-none focus-visible:ring-2 sm:text-sm"
+            className="text-ink focus-visible:ring-accent min-h-24 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 py-2 text-base outline-none focus-visible:ring-2 sm:text-sm"
           />
         </Field>
         {error && (

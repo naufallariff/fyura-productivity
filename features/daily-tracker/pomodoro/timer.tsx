@@ -162,7 +162,7 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
 
       <section
         aria-labelledby="focus-title"
-        className="glass relative z-50 mx-auto flex w-full max-w-md flex-col items-center gap-6 p-6 sm:p-8"
+        className="relative z-50 mx-auto flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-6 shadow-(--shadow-card) sm:p-8"
       >
         <h2 id="focus-title" className="text-ink-muted text-sm font-medium">
           {t("focus.title")}
@@ -176,7 +176,7 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
         </p>
 
         {phase === "idle" && (
-          <div className="grid w-full gap-5">
+          <div className="grid w-full gap-6">
             <Segmented
               label={t("focus.duration")}
               options={presetOptions}

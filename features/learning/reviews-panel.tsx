@@ -52,7 +52,7 @@ export function ReviewsPanel({ userId }: { readonly userId: string }) {
   const cards = due.data ?? [];
 
   return (
-    <section aria-labelledby="reviews-title" className="space-y-5">
+    <section aria-labelledby="reviews-title" className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h2 id="reviews-title" className="text-sm font-semibold">
@@ -69,7 +69,10 @@ export function ReviewsPanel({ userId }: { readonly userId: string }) {
 
       <ul className="space-y-3">
         {cards.map((card) => (
-          <li key={card.id} className="glass space-y-3 p-4">
+          <li
+            key={card.id}
+            className="space-y-3 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)"
+          >
             <p className="text-sm leading-relaxed font-semibold">{card.prompt}</p>
             <p className="text-ink-muted text-xs tabular-nums">
               {t("learning.reviews.meta", { count: card.repetitions })}
@@ -82,7 +85,7 @@ export function ReviewsPanel({ userId }: { readonly userId: string }) {
                     key={quality}
                     variant="secondary"
                     size="sm"
-                    className="min-h-12 flex-col gap-0.5"
+                    className="min-h-12 flex-col gap-1"
                     onClick={() => grade(card.id, quality)}
                   >
                     <span className="font-semibold tabular-nums">{quality}</span>

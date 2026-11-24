@@ -9,7 +9,7 @@ import { OPEN_STATUSES } from "@/domain/career/status";
 
 export function DashboardView({ data }: { readonly data: DashboardData }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
+    <div className="grid gap-4 lg:grid-cols-3">
       <WeekPanel data={data} className="lg:col-span-2" />
       <TodayPanel data={data} />
       <OutputPanel data={data} />
@@ -35,7 +35,13 @@ function Panel({
   readonly children: React.ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className={cn("glass space-y-4 p-5", className)}>
+    <section
+      aria-labelledby={id}
+      className={cn(
+        "space-y-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)",
+        className,
+      )}
+    >
       <h2 id={id} className="text-sm font-semibold">
         {title}
       </h2>

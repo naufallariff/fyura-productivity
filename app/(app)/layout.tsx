@@ -19,7 +19,7 @@ async function ShellFrame({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh gap-0">
       <a
         href="#main"
-        className="focus:rounded-control focus:bg-accent focus:text-on-accent sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2"
+        className="focus:bg-accent focus:text-on-accent sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2"
       >
         {t("shell.skipToContent")}
       </a>

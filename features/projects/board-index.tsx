@@ -106,10 +106,10 @@ export function BoardIndex({ userId }: { userId: string }) {
 
 function BoardTile({ board, onStar }: { board: Board; onStar: () => void }) {
   return (
-    <li className="glass relative">
+    <li className="relative rounded-2xl border border-(--border-subtle) bg-(--bg-surface) shadow-(--shadow-card)">
       <Link
         href={`/projects/${board.id}`}
-        className="focus-visible:ring-accent rounded-card ease-spring block h-full p-5 transition-transform duration-200 focus-visible:ring-2 motion-safe:active:scale-[0.98]"
+        className="focus-visible:ring-accent ease-spring block h-full rounded-2xl p-4 transition-transform duration-200 focus-visible:ring-2 motion-safe:active:scale-[0.98]"
       >
         <span
           aria-hidden
@@ -126,7 +126,7 @@ function BoardTile({ board, onStar }: { board: Board; onStar: () => void }) {
         onClick={onStar}
         aria-pressed={board.starred}
         aria-label={t("projects.index.star", { title: board.title })}
-        className="text-ink-muted hover:text-ink hover:bg-accent-soft focus-visible:ring-accent rounded-control absolute top-3 right-3 grid size-9 place-items-center focus-visible:ring-2"
+        className="text-ink-muted hover:text-ink hover:bg-accent-soft focus-visible:ring-accent absolute top-3 right-3 grid size-9 place-items-center rounded-lg focus-visible:ring-2"
       >
         <Star
           aria-hidden

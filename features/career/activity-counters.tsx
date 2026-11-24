@@ -33,7 +33,7 @@ export function ActivityCounters({
           return (
             <li
               key={kind}
-              className="rounded-control border-line flex items-center justify-between gap-2 border px-3 py-2"
+              className="border-line flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
             >
               <span className="text-sm">{label}</span>
               <span className="flex items-center gap-1">

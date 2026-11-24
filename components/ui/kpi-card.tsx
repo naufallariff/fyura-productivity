@@ -3,7 +3,6 @@ import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import type { Hue } from "@/lib/theme/hues";
 import type { Meaning, Trend } from "@/lib/ui/delta";
 import { cn } from "@/lib/ui/cn";
-import { hueVar, tintStyle } from "@/lib/ui/hue";
 import { Sparkline } from "./sparkline";
 
 export interface KpiDelta {
@@ -48,19 +47,18 @@ export function KpiCard({
   const TrendIcon = delta ? TREND_ICON[delta.trend] : null;
 
   return (
-    <section aria-label={label} className={cn("glass flex flex-col gap-4 p-5", className)}>
+    <section
+      aria-label={label}
+      data-hue={hue}
+      className={cn(
+        "kpi-card flex flex-col gap-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)",
+        className,
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <p className="text-ink-muted text-sm font-medium">{label}</p>
-        <span
-          className="rounded-control grid size-9 shrink-0 place-items-center"
-          style={tintStyle(hueVar(hue), 16)}
-        >
-          <Icon
-            aria-hidden
-            className="size-4.5"
-            strokeWidth={1.75}
-            style={{ color: hueVar(hue) }}
-          />
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-(--kpi-icon-bg)">
+          <Icon aria-hidden strokeWidth={1.75} className="size-4.5 text-(color:--kpi-icon-fg)" />
         </span>
       </div>
 

@@ -83,7 +83,7 @@ export function PinPad({ mode, action }: Props) {
   const message = pending ? t("privateSpace.pin.checking") : messageFor(state);
 
   return (
-    <div className="flex flex-col items-center gap-7">
+    <div className="flex flex-col items-center gap-6">
       <div className="space-y-2 text-center">
         <h2 id="pin-title" className="text-[22px] font-semibold tracking-[-0.02em]">
           {mode === "setup" ? t("privateSpace.setup.title") : t("privateSpace.unlock.title")}
@@ -97,7 +97,7 @@ export function PinPad({ mode, action }: Props) {
         key={shakeKey}
         role="status"
         aria-label={t("privateSpace.pin.entered", { count: digits.length, total: PIN_LENGTH })}
-        className={`flex gap-3.5 ${shakeKey > 0 ? "animate-pin-shake" : ""}`}
+        className={`flex gap-4 ${shakeKey > 0 ? "animate-pin-shake" : ""}`}
       >
         {Array.from({ length: PIN_LENGTH }, (_, index) => (
           <span
@@ -113,7 +113,7 @@ export function PinPad({ mode, action }: Props) {
         {message}
       </p>
 
-      <div className="grid grid-cols-3 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {KEYPAD.map((key, index) =>
           key === "" ? (
             <span key={index} aria-hidden />

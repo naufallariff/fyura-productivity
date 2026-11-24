@@ -29,14 +29,15 @@ export function PinModal({ mode, action }: Props) {
       ref={ref}
       aria-labelledby="pin-title"
       onClose={() => router.replace("/dashboard")}
-      className="pin-sheet rounded-card border-line glass text-ink m-auto w-[min(92vw,400px)] border px-8 pt-10 pb-8 backdrop:bg-black/40 max-sm:mx-auto max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:max-w-none max-sm:rounded-t-[28px] max-sm:rounded-b-none max-sm:pb-10"
+      data-glass-permitted
+      className="pin-sheet glass text-ink m-auto w-[min(92vw,400px)] rounded-2xl px-8 pt-10 pb-8 backdrop:bg-black/40 max-sm:mx-auto max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:max-w-none max-sm:rounded-t-[28px] max-sm:rounded-b-none max-sm:pb-10"
     >
       <PinPad mode={mode} action={action} />
 
       <button
         type="button"
         onClick={() => ref.current?.close()}
-        className="rounded-control text-accent ease-spring mx-auto mt-7 block px-4 py-2 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
+        className="text-accent ease-spring mx-auto mt-7 block rounded-lg px-4 py-2 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
       >
         {t("privateSpace.pin.cancel")}
       </button>

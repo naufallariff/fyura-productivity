@@ -14,7 +14,7 @@ export function Tooltip({ text, children }: { text: string; children: ReactNode 
       <span
         id={id}
         role="tooltip"
-        className="rounded-control bg-ink text-canvas pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 px-2.5 py-1.5 text-xs whitespace-nowrap opacity-0 transition-opacity delay-300 duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+        className="bg-ink text-canvas pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded-lg px-3 py-2 text-xs whitespace-nowrap opacity-0 transition-opacity delay-300 duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
       >
         {text}
       </span>

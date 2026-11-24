@@ -57,21 +57,12 @@ function BundleOption({ id, checked }: { id: BundleId; checked: boolean }) {
         defaultChecked={checked}
         className="peer sr-only"
       />
-      <span className="glass ease-spring peer-checked:ring-accent peer-focus-visible:ring-accent flex h-full flex-col gap-3 p-4 transition-transform duration-200 peer-checked:ring-2 peer-focus-visible:ring-2 motion-safe:active:scale-[0.98]">
+      <span className="ease-spring peer-checked:ring-accent peer-focus-visible:ring-accent flex h-full flex-col gap-3 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) transition-transform duration-200 peer-checked:ring-2 peer-focus-visible:ring-2 motion-safe:active:scale-[0.98]">
         <span className="text-sm font-medium">{bundle.label}</span>
-        <span className="flex gap-1.5" aria-hidden>
-          <span
-            className="border-line size-6 rounded-full border"
-            style={{ background: bundle.light.canvas }}
-          />
-          <span
-            className="border-line size-6 rounded-full border"
-            style={{ background: bundle.light.glow[0] }}
-          />
-          <span
-            className="border-line size-6 rounded-full border"
-            style={{ background: bundle.light.accent }}
-          />
+        <span data-bundle={id} data-mode="light" className="flex gap-2" aria-hidden>
+          <span className="border-line bg-canvas size-6 rounded-full border" />
+          <span className="border-line bg-accent-soft size-6 rounded-full border" />
+          <span className="border-line bg-accent size-6 rounded-full border" />
         </span>
       </span>
     </label>
@@ -88,7 +79,7 @@ function ModeOption({ mode, checked }: { mode: Mode; checked: boolean }) {
         defaultChecked={checked}
         className="peer sr-only"
       />
-      <span className="glass ease-spring peer-checked:ring-accent peer-focus-visible:ring-accent flex min-h-11 items-center p-4 text-sm font-medium transition-transform duration-200 peer-checked:ring-2 peer-focus-visible:ring-2 motion-safe:active:scale-[0.98]">
+      <span className="ease-spring peer-checked:ring-accent peer-focus-visible:ring-accent flex min-h-11 items-center rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 text-sm font-medium shadow-(--shadow-card) transition-transform duration-200 peer-checked:ring-2 peer-focus-visible:ring-2 motion-safe:active:scale-[0.98]">
         {t(`settings.mode.${mode}`)}
       </span>
     </label>

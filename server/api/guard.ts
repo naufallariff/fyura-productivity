@@ -5,7 +5,7 @@ import { auth } from "@/server/auth/auth";
 import { logEvent } from "@/server/observability/logger";
 import { DomainError, type DomainErrorCode } from "@/server/services/errors";
 
-const STATUS: Record<DomainErrorCode, number> = {
+const STATUS: Record<Exclude<DomainErrorCode, "INTERNAL">, number> = {
   VALIDATION_FAILED: 400,
   NOT_FOUND: 404,
   CONFLICT: 409,
@@ -39,7 +39,7 @@ export function jsonSensitive(body: unknown): Response {
 }
 
 export function errorResponse(error: unknown, requestId: string | null): Response {
-  if (error instanceof DomainError) {
+  if (error instanceof DomainError && error.code !== "INTERNAL") {
     return Response.json(
       { error: error.code, message: error.message },
       { status: STATUS[error.code], headers: NO_STORE },

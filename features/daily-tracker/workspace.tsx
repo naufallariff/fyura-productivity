@@ -92,13 +92,13 @@ export function DailyTrackerWorkspace({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-5 lg:grid-cols-[17rem_minmax(0,1fr)_20rem]">
-        <aside className="glass hidden p-4 lg:block lg:self-start">
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)_20rem]">
+        <aside className="hidden rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) lg:block lg:self-start">
           <MiniMonth selectedDate={logDate} todayIso={today} onSelect={(date) => go(date)} />
         </aside>
 
-        <section className="glass min-w-0 space-y-4 p-4 sm:p-5">
+        <section className="min-w-0 space-y-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1">
               <Button
@@ -140,7 +140,7 @@ export function DailyTrackerWorkspace({
             <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">
               {t("dailyTracker.filter.label")}
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {BLOCK_CATEGORIES.map((category) => {
                 const active = activeCategories.has(category);
                 return (
@@ -201,15 +201,15 @@ export function DailyTrackerWorkspace({
           )}
         </section>
 
-        <aside className="space-y-5">
-          <div className="glass p-5">
+        <aside className="space-y-4">
+          <div className="rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
             <ChecklistPanel userId={userId} logDate={logDate} />
           </div>
           <FocusTimer logDate={logDate} timeZone={timeZone} />
         </aside>
       </div>
 
-      <section className="glass p-4 sm:p-5">
+      <section className="rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
         <HistoryPanelSlot userId={userId} />
       </section>
 

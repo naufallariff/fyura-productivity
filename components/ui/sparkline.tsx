@@ -4,10 +4,10 @@ import { sparklinePath } from "@/lib/ui/sparkline";
 export type SparklineTone = "accent" | "positive" | "negative" | "neutral";
 
 const TONE_COLOR: Record<SparklineTone, string> = {
-  accent: "var(--accent)",
-  positive: "var(--positive)",
-  negative: "var(--negative)",
-  neutral: "var(--ink-muted)",
+  accent: "var(--color-accent)",
+  positive: "var(--color-positive)",
+  negative: "var(--color-negative)",
+  neutral: "var(--color-ink-muted)",
 };
 
 const WIDTH = 120;

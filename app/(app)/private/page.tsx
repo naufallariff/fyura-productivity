@@ -51,19 +51,19 @@ async function PrivateContent() {
     <PageFrame>
       {header}
       <IdleGuard>
-        <section className="glass flex flex-wrap items-center justify-between gap-4 p-5">
+        <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
           <SessionRing expiresAt={expiresAt} />
           <form action={lockPrivateAction}>
             <button
               type="submit"
-              className="rounded-control border-line hover:bg-accent-soft focus-visible:ring-accent border px-5 py-2 text-sm font-medium focus-visible:ring-2"
+              className="border-line hover:bg-accent-soft focus-visible:ring-accent rounded-lg border px-4 py-2 text-sm font-medium focus-visible:ring-2"
             >
               {t("privateSpace.session.lock")}
             </button>
           </form>
         </section>
 
-        <section className="glass mt-6 p-5">
+        <section className="mt-6 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
           <p className="text-ink-muted text-sm leading-relaxed">{t("privateSpace.placeholder")}</p>
         </section>
       </IdleGuard>

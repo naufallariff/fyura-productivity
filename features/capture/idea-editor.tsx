@@ -104,7 +104,7 @@ function IdeaForm({
           onChange={(event) => setBody(event.target.value)}
           maxLength={20000}
           rows={6}
-          className="rounded-control border-line text-ink focus-visible:ring-accent min-h-32 w-full border bg-(--glass-solid) px-3.5 py-2.5 text-base outline-none focus-visible:ring-2 sm:text-sm"
+          className="text-ink focus-visible:ring-accent min-h-32 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 py-2 text-base outline-none focus-visible:ring-2 sm:text-sm"
         />
       </Field>
 

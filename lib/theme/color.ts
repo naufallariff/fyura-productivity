@@ -1,53 +1,80 @@
-/** Pure color utilities: hex parsing, mixing, and WCAG contrast. No dependencies. */
+export interface Oklch {
+  readonly lightness: number;
+  readonly chroma: number;
+  readonly hue: number;
+}
 
-export type Rgb = { r: number; g: number; b: number };
+const NUMBER = "[+-]?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:e[+-]?[0-9]+)?";
+const OKLCH = new RegExp(
+  `^oklch\\(\\s*(${NUMBER}%?)\\s+(${NUMBER}%?)\\s+(${NUMBER})(?:deg)?\\s*\\)$`,
+  "i",
+);
 
-const HEX_PATTERN = /^#([0-9a-f]{6})$/i;
+export function parseOklch(value: string): Oklch {
+  const [, lightness, chroma, hue] = OKLCH.exec(value.trim()) ?? [];
+  if (!lightness || !chroma || !hue) throw new Error(`Expected an opaque OKLCH color: ${value}`);
 
-export function parseHex(hex: string): Rgb {
-  const match = HEX_PATTERN.exec(hex);
-  if (!match) {
-    throw new Error(`Invalid hex color: ${hex}`);
+  const l = lightness.endsWith("%") ? Number.parseFloat(lightness) / 100 : Number(lightness);
+  const c = chroma.endsWith("%") ? Number.parseFloat(chroma) * 0.004 : Number(chroma);
+  const h = Number(hue);
+  if (
+    !Number.isFinite(l) ||
+    !Number.isFinite(c) ||
+    !Number.isFinite(h) ||
+    l < 0 ||
+    l > 1 ||
+    c < 0
+  ) {
+    throw new Error(`Invalid OKLCH color: ${value}`);
   }
-  const n = Number.parseInt(match[1] ?? "", 16);
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  return { lightness: l, chroma: c, hue: h };
 }
 
-export function toHex({ r, g, b }: Rgb): string {
-  const part = (v: number) =>
-    Math.round(Math.min(255, Math.max(0, v)))
-      .toString(16)
-      .padStart(2, "0");
-  return `#${part(r)}${part(g)}${part(b)}`;
+export function formatOklch({ lightness, chroma, hue }: Oklch, alpha?: number): string {
+  return `oklch(${lightness} ${chroma} ${hue}${alpha === undefined ? "" : ` / ${alpha}`})`;
 }
 
-/** Linear interpolation in sRGB. t = 0 returns a, t = 1 returns b. */
-export function mix(a: string, b: string, t: number): string {
-  const from = parseHex(a);
-  const to = parseHex(b);
-  const k = Math.min(1, Math.max(0, t));
-  return toHex({
-    r: from.r + (to.r - from.r) * k,
-    g: from.g + (to.g - from.g) * k,
-    b: from.b + (to.b - from.b) * k,
-  });
+function linearSrgb({ lightness, chroma, hue }: Oklch): [number, number, number] {
+  const radians = (hue * Math.PI) / 180;
+  const a = chroma * Math.cos(radians);
+  const b = chroma * Math.sin(radians);
+  const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (lightness - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
 }
 
-function channelToLinear(value: number): number {
-  const c = value / 255;
-  return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+function inSrgb(color: Oklch): boolean {
+  return linearSrgb(color).every((channel) => channel >= -1e-7 && channel <= 1 + 1e-7);
 }
 
-/** WCAG 2.x relative luminance, from 0 (black) to 1 (white). */
-export function relativeLuminance(hex: string): number {
-  const { r, g, b } = parseHex(hex);
-  return 0.2126 * channelToLinear(r) + 0.7152 * channelToLinear(g) + 0.0722 * channelToLinear(b);
+/** Keep the hue and lightness while fitting the color to the sRGB gamut. */
+export function fitSrgb(color: Oklch): Oklch {
+  if (inSrgb(color)) return color;
+
+  let low = 0;
+  let high = Math.min(color.chroma, 0.5);
+  for (let step = 0; step < 20; step++) {
+    const chroma = (low + high) / 2;
+    if (inSrgb({ ...color, chroma })) low = chroma;
+    else high = chroma;
+  }
+  return { ...color, chroma: Math.floor(low * 1e6) / 1e6 };
 }
 
-/** WCAG contrast ratio, from 1 (no contrast) to 21 (black on white). */
-export function contrastRatio(a: string, b: string): number {
-  const la = relativeLuminance(a);
-  const lb = relativeLuminance(b);
-  const [light, dark] = la > lb ? [la, lb] : [lb, la];
-  return (light + 0.05) / (dark + 0.05);
+/** The OKLab conversion produces linear sRGB, which WCAG weights directly. */
+export function relativeLuminance(value: string): number {
+  const [red, green, blue] = linearSrgb(fitSrgb(parseOklch(value)));
+  const clamp = (channel: number) => Math.min(1, Math.max(0, channel));
+  return 0.2126 * clamp(red) + 0.7152 * clamp(green) + 0.0722 * clamp(blue);
+}
+
+export function contrastRatio(fg: string, bg: string): number {
+  const foreground = relativeLuminance(fg);
+  const background = relativeLuminance(bg);
+  return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
 }

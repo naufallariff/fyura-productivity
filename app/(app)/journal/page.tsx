@@ -80,7 +80,7 @@ async function JournalPanel({
   ]);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
+    <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
       <StreakCard streak={streak} />
       <JournalDay entries={entries} logDate={logDate} kind={kind} />
     </div>

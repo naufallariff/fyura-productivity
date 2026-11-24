@@ -43,9 +43,10 @@ export function Dialog({
       onClose={onClose}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
-      className="glass text-ink backdrop:bg-ink/30 m-auto w-[min(92vw,520px)] max-w-none p-0 backdrop:backdrop-blur-sm max-sm:mx-0 max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:rounded-t-[24px] max-sm:rounded-b-none"
+      data-glass-permitted
+      className="glass text-ink backdrop:bg-ink/30 m-auto w-[min(92vw,520px)] max-w-none rounded-2xl p-0 max-sm:mx-0 max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:rounded-t-[28px] max-sm:rounded-b-none"
     >
-      <div className="flex items-start justify-between gap-4 p-5 pb-3 sm:p-6 sm:pb-3">
+      <div className="flex items-start justify-between gap-4 p-4 pb-3 sm:p-6 sm:pb-3">
         <div className="min-w-0">
           <h2 id={titleId} className="text-lg font-semibold tracking-[-0.01em]">
             {title}
@@ -67,10 +68,10 @@ export function Dialog({
         </Button>
       </div>
 
-      <div className="px-5 pb-5 sm:px-6 sm:pb-6">{children}</div>
+      <div className="px-4 pb-4 sm:px-6 sm:pb-6">{children}</div>
 
       {footer && (
-        <div className="border-line flex justify-end gap-2 border-t px-5 py-4 sm:px-6">
+        <div className="border-line flex justify-end gap-2 border-t px-4 py-4 sm:px-6">
           {footer}
         </div>
       )}

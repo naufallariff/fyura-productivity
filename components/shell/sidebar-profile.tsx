@@ -39,19 +39,22 @@ export function SidebarProfile({ email, collapsed }: { email: string | null; col
   return (
     <div ref={root} className="relative">
       {open && (
-        <div id={menuId} className="glass absolute bottom-full left-0 z-50 mb-2 w-64 space-y-1 p-2">
+        <div
+          id={menuId}
+          className="absolute bottom-full left-0 z-50 mb-2 w-64 space-y-1 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-2 shadow-(--shadow-card)"
+        >
           <p className="text-ink-muted truncate px-3 pt-1 pb-2 text-xs">{label}</p>
 
           <Link
             href="/settings"
             onClick={() => setOpen(false)}
-            className="rounded-control text-ink-muted hover:bg-accent-soft hover:text-ink focus-visible:ring-accent flex min-h-11 items-center gap-3 px-3 text-sm font-medium transition-colors duration-200 focus-visible:ring-2"
+            className="text-ink-muted hover:bg-accent-soft hover:text-ink focus-visible:ring-accent flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200 focus-visible:ring-2"
           >
             <Settings aria-hidden className="size-4" strokeWidth={1.75} />
             {t("shell.settings")}
           </Link>
 
-          <div className="rounded-control text-ink-muted flex items-start gap-3 px-3 py-2.5 text-sm">
+          <div className="text-ink-muted flex items-start gap-3 rounded-lg px-3 py-2 text-sm">
             <Bell aria-hidden className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
             <div className="min-w-0">
               <p className="text-ink font-medium">{t("shell.notifications")}</p>
@@ -69,7 +72,7 @@ export function SidebarProfile({ email, collapsed }: { email: string | null; col
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "rounded-control hover:bg-accent-soft focus-visible:ring-accent flex min-h-11 w-full items-center gap-3 px-2 py-1.5 text-left transition-colors duration-200 focus-visible:ring-2",
+          "hover:bg-accent-soft focus-visible:ring-accent flex min-h-11 w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors duration-200 focus-visible:ring-2",
           collapsed && "justify-center px-0",
         )}
       >

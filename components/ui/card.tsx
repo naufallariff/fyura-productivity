@@ -12,8 +12,8 @@ type CardProps = HTMLAttributes<HTMLElement> & {
 
 const PADDING = {
   none: "",
-  md: "p-5",
-  lg: "p-5 sm:p-7",
+  md: "p-4",
+  lg: "p-4 sm:p-6",
 } as const;
 
 export function Card({
@@ -26,7 +26,7 @@ export function Card({
   return (
     <Tag
       className={cn(
-        "glass",
+        "rounded-2xl border border-(--border-subtle) bg-(--bg-surface) shadow-(--shadow-card)",
         PADDING[padding],
         interactive &&
           "ease-spring transition-transform duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-[0.99]",
@@ -55,14 +55,14 @@ export function CardHeader({
       <div className="flex min-w-0 items-center gap-3">
         {Icon && (
           <span
-            className="rounded-control grid size-9 shrink-0 place-items-center"
-            style={tintStyle(hue ? hueVar(hue) : "var(--accent)", 16)}
+            className="grid size-9 shrink-0 place-items-center rounded-lg"
+            style={tintStyle(hue ? hueVar(hue) : "var(--color-accent)", 16)}
           >
             <Icon
               aria-hidden
               className="size-4.5"
               strokeWidth={1.75}
-              style={{ color: hue ? hueVar(hue) : "var(--accent)" }}
+              style={{ color: hue ? hueVar(hue) : "var(--color-accent)" }}
             />
           </span>
         )}

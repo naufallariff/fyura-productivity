@@ -29,11 +29,11 @@ export function Sidebar({ initial, email }: { initial: SidebarState; email: stri
         collapsed ? "w-22" : "w-68",
       )}
     >
-      <div className="glass flex h-full w-full flex-col gap-4 p-3">
+      <div data-glass-permitted className="glass flex h-full w-full flex-col gap-4 rounded-2xl p-3">
         <div
           className={cn("flex h-11 items-center gap-3 px-2", collapsed && "justify-center px-0")}
         >
-          <span className="rounded-control bg-accent text-on-accent grid size-9 shrink-0 place-items-center text-sm font-semibold">
+          <span className="bg-accent text-on-accent grid size-9 shrink-0 place-items-center rounded-lg text-sm font-semibold">
             F
           </span>
           {!collapsed && <span className="truncate text-sm font-semibold">{t("app.short")}</span>}
@@ -41,7 +41,7 @@ export function Sidebar({ initial, email }: { initial: SidebarState; email: stri
 
         <nav
           aria-label={t("nav.primaryLabel")}
-          className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto"
+          className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto"
         >
           {NAV_SECTIONS.map((section) => (
             <div key={section.id} className="space-y-1">
@@ -73,7 +73,7 @@ export function Sidebar({ initial, email }: { initial: SidebarState; email: stri
             aria-expanded={!collapsed}
             aria-label={collapsed ? t("shell.expand") : t("shell.collapse")}
             title={collapsed ? t("shell.expand") : t("shell.collapse")}
-            className="rounded-control text-ink-muted hover:bg-accent-soft hover:text-ink focus-visible:ring-accent flex min-h-11 w-full items-center justify-center transition-colors duration-200 focus-visible:ring-2"
+            className="text-ink-muted hover:bg-accent-soft hover:text-ink focus-visible:ring-accent flex min-h-11 w-full items-center justify-center rounded-lg transition-colors duration-200 focus-visible:ring-2"
           >
             {collapsed ? (
               <PanelLeftOpen aria-hidden className="size-4.5" strokeWidth={1.75} />
@@ -105,7 +105,7 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       title={collapsed ? label : undefined}
       className={cn(
-        "rounded-control focus-visible:ring-accent flex min-h-11 items-center gap-3 px-3 text-sm font-medium transition-colors duration-200 focus-visible:ring-2",
+        "focus-visible:ring-accent flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200 focus-visible:ring-2",
         active ? "bg-accent text-on-accent" : "text-ink-muted hover:bg-accent-soft hover:text-ink",
         collapsed && "justify-center px-0",
       )}

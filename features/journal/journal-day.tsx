@@ -16,9 +16,9 @@ import type { JournalEntryDto } from "@/server/services/journal";
 import { createJournalAction, deleteJournalAction } from "./actions";
 
 const CONTROL =
-  "min-h-11 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 const TEXTAREA =
-  "min-h-32 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 py-2.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
+  "min-h-32 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 py-2 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 function journalHref(date: string, kind: JournalKind | undefined): string {
   const params = new URLSearchParams({ tab: "jurnal", date });
@@ -141,7 +141,10 @@ export function JournalDay({
         </ul>
       </nav>
 
-      <form onSubmit={onSave} className="glass grid gap-4 p-4">
+      <form
+        onSubmit={onSave}
+        className="grid gap-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)"
+      >
         <p className="text-ink-muted text-xs leading-relaxed">{t("journal.form.body")}</p>
         <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
           <Field id="journal-title" label={t("journal.form.titleField")}>
@@ -194,7 +197,10 @@ export function JournalDay({
       ) : (
         <ul className="space-y-3">
           {entries.map((entry) => (
-            <li key={entry.id} className="glass space-y-2 p-4">
+            <li
+              key={entry.id}
+              className="space-y-2 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)"
+            >
               <div className="flex flex-wrap items-center gap-2">
                 <Pill>{t(`journal.kind.${entry.kind}`)}</Pill>
                 {entry.late && <Pill tone="warning">{t("journal.late")}</Pill>}

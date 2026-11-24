@@ -160,13 +160,13 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/projects"
             aria-label={t("projects.back")}
-            className="text-ink-muted hover:bg-accent-soft focus-visible:ring-accent rounded-control grid size-9 shrink-0 place-items-center focus-visible:ring-2"
+            className="text-ink-muted hover:bg-accent-soft focus-visible:ring-accent grid size-9 shrink-0 place-items-center rounded-lg focus-visible:ring-2"
           >
             <ArrowLeft aria-hidden className="size-4" strokeWidth={1.75} />
           </Link>
@@ -202,7 +202,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
         </div>
       </header>
 
-      <div className="glass flex flex-wrap items-end gap-3 p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-3 shadow-(--shadow-card)">
         <Field id="board-search" label={t("projects.filter.search")}>
           <Input
             id="board-search"
@@ -293,7 +293,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
 
           <DragOverlay>
             {activeCard && (
-              <div className="rounded-control border-line w-72 border p-2 shadow-xl [background:var(--glass-solid)]">
+              <div className="border-line w-72 rounded-xl border bg-(--bg-surface-elevated) p-2 shadow-(--shadow-raised)">
                 <CardFace card={activeCard} labels={labels} />
               </div>
             )}

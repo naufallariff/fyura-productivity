@@ -1,87 +1,71 @@
-import { contrastRatio } from "./color";
 import type { Bundle, Mode } from "./bundles";
+import { fitSrgb, formatOklch, parseOklch, type Oklch } from "./color";
+import { HUE_NAMES, HUE_PRIMITIVES, type Hue } from "./hues";
 import { MODE_CONSTANTS } from "./tokens";
 
-const WHITE = "#FFFFFF";
-const INK_ON_LIGHT = "#0B0D14";
-
-export interface ThemeTokens {
-  readonly mode: Mode;
-  readonly canvas: string;
-  readonly glow: readonly [string, string, string];
-  /** Translucent glass surface. Used together with backdrop blur. */
-  readonly glassBg: string;
-  /** Opaque equivalent of the glass over the canvas. Used for contrast checks and fallback. */
-  readonly glassSolid: string;
-  readonly glassBorder: string;
-  readonly glassShadow: string;
-  readonly glassHighlight: string;
-  readonly ink: string;
-  readonly inkMuted: string;
-  readonly accent: string;
-  readonly accentSoft: string;
-  readonly onAccent: string;
-  readonly positive: string;
-  readonly negative: string;
-  readonly warning: string;
-  readonly info: string;
+function gamutColor(color: Oklch): string {
+  return formatOklch(fitSrgb(color));
 }
 
-export type RGB = readonly [number, number, number];
-
-export function hexToRgb(hex: string): RGB {
-  const match = /^#([0-9a-fA-F]{6})$/.exec(hex);
-  const digits = match?.[1];
-  if (!digits) throw new Error(`Invalid hex color: ${hex}`);
-  const value = Number.parseInt(digits, 16);
-  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
-}
-
-function toHex([r, g, b]: RGB): string {
-  const part = (c: number) => Math.round(c).toString(16).padStart(2, "0");
-  return `#${part(r)}${part(g)}${part(b)}`.toUpperCase();
-}
-
-/** Linear blend in sRGB. t = 0 returns a, t = 1 returns b. */
-export function blendHex(a: string, b: string, t: number): string {
-  const [ar, ag, ab] = hexToRgb(a);
-  const [br, bg, bb] = hexToRgb(b);
-  return toHex([ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t]);
-}
-
-export function rgba(hex: string, alpha: number): string {
-  const [r, g, b] = hexToRgb(hex);
-  return `rgb(${r} ${g} ${b} / ${alpha})`;
-}
-
-function onColor(background: string): string {
-  return contrastRatio(WHITE, background) >= contrastRatio(INK_ON_LIGHT, background)
-    ? WHITE
-    : INK_ON_LIGHT;
-}
-
-/** Derives every token for one bundle and one mode. Pure and deterministic. */
-export function deriveTokens(bundle: Bundle, mode: Mode): ThemeTokens {
-  const seed = bundle[mode];
-  const k = MODE_CONSTANTS[mode];
-
+export function deriveCategory(hue: Hue, mode: Mode) {
+  const primitive = HUE_PRIMITIVES[hue];
+  const isLight = mode === "light";
+  const warm = hue === "amber" || hue === "orange";
+  const chroma = isLight ? (warm ? 0.05 : hue === "sky" ? 0.03 : 0.04) : warm ? 0.04 : 0.03;
   return {
-    mode,
-    canvas: seed.canvas,
-    glow: seed.glow,
-    glassBg: rgba(seed.glassTint, k.glassAlpha),
-    glassSolid: blendHex(seed.canvas, seed.glassTint, k.glassAlpha),
-    glassBorder: rgba(seed.border, k.borderAlpha),
-    glassShadow: `0 1px 2px rgb(0 0 0 / 0.06), 0 16px 40px -16px ${rgba(seed.shadowTint, k.shadowAlpha)}`,
-    glassHighlight: `rgb(255 255 255 / ${k.highlightAlpha})`,
-    ink: k.ink,
-    inkMuted: k.inkMuted,
-    accent: seed.accent,
-    accentSoft: seed.accentSoft,
-    onAccent: onColor(seed.accent),
-    positive: k.positive,
-    negative: k.negative,
-    warning: k.warning,
-    info: k.info,
+    ink: gamutColor({ lightness: primitive[mode], chroma: primitive.chroma, hue: primitive.hue }),
+    wash: gamutColor({
+      lightness: isLight ? (warm || hue === "sky" ? 0.94 : 0.93) : warm ? 0.24 : 0.22,
+      chroma,
+      hue: primitive.hue,
+    }),
   };
 }
+
+export function deriveTokens(bundle: Bundle, mode: Mode) {
+  const seed = bundle[mode];
+  const fixed = MODE_CONSTANTS[mode];
+  const base = parseOklch(seed.accent);
+  const { hue } = base;
+  const isLight = mode === "light";
+  const bundleTone = (lightness: number, chroma: number, alpha?: number) =>
+    formatOklch(fitSrgb({ lightness, chroma, hue }), alpha);
+  const statuses = {
+    positive: gamutColor(parseOklch(fixed.positive)),
+    negative: gamutColor(parseOklch(fixed.negative)),
+    warning: gamutColor(parseOklch(fixed.warning)),
+    info: gamutColor(parseOklch(fixed.info)),
+  };
+
+  return {
+    ...fixed,
+    ...statuses,
+    mode,
+    canvas: seed.canvas,
+    accent: gamutColor({ ...base, lightness: isLight ? 0.52 : base.lightness }),
+    accentHover: gamutColor({
+      ...base,
+      lightness: isLight ? 0.48 : 0.75,
+      chroma: isLight ? base.chroma * (13 / 14) : base.chroma + 0.02,
+    }),
+    accentSoft: gamutColor({
+      lightness: isLight ? 0.95 : 0.25,
+      chroma: isLight ? 0.025 : 0.04,
+      hue,
+    }),
+    borderSubtle: isLight ? bundleTone(0.9, 0.01, 0.6) : bundleTone(0.3, 0.012, 0.5),
+    borderDefault: isLight ? bundleTone(0.85, 0.012, 0.8) : bundleTone(0.35, 0.014, 0.6),
+    borderControl: isLight ? bundleTone(0.64, 0.014) : bundleTone(0.54, 0.014),
+    negativeSoft: gamutColor({
+      ...parseOklch(fixed.negative),
+      lightness: isLight ? 0.95 : 0.25,
+      chroma: 0.035,
+    }),
+    glassBg: isLight ? "oklch(1 0 0 / 0.72)" : "oklch(0.16 0.01 240 / 0.72)",
+    categories: Object.fromEntries(
+      HUE_NAMES.map((hue) => [hue, deriveCategory(hue, mode)]),
+    ) as Record<Hue, ReturnType<typeof deriveCategory>>,
+  };
+}
+
+export type ThemeTokens = ReturnType<typeof deriveTokens>;

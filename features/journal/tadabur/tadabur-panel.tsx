@@ -55,7 +55,7 @@ export function TadaburPanel({
   };
 
   return (
-    <section aria-labelledby="tadabur-title" className="space-y-5">
+    <section aria-labelledby="tadabur-title" className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h2 id="tadabur-title" className="text-sm font-semibold">
@@ -124,7 +124,10 @@ export function TadaburPanel({
 
       <ul className="space-y-3">
         {items.map((entry) => (
-          <li key={entry.id} className="glass space-y-2 p-4">
+          <li
+            key={entry.id}
+            className="space-y-2 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold">
                 {t("tadabur.range", { surah: entry.surah, from: entry.ayatFrom, to: entry.ayatTo })}

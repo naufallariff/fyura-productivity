@@ -5,7 +5,10 @@ import type { LearningStreakView } from "@/server/services/journal";
 
 export function StreakCard({ streak }: { readonly streak: LearningStreakView }) {
   return (
-    <section aria-labelledby="streak-title" className="glass space-y-4 self-start p-5">
+    <section
+      aria-labelledby="streak-title"
+      className="space-y-4 self-start rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)"
+    >
       <header className="flex items-center gap-2">
         <Flame aria-hidden className="text-accent size-4" strokeWidth={1.75} />
         <h3 id="streak-title" className="text-sm font-semibold">

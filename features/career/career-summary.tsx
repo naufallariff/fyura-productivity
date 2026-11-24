@@ -22,7 +22,10 @@ export function CareerSummary({ userId }: { readonly userId: string }) {
   const active = OPEN_STATUSES.reduce((sum, status) => sum + (counts[status] ?? 0), 0);
 
   return (
-    <section aria-labelledby="summary-title" className="glass space-y-3 p-5">
+    <section
+      aria-labelledby="summary-title"
+      className="space-y-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)"
+    >
       <h2 id="summary-title" className="text-sm font-semibold">
         {t("career.summary.title")}
       </h2>

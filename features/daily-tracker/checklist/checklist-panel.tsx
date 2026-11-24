@@ -74,7 +74,7 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
   }));
 
   return (
-    <section aria-labelledby="checklist-title" className="space-y-5">
+    <section aria-labelledby="checklist-title" className="space-y-4">
       <header className="space-y-1">
         <h2 id="checklist-title" className="text-sm font-semibold">
           {t("checklist.title")}
@@ -126,7 +126,7 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
           action={
             <Link
               href="/weekly-plan"
-              className="rounded-control bg-accent text-on-accent px-4 py-2 text-sm font-medium"
+              className="bg-accent text-on-accent rounded-lg px-4 py-2 text-sm font-medium"
             >
               {t("checklist.emptyLink")}
             </Link>
@@ -155,7 +155,7 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
                       });
                     }
                   }}
-                  className="border-line focus-visible:ring-accent rounded-control flex min-h-11 w-full items-center gap-3 border p-3 text-left transition-colors duration-150 focus-visible:ring-2 disabled:opacity-60"
+                  className="border-line focus-visible:ring-accent flex min-h-11 w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors duration-150 focus-visible:ring-2 disabled:opacity-60"
                 >
                   <span
                     aria-hidden
@@ -166,7 +166,7 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
                   >
                     {item.isDone && <Check className="size-3.5" strokeWidth={2.5} />}
                   </span>
-                  <span className="min-w-0 flex-1 space-y-1.5">
+                  <span className="min-w-0 flex-1 space-y-2">
                     <span
                       className={cn(
                         "block truncate text-sm font-medium",
@@ -175,7 +175,7 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
                     >
                       {item.title}
                     </span>
-                    <span className="flex flex-wrap gap-1.5">
+                    <span className="flex flex-wrap gap-2">
                       <Pill hue={CATEGORY_HUE[item.category]}>
                         {t(categoryLabelKey(item.category))}
                       </Pill>

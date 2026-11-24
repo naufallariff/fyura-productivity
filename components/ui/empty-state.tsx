@@ -19,7 +19,7 @@ export function EmptyState({
   return (
     <div className="grid justify-items-center gap-3 px-6 py-10 text-center">
       <span
-        className="rounded-card grid size-12 place-items-center"
+        className="grid size-12 place-items-center rounded-2xl"
         style={tintStyle(hueVar(hue), 16)}
       >
         <Icon aria-hidden className="size-5" strokeWidth={1.75} style={{ color: hueVar(hue) }} />

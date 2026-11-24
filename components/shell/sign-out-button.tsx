@@ -16,7 +16,7 @@ export function SignOutButton({ className }: { className?: string }) {
       <button
         type="submit"
         className={cn(
-          "rounded-control text-ink-muted hover:bg-accent-soft hover:text-ink focus-visible:ring-accent flex min-h-11 w-full items-center gap-3 px-3 text-sm font-medium transition-colors duration-200 focus-visible:ring-2",
+          "text-ink-muted hover:bg-accent-soft hover:text-ink focus-visible:ring-accent flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200 focus-visible:ring-2",
           className,
         )}
       >

@@ -3,11 +3,18 @@
 Single-user personal productivity web app (`github.com/naufallariff/fyura-productivity`, branch `refactor/v2-ui-architecture`).
 Stack: Next.js 16.4.5 (App Router, Cache Components, `proxy.ts`), React 19.3, TypeScript strict, Tailwind CSS v4, Drizzle ORM, Supabase PostgreSQL (`FORCE RLS`), Auth.js v5, TanStack Query v5, `dnd-kit`, Zod v4.
 
-## ACTIVE EXECUTION MODE: STRICT READ-ONLY AUDIT & PLANNING
+## ACTIVE EXECUTION MODE: BATCH EXECUTION (v2 UI & Security Overhaul)
 
-- **DO NOT** create, edit, refactor, or delete any source code files (`app/**`, `features/**`, `components/**`, `server/**`, `domain/**`, `client/**`, `lib/**`, `proxy.ts`, `next.config.ts`).
-- **ONLY** write or update Markdown documentation inside `docs/**` (`docs/REFACTOR-STATE.md`, `docs/AUDIT-FINDINGS.md`, `docs/MASTER-REFACTOR-PLAN.md`).
-- Terminal commands are restricted to non-mutating verification checks (`pnpm typecheck`, `pnpm lint`, `pnpm vitest run`, `pnpm build`) and starting the local dev server for browser UI inspection.
+- Source code, tests, and documentation may be updated within the active batch on `refactor/v2-ui-architecture`. Follow the architectural boundaries below and keep the execution tracker current.
+- This mode supersedes the phase-specific write lock in `.agents/rules/00-token-governance.md`. Its file exclusions and scoped exploration rules still apply.
+- Run `pnpm typecheck`, `pnpm lint`, `pnpm vitest run`, and `pnpm build` before marking a batch complete. Use `pnpm.cmd` on Windows. Use the local dev server for browser UI inspection as needed.
+
+## Git Commit Protocol
+
+- Use Conventional Commits for every batch commit with a `type(scope): summary` subject.
+- Append a blank line and the following trailer at the bottom of every batch commit message.
+
+  `Co-authored-by: OpenAI Codex <codex@openai.com>`
 
 ## Living Documentation (Read On-Demand Only)
 

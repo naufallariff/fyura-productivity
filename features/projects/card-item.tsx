@@ -41,7 +41,7 @@ export function CardFace({ card, labels }: { card: Card; labels: readonly Label[
       >
         {card.title}
       </span>
-      <span className="flex flex-wrap gap-1.5">
+      <span className="flex flex-wrap gap-2">
         {card.dueOn !== null && (
           <>
             <Pill hue={dueHue(card.dueState)}>{formatDueDate(card.dueOn)}</Pill>
@@ -90,7 +90,7 @@ export function CardItem({
         transition: sortable.transition,
       }}
       className={cn(
-        "rounded-control border-line flex items-start gap-1 border p-1.5 [background:var(--glass-solid)]",
+        "border-line flex items-start gap-1 rounded-xl border bg-(--bg-surface-elevated) p-2",
         sortable.isDragging && "opacity-60 shadow-lg",
       )}
     >
@@ -102,7 +102,7 @@ export function CardItem({
         disabled={!dragEnabled}
         aria-label={t("projects.card.drag", { title: card.title })}
         className={cn(
-          "text-ink-muted focus-visible:ring-accent rounded-control grid size-8 shrink-0 place-items-center focus-visible:ring-2",
+          "text-ink-muted focus-visible:ring-accent grid size-8 shrink-0 place-items-center rounded-lg focus-visible:ring-2",
           dragEnabled ? "hover:bg-accent-soft cursor-grab touch-none" : "opacity-40",
         )}
       >
@@ -112,7 +112,7 @@ export function CardItem({
       <button
         type="button"
         onClick={onOpen}
-        className="hover:bg-accent-soft/50 focus-visible:ring-accent rounded-control flex min-w-0 flex-1 p-1 text-left focus-visible:ring-2"
+        className="hover:bg-accent-soft/50 focus-visible:ring-accent flex min-w-0 flex-1 rounded-lg p-1 text-left focus-visible:ring-2"
       >
         <CardFace card={card} labels={labels} />
       </button>

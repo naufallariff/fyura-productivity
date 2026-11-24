@@ -15,7 +15,7 @@ import { JobDialog } from "./job-dialog";
 import { useJobsTable, type JobFilters } from "./use-career";
 
 const SELECT =
-  "min-h-11 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 export function JobTable({ userId, today }: { readonly userId: string; readonly today: string }) {
   const [status, setStatus] = useState("");
@@ -121,7 +121,7 @@ export function JobTable({ userId, today }: { readonly userId: string; readonly 
                   <td className="py-3 pr-3 font-medium">{job.company}</td>
                   <td className="text-ink-muted hidden py-3 pr-3 sm:table-cell">{job.role}</td>
                   <td className="py-3 pr-3">
-                    <span className="flex flex-wrap items-center gap-1.5">
+                    <span className="flex flex-wrap items-center gap-2">
                       <Pill>{t(`career.status.${job.status}`)}</Pill>
                       {job.needsFollowUp && <Pill tone="warning">{t("career.followUp")}</Pill>}
                     </span>

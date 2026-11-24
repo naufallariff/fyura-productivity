@@ -16,17 +16,17 @@ export function Fire({ level, streak }: { level: FireLevel; streak: number }) {
         <svg viewBox="0 0 48 56" className="fire-flicker size-12" aria-hidden>
           <path
             d="M24 2C30 14 42 22 42 36a18 18 0 0 1-36 0c0-8 4-13 8-18 1 6 3 9 6 10C18 19 19 10 24 2Z"
-            style={{ fill: "var(--accent)" }}
+            style={{ fill: "var(--color-accent)" }}
             opacity="0.35"
           />
           <path
             d="M24 16c4 7 12 12 12 22a12 12 0 0 1-24 0c0-6 3-9 6-12 0 4 2 6 4 7-1-5 0-10 2-17Z"
-            style={{ fill: "var(--accent)" }}
+            style={{ fill: "var(--color-accent)" }}
             opacity="0.7"
           />
           <path
             d="M24 34c2 3 5 5 5 9a5 5 0 0 1-10 0c0-3 2-5 5-9Z"
-            style={{ fill: "var(--on-accent)" }}
+            style={{ fill: "var(--color-on-accent)" }}
           />
         </svg>
       </div>

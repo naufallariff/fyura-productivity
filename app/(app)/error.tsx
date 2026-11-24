@@ -19,14 +19,14 @@ export default function AppError({
   return (
     <section
       role="alert"
-      className="rounded-card border-line glass mx-auto mt-16 max-w-md border p-8 text-center"
+      className="mx-auto mt-16 max-w-md rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-8 text-center shadow-(--shadow-card)"
     >
       <h2 className="text-lg font-semibold">{t("error.title")}</h2>
       <p className="text-ink-muted mt-2 text-sm leading-relaxed">{t("error.body")}</p>
       <button
         type="button"
         onClick={reset}
-        className="rounded-control bg-accent text-on-accent ease-spring mt-6 px-5 py-3 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
+        className="bg-accent text-on-accent ease-spring mt-6 rounded-lg px-4 py-3 text-sm font-medium transition-transform duration-200 active:scale-[0.97]"
       >
         {t("error.retry")}
       </button>

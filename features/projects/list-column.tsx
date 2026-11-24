@@ -54,7 +54,7 @@ export function ListColumn({
       style={{ transform: CSS.Transform.toString(column.transform), transition: column.transition }}
       aria-labelledby={`list-title-${list.id}`}
       className={cn(
-        "glass flex max-h-[calc(100dvh-16rem)] w-72 shrink-0 snap-start flex-col gap-3 p-3 sm:w-80",
+        "flex max-h-[calc(100dvh-16rem)] w-72 shrink-0 snap-start flex-col gap-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-3 shadow-(--shadow-card) sm:w-80",
         column.isDragging && "opacity-70",
       )}
     >
@@ -65,7 +65,7 @@ export function ListColumn({
           {...column.attributes}
           {...column.listeners}
           aria-label={t("projects.list.move", { title: list.title })}
-          className="text-ink-muted hover:bg-accent-soft focus-visible:ring-accent rounded-control grid size-8 shrink-0 cursor-grab touch-none place-items-center focus-visible:ring-2"
+          className="text-ink-muted hover:bg-accent-soft focus-visible:ring-accent grid size-8 shrink-0 cursor-grab touch-none place-items-center rounded-lg focus-visible:ring-2"
         >
           <GripVertical aria-hidden className="size-4" strokeWidth={1.75} />
         </button>
@@ -89,7 +89,7 @@ export function ListColumn({
       <div
         ref={drop.setNodeRef}
         className={cn(
-          "rounded-control flex min-h-20 flex-1 flex-col gap-2 overflow-y-auto p-0.5",
+          "flex min-h-20 flex-1 flex-col gap-2 overflow-y-auto rounded-lg p-1",
           drop.isOver && "bg-accent-soft/40",
         )}
       >

@@ -15,7 +15,7 @@ import { clamp, SNAP_MINUTES, snapMinute } from "@/domain/time/snap";
 import type { Category } from "@/domain/scoring/types";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/ui/cn";
-import { hueVar, tintStyle } from "@/lib/ui/hue";
+import { hueSoftVar, hueVar } from "@/lib/ui/hue";
 import { CATEGORY_HUE } from "../category-hue";
 import type { CalendarBlock } from "../use-daily-data";
 
@@ -98,11 +98,11 @@ export function TimeGrid(props: TimeGridProps) {
       role="region"
       aria-label={t("dailyTracker.grid.label")}
       tabIndex={0}
-      className="rounded-card max-h-[70vh] overflow-auto overscroll-contain"
+      className="max-h-[70vh] overflow-auto overscroll-contain rounded-2xl"
     >
       <div className="relative" style={{ minWidth: GUTTER_PX + days.length * COLUMN_MIN_PX }}>
         <div
-          className="border-line sticky top-0 z-20 grid border-b bg-(--glass-solid)"
+          className="border-line sticky top-0 z-20 grid border-b bg-(--bg-surface)"
           style={{ gridTemplateColumns: template }}
         >
           <span aria-hidden />
@@ -344,7 +344,7 @@ function DayColumn({
       {draft && (
         <div
           aria-hidden
-          className="border-accent bg-accent-soft/60 pointer-events-none absolute inset-x-1 rounded-[10px] border-2 border-dashed"
+          className="border-accent bg-accent-soft/60 pointer-events-none absolute inset-x-1 rounded-lg border-2 border-dashed"
           style={{
             top: draft.start * PX_PER_MIN,
             height: (draft.end - draft.start) * PX_PER_MIN,
@@ -379,7 +379,8 @@ function BlockCard({
   readonly lanes: number;
   readonly dimmed: boolean;
 }) {
-  const color = hueVar(CATEGORY_HUE[block.category]);
+  const hue = CATEGORY_HUE[block.category];
+  const color = hueVar(hue);
   const editable = block.splitGroupId === null;
   const top = block.startMinute * PX_PER_MIN;
   const height = Math.max((block.endMinute - block.startMinute) * PX_PER_MIN - 2, 22);
@@ -388,7 +389,7 @@ function BlockCard({
     <div
       data-block-id={block.id}
       className={cn(
-        "text-ink absolute overflow-hidden rounded-[10px] py-1 pr-2 pl-2.5 text-xs transition-opacity duration-200",
+        "text-ink absolute overflow-hidden rounded-lg py-1 pr-2 pl-3 text-xs transition-opacity duration-200",
         dimmed && "opacity-30",
       )}
       style={{
@@ -396,7 +397,7 @@ function BlockCard({
         height,
         left: `calc(${(lane / lanes) * 100}% + 3px)`,
         width: `calc(${100 / lanes}% - 6px)`,
-        ...tintStyle(color, 20),
+        background: hueSoftVar(hue),
         borderLeft: `3px ${editable ? "solid" : "dashed"} ${color}`,
         cursor: editable ? "grab" : "pointer",
       }}

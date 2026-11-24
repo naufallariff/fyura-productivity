@@ -1,8 +1,8 @@
 # Fyura Productivity — Audit & Refactor State
 
 - **Branch:** `refactor/v2-ui-architecture` (branched from `main` / `refactor/redesign` @ `1ab2bef`)
-- **Current Phase:** Phase 0 Complete → **Phase 3.5 Planning Complete** — Ready for Batch Execution
-- **Execution Mode:** Documentation & Planning Only (No source code modifications allowed)
+- **Current Phase:** Batch 1 complete
+- **ACTIVE EXECUTION MODE: BATCH EXECUTION (v2 UI & Security Overhaul)**
 - **Session 1 Status:** Completed on 2026-11-24 (Quality Gates, Security & Isolation Audit, Design Token Readiness)
 - **Session 2 Status:** Completed on 2026-11-24 (Shell, Dashboard Bento, Daily Tracker Audit & Dev Server Startup)
 - **Session 3 Status:** Completed on 2026-11-24 (Projects Kanban, Journal Rich-Text, Private Space Security, Secondary Modules Sweep, Viewport & Responsiveness Evaluation)
@@ -16,15 +16,15 @@
 4. **GPU-Only Motion Architecture**: Custom easing curves (`--ease-out-snappy: cubic-bezier(0.23, 1, 0.32, 1)`), 0ms Command Palette, 120ms press feedback, `transform`/`opacity`/`clip-path` only. `prefers-reduced-motion` and `prefers-reduced-transparency` honoured.
 5. **6-Batch Sequential Execution**: Security & Tokens → Shell & Palette → Dashboard Bento → Daily Tracker → Projects & Secondary → Journal Rich-Text & Private Encryption. Each batch is self-contained with explicit file paths, acceptance criteria, and a copy-paste execution prompt.
 
-## Baseline Status (From Commit History up to `1ab2bef`)
+## Baseline and Security Milestones
 
 - [x] `T1`: `GET /api/v1/career/jobs` route added (`eee3dae`).
 - [x] `T2`: Sign-out action restored (`eee3dae`).
 - [x] `T3`: Run `pnpm typecheck && pnpm lint && pnpm vitest run && pnpm build` and record baseline output (all passed, recorded in `docs/AUDIT-FINDINGS.md`).
 - [x] `T4`: Browser UI & responsiveness check (`1280px` & `390px`) across `/dashboard`, `/daily-tracker`, `/projects`, `/journal`, `/private` (Completed in Session 3).
-- [ ] `U9`: Implement AES-256-GCM column encryption in `server/crypto/column-cipher.ts` → **Batch 1**
-- [ ] `U10`: Harden `server/cron/auth.ts` with non-empty `CRON_SECRET` validation → **Batch 1**
-- [ ] `U11`: Add per-request CSP nonces and security headers in `proxy.ts` / `next.config.ts` → **Batch 1**
+- [x] `U9` — AES-256-GCM column cipher with an authenticated version prefix, fresh IVs, and key validation when the cipher is used.
+- [x] `U10` — Module-load validation of `CRON_SECRET` and timing-safe checks on both cron routes.
+- [x] `U11` — Per-request CSP nonces and security headers, with Partial Prefetching enabled in Next.js.
 
 ## Module Audit Checklist (Populate into `docs/AUDIT-FINDINGS.md`)
 
@@ -44,11 +44,18 @@
 
 ## Batch Execution Tracker
 
-| Batch | Scope                                               | Status     | Verification Gate                                              |
-| :---- | :-------------------------------------------------- | :--------- | :------------------------------------------------------------- |
-| **1** | Security Hardening & Design Token Foundation        | ⬜ Pending | `pnpm typecheck && pnpm lint && pnpm vitest run && pnpm build` |
-| **2** | App Shell, Command Palette & Theme Infrastructure   | ⬜ Pending | Same                                                           |
-| **3** | Dashboard Bento Command Center                      | ⬜ Pending | Same                                                           |
-| **4** | Daily Tracker — Google Calendar Grid                | ⬜ Pending | Same                                                           |
-| **5** | Projects Kanban & Secondary Module Polish           | ⬜ Pending | Same                                                           |
-| **6** | Journal Rich-Text Editor & Private Space Encryption | ⬜ Pending | Same                                                           |
+| Batch | Scope                                               | Status     | Verification Gate                                                              |
+| :---- | :-------------------------------------------------- | :--------- | :----------------------------------------------------------------------------- |
+| **1** | Security Hardening & Design Token Foundation        | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
+| **2** | App Shell, Command Palette & Theme Infrastructure   | ⬜ Pending | Same                                                                           |
+| **3** | Dashboard Bento Command Center                      | ⬜ Pending | Same                                                                           |
+| **4** | Daily Tracker — Google Calendar Grid                | ⬜ Pending | Same                                                                           |
+| **5** | Projects Kanban & Secondary Module Polish           | ⬜ Pending | Same                                                                           |
+| **6** | Journal Rich-Text Editor & Private Space Encryption | ⬜ Pending | Same                                                                           |
+
+### Batch 1 Verification (2026-11-24)
+
+- `pnpm.cmd typecheck` and `pnpm.cmd lint` passed with zero errors or warnings. The production build passed with Partial Prefetching enabled and zero Partial Prefetching warnings.
+- `pnpm.cmd vitest run` passed all 228 enabled tests in 48 files, including cipher, cron, and WCAG 2.2 AA contrast coverage for all six bundle and mode combinations. The 73 opt-in database integration tests were skipped by the standard gate.
+- Production HTTP checks confirmed unique request nonces on rendered script and style tags, all required headers on protected redirects, and both cron routes returning 401 without credentials and 501 with valid credentials. The compiled stylesheet includes solid cards, scoped glass, and a reduced-transparency fallback.
+- The production script policy requires nonces and permits the configured Sentry ingest origin for connections. The style policy permits the inline style attributes used by calendar and drag interactions while requiring nonces on inline style tags.
