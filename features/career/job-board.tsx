@@ -96,7 +96,7 @@ function Column({
   return (
     <section
       aria-labelledby={`col-${status}`}
-      className="glass flex w-64 shrink-0 snap-start flex-col gap-3 p-3"
+      className="flex w-64 shrink-0 snap-start flex-col gap-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-3 shadow-(--shadow-card)"
     >
       <header className="flex items-center justify-between gap-2 px-1">
         <h3 id={`col-${status}`} className="text-xs font-semibold tracking-wide uppercase">
@@ -127,11 +127,11 @@ function JobCard({
   const update = useUpdateJob(userId);
 
   return (
-    <article className="rounded-control border-line space-y-2 border p-3 [background:var(--glass-solid)]">
+    <article className="border-line space-y-2 rounded-xl border bg-(--bg-surface-elevated) p-3">
       <button
         type="button"
         onClick={onOpen}
-        className="focus-visible:ring-accent rounded-control block w-full space-y-1 text-left focus-visible:ring-2"
+        className="focus-visible:ring-accent block w-full space-y-1 rounded-lg text-left focus-visible:ring-2"
       >
         <span className="block truncate text-sm font-semibold">{job.company}</span>
         <span className="text-ink-muted block truncate text-xs">{job.role}</span>
@@ -146,7 +146,7 @@ function JobCard({
           disabled={update.isPending}
           onChange={(event) => update.mutate({ jobId: job.id, status: event.target.value })}
           className={cn(
-            "rounded-control border-line text-ink focus-visible:ring-accent min-h-9 w-full border bg-transparent px-2 text-xs outline-none focus-visible:ring-2",
+            "border-line text-ink focus-visible:ring-accent min-h-9 w-full rounded-lg border bg-transparent px-2 text-xs outline-none focus-visible:ring-2",
           )}
         >
           {JOB_STATUSES.map((option) => (

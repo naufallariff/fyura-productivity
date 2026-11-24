@@ -31,11 +31,11 @@ function fullDate(iso: string): string {
 
 export function MiniMonth({
   selectedDate,
-  todayIso,
+  today,
   onSelect,
 }: {
   readonly selectedDate: string;
-  readonly todayIso: string;
+  readonly today: string;
   readonly onSelect: (date: string) => void;
 }) {
   const selectedMonth = selectedDate.slice(0, 7);
@@ -91,14 +91,14 @@ export function MiniMonth({
               type="button"
               aria-label={fullDate(cell)}
               aria-pressed={cell === selectedDate}
-              aria-current={cell === todayIso ? "date" : undefined}
+              aria-current={cell === today ? "date" : undefined}
               onClick={() => onSelect(cell)}
               className={cn(
                 "focus-visible:ring-accent mx-auto grid size-8 place-items-center rounded-full text-xs tabular-nums transition-colors duration-150 focus-visible:ring-2",
                 cell === selectedDate
                   ? "bg-accent text-on-accent"
                   : "text-ink hover:bg-accent-soft",
-                cell === todayIso && cell !== selectedDate && "ring-accent ring-1",
+                cell === today && cell !== selectedDate && "ring-accent ring-1",
               )}
             >
               {Number(cell.slice(8, 10))}

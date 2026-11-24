@@ -19,6 +19,7 @@ import {
   UpdateTadaburInput,
 } from "@/server/validation/tadabur";
 import { isValidIsoDate } from "@/domain/time/local-date";
+import { sanitizeHtml } from "@/server/validation/sanitize";
 import { DomainError } from "@/server/services/errors";
 import { parse } from "@/server/services/parse";
 
@@ -29,6 +30,7 @@ export interface TadaburDto {
   readonly ayatFrom: number;
   readonly ayatTo: number;
   readonly reflection: string;
+  readonly reflectionIsHtml: boolean;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -40,7 +42,8 @@ function toDto(row: TadaburRow): TadaburDto {
     surah: row.surah,
     ayatFrom: row.ayatFrom,
     ayatTo: row.ayatTo,
-    reflection: row.reflection,
+    reflection: row.reflectionIsHtml ? sanitizeHtml(row.reflection) : row.reflection,
+    reflectionIsHtml: row.reflectionIsHtml,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -75,12 +78,23 @@ export async function listTadabur(userId: string, input: unknown): Promise<Page<
   });
 }
 
-export async function createTadabur(userId: string, input: unknown): Promise<TadaburDto> {
+export async function createTadabur(
+  userId: string,
+  input: unknown,
+  format: "text" | "html" = "text",
+): Promise<TadaburDto> {
   const parsed = parse(CreateTadaburInput, input);
-  return withUser(userId, async (tx) => toDto(await insertTadabur(tx, { userId, ...parsed })));
+  const row = await withUser(userId, (tx) =>
+    insertTadabur(tx, { userId, ...parsed, reflectionIsHtml: format === "html" }),
+  );
+  return toDto(row);
 }
 
-export async function updateTadabur(userId: string, input: unknown): Promise<void> {
+export async function updateTadabur(
+  userId: string,
+  input: unknown,
+  format: "text" | "html" = "text",
+): Promise<void> {
   const { entryId, ...patch } = parse(UpdateTadaburInput, input);
 
   await withUser(userId, async (tx) => {
@@ -94,7 +108,10 @@ export async function updateTadabur(userId: string, input: unknown): Promise<voi
       throw new DomainError("VALIDATION_FAILED", "Ayat end must not be before ayat start");
     }
 
-    const row = await updateTadaburRow(tx, userId, entryId, definedFields(patch));
+    const row = await updateTadaburRow(tx, userId, entryId, {
+      ...definedFields(patch),
+      ...(patch.reflection === undefined ? {} : { reflectionIsHtml: format === "html" }),
+    });
     if (!row) throw new DomainError("NOT_FOUND", "Entry not found");
   });
 }

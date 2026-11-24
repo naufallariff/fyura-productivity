@@ -1,28 +1,23 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { runAction, type ActionResult } from "@/server/api/action";
+import { consumeRateLimit } from "@/server/api/rate-limit";
 import { requireUser } from "@/server/auth/session";
 import { saveThemeSelection } from "@/server/db/settings";
 import { ThemeSelectionSchema } from "@/lib/theme/resolve";
 
-export type ThemeActionState =
-  { status: "idle" } | { status: "saved" } | { status: "error"; message: string };
+const ThemeChangeSchema = ThemeSelectionSchema.partial().refine(
+  ({ bundle, mode }) => bundle !== undefined || mode !== undefined,
+);
 
-export async function saveThemeAction(
-  _previous: ThemeActionState,
-  formData: FormData,
-): Promise<ThemeActionState> {
+export async function saveThemeAction(input: unknown): Promise<ActionResult<null>> {
   const user = await requireUser();
+  const parsed = ThemeChangeSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, code: "VALIDATION_FAILED" };
 
-  const parsed = ThemeSelectionSchema.safeParse({
-    bundle: formData.get("bundle"),
-    mode: formData.get("mode"),
+  return runAction(async () => {
+    await consumeRateLimit(user.id, "write");
+    await saveThemeSelection(user.id, parsed.data);
+    return null;
   });
-  if (!parsed.success) {
-    return { status: "error", message: "Choose a valid bundle and mode." };
-  }
-
-  await saveThemeSelection(user.id, parsed.data);
-  revalidatePath("/", "layout");
-  return { status: "saved" };
 }

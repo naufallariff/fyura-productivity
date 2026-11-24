@@ -3,12 +3,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCenter,
   useSensor,
   useSensors,
@@ -22,7 +23,10 @@ import {
 } from "@dnd-kit/sortable";
 import { ArrowLeft, KanbanSquare, Plus, Settings2, Tags } from "lucide-react";
 import { useDebouncedValue } from "@/client/hooks/use-debounce";
+import { useShellCommand } from "@/client/hooks/use-shell-command";
+import { BoardDock } from "@/components/projects/board-dock";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field, Input } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,12 +34,12 @@ import { dropNeighbours, moveIndex, neighboursAt } from "@/domain/projects/place
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/ui/cn";
 import { hueVar } from "@/lib/ui/hue";
-import { BoardSettingsDialog, LabelsDialog, ListDialog } from "./board-dialogs";
+import { BoardSettingsDialog, LabelsDialog, ListActionDialog, ListDialog } from "./board-dialogs";
 import { CardDialog } from "./card-dialog";
 import { CardFace } from "./card-item";
 import type { DragData } from "./drag-types";
 import { CONTROL_CLASS, errorText, failureCode } from "./format";
-import { ListColumn } from "./list-column";
+import { AddCardForm, ListColumn } from "./list-column";
 import type { Card, List } from "./schemas";
 import {
   NO_FILTERS,
@@ -46,7 +50,8 @@ import {
   type CardFilters,
 } from "./use-projects";
 
-type DialogState = "settings" | "labels" | "newList" | "editList" | null;
+type DialogState =
+  "settings" | "labels" | "newList" | "editList" | "moveList" | "deleteList" | "addCard" | null;
 
 function setOrDelete(params: URLSearchParams, key: string, value: string): void {
   if (value) params.set(key, value);
@@ -58,6 +63,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   const pathname = usePathname();
   const params = useSearchParams();
   const snapshot = useBoardSnapshot(userId, boardId);
+  const boardTop = useRef<HTMLElement>(null);
 
   // Raw input updates at once. The debounced value drives queries and the URL.
   const [raw, setRaw] = useState<CardFilters>(() => ({
@@ -90,9 +96,20 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [editing, setEditing] = useState<List | null>(null);
+  const [cardListId, setCardListId] = useState("");
+
+  useShellCommand(
+    "addCard",
+    () => {
+      setCardListId("");
+      setDialog(snapshot.data?.lists.length ? "addCard" : "newList");
+    },
+    snapshot.isSuccess,
+  );
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
@@ -114,6 +131,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   }
 
   const { board, lists, labels } = snapshot.data;
+  const cardList = lists.find((list) => list.id === cardListId) ?? lists[0];
 
   const onDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current as DragData | undefined;
@@ -154,19 +172,19 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
     if (neighbours) moveCard.mutate({ cardId: from.card.id, listId: to.listId, ...neighbours });
   };
 
-  const openEditList = (list: List) => {
+  const openListDialog = (next: "editList" | "moveList" | "deleteList", list: List) => {
     setEditing(list);
-    setDialog("editList");
+    setDialog(next);
   };
 
   return (
-    <div className="space-y-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4 pb-16 max-md:pb-28">
+      <header ref={boardTop} className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/projects"
             aria-label={t("projects.back")}
-            className="text-ink-muted hover:bg-accent-soft focus-visible:ring-accent rounded-control grid size-9 shrink-0 place-items-center focus-visible:ring-2"
+            className="text-ink-muted hover:bg-accent-soft focus-visible:ring-accent grid size-9 shrink-0 place-items-center rounded-lg focus-visible:ring-2"
           >
             <ArrowLeft aria-hidden className="size-4" strokeWidth={1.75} />
           </Link>
@@ -202,7 +220,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
         </div>
       </header>
 
-      <div className="glass flex flex-wrap items-end gap-3 p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-3 shadow-(--shadow-card)">
         <Field id="board-search" label={t("projects.filter.search")}>
           <Input
             id="board-search"
@@ -285,7 +303,9 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
                   filters={filters}
                   dragEnabled={dragEnabled}
                   onOpenCard={setOpenCardId}
-                  onEditList={openEditList}
+                  onEditList={(list) => openListDialog("editList", list)}
+                  onMoveList={(list) => openListDialog("moveList", list)}
+                  onDeleteList={(list) => openListDialog("deleteList", list)}
                 />
               ))}
             </div>
@@ -293,7 +313,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
 
           <DragOverlay>
             {activeCard && (
-              <div className="rounded-control border-line w-72 border p-2 shadow-xl [background:var(--glass-solid)]">
+              <div className="w-72 rounded-xl border border-(--border-subtle) bg-(--bg-surface-elevated) p-2 shadow-(--shadow-card)">
                 <CardFace card={activeCard} labels={labels} />
               </div>
             )}
@@ -301,6 +321,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
         </DndContext>
       )}
 
+      <BoardDock userId={userId} boardId={boardId} boardTop={boardTop} />
       <BoardSettingsDialog
         userId={userId}
         open={dialog === "settings"}
@@ -324,6 +345,20 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
           setEditing(null);
         }}
       />
+      {editing && (dialog === "moveList" || dialog === "deleteList") && (
+        <ListActionDialog
+          key={`${dialog}:${editing.id}`}
+          action={dialog}
+          list={editing}
+          lists={lists}
+          moveList={moveList.mutateAsync}
+          userId={userId}
+          onClose={() => {
+            setDialog(null);
+            setEditing(null);
+          }}
+        />
+      )}
       <CardDialog
         userId={userId}
         cardId={openCardId}
@@ -331,6 +366,38 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
         labels={labels}
         onClose={() => setOpenCardId(null)}
       />
+      <Dialog
+        solid
+        open={dialog === "addCard"}
+        onClose={() => setDialog(null)}
+        title={t("projects.card.add")}
+        closeLabel={t("shell.close")}
+      >
+        {dialog === "addCard" && cardList && (
+          <div className="space-y-4">
+            <label className="block space-y-2 text-sm font-medium">
+              <span>{t("shell.palette.cardList")}</span>
+              <select
+                className={CONTROL_CLASS}
+                value={cardList.id}
+                onChange={(event) => setCardListId(event.target.value)}
+              >
+                {lists.map((list) => (
+                  <option key={list.id} value={list.id}>
+                    {list.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <AddCardForm
+              userId={userId}
+              listId={cardList.id}
+              onCancel={() => setDialog(null)}
+              onCreated={() => setDialog(null)}
+            />
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

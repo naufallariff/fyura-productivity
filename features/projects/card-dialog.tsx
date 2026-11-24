@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { Field, Input } from "@/components/ui/field";
+import { Field, Input, Textarea } from "@/components/ui/field";
 import { Pill } from "@/components/ui/pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { t } from "@/lib/i18n";
@@ -39,6 +39,7 @@ export function CardDialog({
 
   return (
     <Dialog
+      solid
       open={cardId !== null}
       onClose={onClose}
       title={t("projects.card.title")}
@@ -137,8 +138,10 @@ function CardEditor({
     <div className="space-y-6">
       <form onSubmit={onSave} className="grid gap-4">
         <Field id="card-title" label={t("projects.field.title")}>
-          <Input
+          <Textarea
             id="card-title"
+            rows={2}
+            className="min-h-0"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             maxLength={200}

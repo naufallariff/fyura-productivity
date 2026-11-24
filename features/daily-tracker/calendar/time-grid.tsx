@@ -15,7 +15,7 @@ import { clamp, SNAP_MINUTES, snapMinute } from "@/domain/time/snap";
 import type { Category } from "@/domain/scoring/types";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/ui/cn";
-import { hueVar, tintStyle } from "@/lib/ui/hue";
+import { hueSoftVar, hueVar } from "@/lib/ui/hue";
 import { CATEGORY_HUE } from "../category-hue";
 import type { CalendarBlock } from "../use-daily-data";
 
@@ -48,8 +48,9 @@ type Gesture =
 export interface TimeGridProps {
   readonly days: readonly string[];
   readonly blocks: readonly CalendarBlock[];
-  readonly todayIso: string;
+  readonly today: string;
   readonly timeZone: string;
+  readonly blockDialogOpen?: boolean;
   /** Empty set shows every category. A non-empty set dims the rest. */
   readonly activeCategories: ReadonlySet<Category>;
   readonly onCreate: (logDate: string, startMinute: number, durationMinutes: number) => void;
@@ -82,7 +83,17 @@ function groupByDay(blocks: readonly CalendarBlock[]): Map<string, CalendarBlock
 }
 
 export function TimeGrid(props: TimeGridProps) {
-  const { days, blocks, todayIso, timeZone, activeCategories, onCreate, onOpen, onMove } = props;
+  const {
+    days,
+    blocks,
+    today,
+    timeZone,
+    blockDialogOpen,
+    activeCategories,
+    onCreate,
+    onOpen,
+    onMove,
+  } = props;
   const scroller = useRef<HTMLDivElement>(null);
   const nowMinute = useNowMinute(timeZone);
   const byDay = useMemo(() => groupByDay(blocks), [blocks]);
@@ -98,16 +109,20 @@ export function TimeGrid(props: TimeGridProps) {
       role="region"
       aria-label={t("dailyTracker.grid.label")}
       tabIndex={0}
-      className="rounded-card max-h-[70vh] overflow-auto overscroll-contain"
+      className="max-h-[70vh] overflow-auto overscroll-contain rounded-2xl"
     >
       <div className="relative" style={{ minWidth: GUTTER_PX + days.length * COLUMN_MIN_PX }}>
         <div
-          className="border-line sticky top-0 z-20 grid border-b bg-(--glass-solid)"
+          data-glass-permitted={blockDialogOpen ? undefined : true}
+          className={cn(
+            "border-line sticky top-0 z-20 grid border-b bg-(--bg-surface)",
+            !blockDialogOpen && "glass",
+          )}
           style={{ gridTemplateColumns: template }}
         >
           <span aria-hidden />
           {days.map((day) => (
-            <DayHeader key={day} logDate={day} isToday={day === todayIso} />
+            <DayHeader key={day} logDate={day} isToday={day === today} />
           ))}
         </div>
 
@@ -118,7 +133,7 @@ export function TimeGrid(props: TimeGridProps) {
               key={day}
               logDate={day}
               blocks={byDay.get(day) ?? EMPTY}
-              isToday={day === todayIso}
+              isToday={day === today}
               nowMinute={nowMinute}
               activeCategories={activeCategories}
               onCreate={onCreate}
@@ -344,7 +359,7 @@ function DayColumn({
       {draft && (
         <div
           aria-hidden
-          className="border-accent bg-accent-soft/60 pointer-events-none absolute inset-x-1 rounded-[10px] border-2 border-dashed"
+          className="border-accent bg-accent-soft/60 pointer-events-none absolute inset-x-1 rounded-lg border-2 border-dashed"
           style={{
             top: draft.start * PX_PER_MIN,
             height: (draft.end - draft.start) * PX_PER_MIN,
@@ -379,7 +394,8 @@ function BlockCard({
   readonly lanes: number;
   readonly dimmed: boolean;
 }) {
-  const color = hueVar(CATEGORY_HUE[block.category]);
+  const hue = CATEGORY_HUE[block.category];
+  const color = hueVar(hue);
   const editable = block.splitGroupId === null;
   const top = block.startMinute * PX_PER_MIN;
   const height = Math.max((block.endMinute - block.startMinute) * PX_PER_MIN - 2, 22);
@@ -388,7 +404,7 @@ function BlockCard({
     <div
       data-block-id={block.id}
       className={cn(
-        "text-ink absolute overflow-hidden rounded-[10px] py-1 pr-2 pl-2.5 text-xs transition-opacity duration-200",
+        "text-ink absolute rounded-lg text-xs transition-opacity duration-200",
         dimmed && "opacity-30",
       )}
       style={{
@@ -396,26 +412,31 @@ function BlockCard({
         height,
         left: `calc(${(lane / lanes) * 100}% + 3px)`,
         width: `calc(${100 / lanes}% - 6px)`,
-        ...tintStyle(color, 20),
+        background: hueSoftVar(hue),
         borderLeft: `3px ${editable ? "solid" : "dashed"} ${color}`,
         cursor: editable ? "grab" : "pointer",
       }}
     >
-      <p className="truncate font-semibold">{block.activity}</p>
-      <p className="text-ink-muted truncate tabular-nums">
-        {t("dailyTracker.range", {
-          start: formatMinute(block.startMinute),
-          end: formatMinute(block.endMinute),
-        })}
-      </p>
+      <div className="absolute inset-0 overflow-hidden rounded-lg py-1 pr-2 pl-3">
+        <p className="truncate font-semibold">{block.activity}</p>
+        <p className="text-ink-muted truncate tabular-nums">
+          {t("dailyTracker.range", {
+            start: formatMinute(block.startMinute),
+            end: formatMinute(block.endMinute),
+          })}
+        </p>
+      </div>
       {editable && (
         <span
-          data-block-id={block.id}
           data-handle="resize"
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize"
-          style={{ touchAction: "none" }}
-        />
+          className="absolute inset-x-0 bottom-0 z-1 h-0.5 cursor-s-resize touch-none before:absolute before:inset-x-0 before:-bottom-2 before:h-5 before:cursor-s-resize"
+        >
+          <span
+            className="pointer-events-none mx-auto block h-full w-6 rounded-full"
+            style={{ background: color }}
+          />
+        </span>
       )}
     </div>
   );

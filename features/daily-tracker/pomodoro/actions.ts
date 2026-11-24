@@ -3,6 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { runAction, type ActionResult } from "@/server/api/action";
+import { consumeRateLimit } from "@/server/api/rate-limit";
 import { requireUser } from "@/server/auth/session";
 import { logFocusSession, type FocusLogResult } from "@/server/services/focus";
 
@@ -19,6 +20,7 @@ export async function logFocusAction(input: FocusLogInput): Promise<ActionResult
   // requireUser() stays outside runAction, because its redirect must not be caught.
   const user = await requireUser();
   return runAction(async () => {
+    await consumeRateLimit(user.id, "write");
     const result = await logFocusSession(user.id, input);
     revalidatePath("/daily-tracker");
     revalidatePath("/dashboard");

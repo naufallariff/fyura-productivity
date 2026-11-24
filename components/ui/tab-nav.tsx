@@ -11,14 +11,14 @@ export interface TabItem {
 export function TabNav({ label, items }: { label: string; items: readonly TabItem[] }) {
   return (
     <nav aria-label={label}>
-      <ul className="border-line inline-flex flex-wrap gap-1 rounded-full border p-1 [background:var(--glass-bg)]">
+      <ul className="border-line inline-flex flex-wrap gap-1 rounded-full border bg-(--bg-surface) p-1">
         {items.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
               aria-current={item.active ? "page" : undefined}
               className={cn(
-                "focus-visible:ring-accent inline-flex min-h-9 items-center rounded-full px-3.5 text-sm font-medium transition-colors duration-200 focus-visible:ring-2",
+                "focus-visible:ring-accent inline-flex min-h-9 items-center rounded-full px-4 text-sm font-medium transition-colors duration-200 focus-visible:ring-2",
                 item.active ? "bg-accent text-on-accent" : "text-ink-muted hover:text-ink",
               )}
             >

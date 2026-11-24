@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Sidebar } from "@/components/shell/sidebar";
 import { MobileNav } from "@/components/shell/mobile-nav";
+import { CommandPalette } from "@/components/shell/command-palette";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { t } from "@/lib/i18n";
 import { parseSidebarState, SIDEBAR_COOKIE } from "@/lib/shell/sidebar-cookie";
@@ -19,7 +20,7 @@ async function ShellFrame({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh gap-0">
       <a
         href="#main"
-        className="focus:rounded-control focus:bg-accent focus:text-on-accent sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2"
+        className="focus:bg-accent focus:text-on-accent sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2"
       >
         {t("shell.skipToContent")}
       </a>
@@ -30,6 +31,7 @@ async function ShellFrame({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <MobileNav />
+      <CommandPalette />
     </div>
   );
 }

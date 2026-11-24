@@ -10,9 +10,17 @@ import { Field, Input } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { t } from "@/lib/i18n";
 import { errorText, failureCode } from "./errors";
-import { useCreateReview, useDueReviews, useSubmitReview } from "./use-learning";
+import {
+  useCreateReview,
+  useDueReviews,
+  useItems,
+  useSubjects,
+  useSubmitReview,
+} from "./use-learning";
 
 const QUALITIES = [0, 1, 2, 3, 4, 5] as const;
+const SELECT =
+  "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 export function ReviewsPanel({ userId }: { readonly userId: string }) {
   const due = useDueReviews(userId);
@@ -52,7 +60,7 @@ export function ReviewsPanel({ userId }: { readonly userId: string }) {
   const cards = due.data ?? [];
 
   return (
-    <section aria-labelledby="reviews-title" className="space-y-5">
+    <section aria-labelledby="reviews-title" className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h2 id="reviews-title" className="text-sm font-semibold">
@@ -69,7 +77,10 @@ export function ReviewsPanel({ userId }: { readonly userId: string }) {
 
       <ul className="space-y-3">
         {cards.map((card) => (
-          <li key={card.id} className="glass space-y-3 p-4">
+          <li
+            key={card.id}
+            className="space-y-3 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)"
+          >
             <p className="text-sm leading-relaxed font-semibold">{card.prompt}</p>
             <p className="text-ink-muted text-xs tabular-nums">
               {t("learning.reviews.meta", { count: card.repetitions })}
@@ -82,7 +93,7 @@ export function ReviewsPanel({ userId }: { readonly userId: string }) {
                     key={quality}
                     variant="secondary"
                     size="sm"
-                    className="min-h-12 flex-col gap-0.5"
+                    className="min-h-12 flex-col gap-1"
                     onClick={() => grade(card.id, quality)}
                   >
                     <span className="font-semibold tabular-nums">{quality}</span>
@@ -137,7 +148,10 @@ function NewCardForm({
   readonly onClose: () => void;
 }) {
   const create = useCreateReview(userId);
+  const subjects = useSubjects(userId);
   const [prompt, setPrompt] = useState("");
+  const [subjectId, setSubjectId] = useState("");
+  const [itemId, setItemId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -149,7 +163,7 @@ function NewCardForm({
     }
     setError(null);
     create.mutate(
-      { itemId: null, prompt: value },
+      { itemId: itemId || null, prompt: value },
       {
         onSuccess: () => onClose(),
         onError: (failure) => setError(errorText(failureCode(failure))),
@@ -169,6 +183,39 @@ function NewCardForm({
           autoFocus
         />
       </Field>
+      <Field id="review-subject" label={t("learning.reviews.subject")}>
+        <select
+          id="review-subject"
+          className={SELECT}
+          value={subjectId}
+          onChange={(event) => {
+            setSubjectId(event.target.value);
+            setItemId("");
+          }}
+        >
+          <option value="">{t("learning.reviews.standalone")}</option>
+          {subjects.data?.items
+            .filter((subject) => subject.status !== "ARCHIVED")
+            .map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name}
+              </option>
+            ))}
+        </select>
+      </Field>
+      {subjects.isError && (
+        <Button type="button" variant="secondary" onClick={() => subjects.refetch()}>
+          {t("common.retry")}
+        </Button>
+      )}
+      {subjectId && (
+        <ReviewMaterialSelect
+          userId={userId}
+          subjectId={subjectId}
+          itemId={itemId}
+          onChange={setItemId}
+        />
+      )}
       {error && (
         <p role="alert" className="text-negative text-sm">
           {error}
@@ -183,5 +230,59 @@ function NewCardForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+function ReviewMaterialSelect({
+  userId,
+  subjectId,
+  itemId,
+  onChange,
+}: {
+  readonly userId: string;
+  readonly subjectId: string;
+  readonly itemId: string;
+  readonly onChange: (id: string) => void;
+}) {
+  const items = useItems(userId, { subjectId });
+  const materials = items.data?.pages.flatMap((page) => page.items) ?? [];
+
+  return (
+    <div className="grid gap-2">
+      <Field id="review-material" label={t("learning.reviews.material")}>
+        <select
+          id="review-material"
+          className={SELECT}
+          aria-busy={items.isPending}
+          value={itemId}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          <option value="">{t("learning.reviews.standalone")}</option>
+          {materials.map((material) => (
+            <option key={material.id} value={material.id}>
+              {material.title}
+            </option>
+          ))}
+        </select>
+      </Field>
+      {items.isSuccess && materials.length === 0 && (
+        <p className="text-ink-muted text-xs">{t("learning.items.empty")}</p>
+      )}
+      {items.isError && !items.hasNextPage && (
+        <Button type="button" variant="secondary" onClick={() => items.refetch()}>
+          {t("common.retry")}
+        </Button>
+      )}
+      {items.hasNextPage && (
+        <Button
+          type="button"
+          variant="secondary"
+          pending={items.isFetchingNextPage}
+          onClick={() => items.fetchNextPage()}
+        >
+          {t(items.isFetchNextPageError ? "common.retry" : "learning.items.loadMore")}
+        </Button>
+      )}
+    </div>
   );
 }

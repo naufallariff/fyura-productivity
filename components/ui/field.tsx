@@ -1,8 +1,8 @@
-import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
+import type { ComponentPropsWithRef, InputHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 
 const CONTROL =
-  "w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none transition-colors duration-150 placeholder:text-ink-muted focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-negative disabled:opacity-50 sm:text-sm";
+  "w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none transition-colors duration-150 placeholder:text-ink-muted focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-negative disabled:opacity-50 sm:text-sm";
 
 /** Text size is 16 px on phones so the browser does not zoom on focus. */
 export function Field({
@@ -19,7 +19,7 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <div className="grid gap-1.5">
+    <div className="grid gap-2">
       <label htmlFor={id} className="text-ink text-sm font-medium">
         {label}
       </label>
@@ -64,11 +64,11 @@ export function Textarea({
   invalid,
   className,
   ...rest
-}: TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: boolean }) {
+}: ComponentPropsWithRef<"textarea"> & { invalid?: boolean }) {
   return (
     <textarea
       aria-invalid={invalid || undefined}
-      className={cn(CONTROL, "min-h-24 resize-y py-2.5", className)}
+      className={cn(CONTROL, "min-h-24 resize-y py-2", className)}
       {...rest}
     />
   );

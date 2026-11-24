@@ -36,9 +36,10 @@ describe("environment configuration", () => {
     await expect(import("@/server/config/env")).rejects.toThrow(/AUTH_SECRET/);
   });
 
-  it("fails when ENCRYPTION_KEY is not 64 hexadecimal characters", async () => {
-    process.env.ENCRYPTION_KEY = "xyz";
-    await expect(import("@/server/config/env")).rejects.toThrow(/ENCRYPTION_KEY/);
+  it("loads configuration without an encryption key for optional private columns", async () => {
+    delete process.env.ENCRYPTION_KEY;
+    const { env } = await import("@/server/config/env");
+    expect(env.ENCRYPTION_KEY).toBeUndefined();
   });
 
   it("fails when ALLOWED_EMAILS contains no valid email", async () => {

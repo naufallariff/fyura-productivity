@@ -29,10 +29,10 @@ async function SettingsContent() {
     <PageFrame>
       <PageHeader title={t("settings.title")} lead={t("settings.lead")} />
       <div className="space-y-6">
-        <section className="glass p-5 sm:p-7">
+        <section className="rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) sm:p-6">
           <ThemePicker current={theme} />
         </section>
-        <section className="glass p-5 sm:p-7">
+        <section className="rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) sm:p-6">
           <TimeZoneForm current={timeZone} />
         </section>
       </div>

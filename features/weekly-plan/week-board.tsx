@@ -68,8 +68,7 @@ export function WeekBoard({ userId }: { userId: string }) {
         </p>
       )}
 
-      {/* Horizontal scroll with snap on phones, a seven-column grid from md up. */}
-      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-7 md:overflow-visible">
+      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 xl:grid xl:grid-cols-7 xl:overflow-visible">
         {WEEKDAYS.map((weekday) => (
           <DayNote
             key={weekday}
@@ -134,7 +133,7 @@ function DayNote({
   return (
     <section
       aria-labelledby={`day-${weekday}`}
-      className="glass flex min-h-80 min-w-72 snap-start flex-col gap-3 p-4 md:min-w-0"
+      className="flex min-h-80 min-w-[220px] flex-1 snap-start flex-col gap-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) xl:min-w-0"
     >
       <header className="flex items-center justify-between gap-2">
         <h2 id={`day-${weekday}`} className="text-sm font-semibold">
@@ -192,7 +191,7 @@ function SortableItem({ item, onEdit }: { item: PlanItem; onEdit: (item: PlanIte
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "rounded-control border-line flex items-center gap-2 border p-2 [background:var(--glass-solid)]",
+        "border-line flex items-center gap-2 rounded-xl border bg-(--bg-surface-elevated) p-2",
         isDragging && "opacity-70 shadow-lg",
       )}
     >
@@ -202,7 +201,7 @@ function SortableItem({ item, onEdit }: { item: PlanItem; onEdit: (item: PlanIte
         {...attributes}
         {...listeners}
         aria-label={t("weeklyPlan.moveItem", { title: item.title })}
-        className="rounded-control text-ink-muted hover:bg-accent-soft focus-visible:ring-accent grid size-9 shrink-0 cursor-grab touch-none place-items-center focus-visible:ring-2"
+        className="text-ink-muted hover:bg-accent-soft focus-visible:ring-accent grid size-9 shrink-0 cursor-grab touch-none place-items-center rounded-lg focus-visible:ring-2"
       >
         <GripVertical aria-hidden className="size-4" strokeWidth={1.75} />
       </button>
@@ -210,10 +209,10 @@ function SortableItem({ item, onEdit }: { item: PlanItem; onEdit: (item: PlanIte
       <button
         type="button"
         onClick={() => onEdit(item)}
-        className="min-w-0 flex-1 space-y-1.5 text-left"
+        className="min-w-0 flex-1 space-y-2 text-left"
       >
         <span className="block truncate text-sm font-medium">{item.title}</span>
-        <span className="flex flex-wrap gap-1.5">
+        <span className="flex flex-wrap gap-2">
           <Pill tone={item.isRequired ? "accent" : "neutral"}>
             {item.isRequired ? t("weeklyPlan.required") : t("weeklyPlan.optional")}
           </Pill>
@@ -229,9 +228,9 @@ function SortableItem({ item, onEdit }: { item: PlanItem; onEdit: (item: PlanIte
 
 function BoardSkeleton() {
   return (
-    <div aria-busy="true" className="grid gap-4 md:grid-cols-7">
+    <div aria-busy="true" className="flex gap-4 overflow-hidden xl:grid xl:grid-cols-7">
       {WEEKDAYS.map((day) => (
-        <Skeleton key={day} className="h-80" />
+        <Skeleton key={day} className="h-80 min-w-[220px] flex-1 xl:min-w-0" />
       ))}
     </div>
   );

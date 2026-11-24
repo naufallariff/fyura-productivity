@@ -1,0 +1,39 @@
+.sheet::backdrop {
+  background: var(--color-black);
+  opacity: 0;
+}
+
+.sheet[open]::backdrop {
+  opacity: 0.3;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet {
+    transform: translateY(100%);
+    transition:
+      transform 280ms var(--ease-drawer),
+      display 280ms allow-discrete,
+      overlay 280ms allow-discrete;
+  }
+
+  .sheet[open] {
+    transform: translateY(0);
+  }
+
+  .sheet::backdrop {
+    transition:
+      opacity 200ms ease-out,
+      display 200ms allow-discrete,
+      overlay 200ms allow-discrete;
+  }
+
+  @starting-style {
+    .sheet[open] {
+      transform: translateY(100%);
+    }
+
+    .sheet[open]::backdrop {
+      opacity: 0;
+    }
+  }
+}

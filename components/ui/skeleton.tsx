@@ -3,10 +3,7 @@ import { cn } from "@/lib/ui/cn";
 /** Placeholder for loading content. Decorative for assistive technology. */
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div
-      aria-hidden
-      className={cn("rounded-control bg-ink/10 motion-safe:animate-pulse", className)}
-    />
+    <div aria-hidden className={cn("bg-ink/10 rounded-lg motion-safe:animate-pulse", className)} />
   );
 }
 

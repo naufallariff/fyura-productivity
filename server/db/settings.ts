@@ -15,20 +15,18 @@ export async function getThemeSelection(userId: string): Promise<ThemeSelection>
   });
 }
 
-export async function saveThemeSelection(userId: string, selection: ThemeSelection): Promise<void> {
-  const now = new Date();
+export async function saveThemeSelection(
+  userId: string,
+  change: Partial<ThemeSelection>,
+): Promise<void> {
+  const patch = { themeBundle: change.bundle, themeMode: change.mode, updatedAt: new Date() };
   await withUser(userId, (tx) =>
     tx
       .insert(userSettings)
-      .values({
-        userId,
-        themeBundle: selection.bundle,
-        themeMode: selection.mode,
-        updatedAt: now,
-      })
+      .values({ userId, ...patch })
       .onConflictDoUpdate({
         target: userSettings.userId,
-        set: { themeBundle: selection.bundle, themeMode: selection.mode, updatedAt: now },
+        set: patch,
       }),
   );
 }

@@ -3,7 +3,7 @@ import { t } from "@/lib/i18n";
 
 export function LockedPlaceholder() {
   return (
-    <section className="rounded-card border-line glass border p-8 text-center">
+    <section className="rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-8 text-center shadow-(--shadow-card)">
       <div className="bg-ink/5 text-accent mx-auto grid size-12 place-items-center rounded-2xl">
         <Lock aria-hidden className="size-5" strokeWidth={1.75} />
       </div>

@@ -18,7 +18,7 @@ import { useDeleteBlock } from "../use-daily-data";
 import { useBlockHistory, type HistoryItem } from "../use-daily-tracker";
 
 const SELECT =
-  "min-h-11 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 function formatLogDate(iso: string): string {
   return new Intl.DateTimeFormat("en", {
@@ -89,7 +89,7 @@ export function HistoryPanel({ userId }: { userId: string }) {
   };
 
   return (
-    <section aria-labelledby="history-title" className="space-y-5">
+    <section aria-labelledby="history-title" className="space-y-4">
       <header className="space-y-1">
         <h2 id="history-title" className="text-sm font-semibold">
           {t("history.title")}

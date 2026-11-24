@@ -6,20 +6,17 @@ import { apiGet } from "@/client/api/fetch";
 import { scopedKey } from "@/client/query/keys";
 import { CACHE_POLICY } from "@/client/query/policy";
 import { BLOCK_CATEGORIES } from "@/domain/categories";
-import { type Category, type DayStatus } from "@/domain/scoring/types";
+import type { Category } from "@/domain/scoring/types";
 import type { ActionResult } from "@/server/api/action";
 import {
   createBlockAction,
   deleteBlockAction,
   moveBlockAction,
-  setDayStatusAction,
   updateBlockAction,
 } from "./actions";
 
 const BLOCKS = "blocks";
 const HISTORY = "history";
-const CHECKLIST = "checklist";
-const SCORES = "checklist-scores";
 
 const BlockSchema = z.object({
   id: z.string(),
@@ -131,17 +128,5 @@ export function useDeleteBlock(userId: string) {
   return useMutation({
     mutationFn: async (blockId: string) => unwrap(await deleteBlockAction(blockId)),
     onSettled: () => invalidateBlockData(client, userId),
-  });
-}
-
-export function useSetDayStatus(userId: string) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: { logDate: string; status: DayStatus }) =>
-      unwrap(await setDayStatusAction(input)),
-    onSettled: (_data, _error, input) => {
-      void client.invalidateQueries({ queryKey: scopedKey(userId, CHECKLIST, input.logDate) });
-      void client.invalidateQueries({ queryKey: scopedKey(userId, SCORES) });
-    },
   });
 }

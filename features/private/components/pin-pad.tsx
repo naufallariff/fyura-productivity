@@ -2,7 +2,7 @@
 
 import { Delete } from "lucide-react";
 import { useActionState, useEffect, useState, useTransition } from "react";
-import type { PinActionState } from "@/features/private/actions";
+import type { PinActionState, PinLockout } from "@/features/private/actions";
 import { t } from "@/lib/i18n";
 
 const PIN_LENGTH = 6;
@@ -13,6 +13,7 @@ const INITIAL: PinActionState = { status: "idle" };
 type Props = {
   mode: "setup" | "unlock";
   action: (previous: PinActionState, formData: FormData) => Promise<PinActionState>;
+  initialLockout?: PinLockout;
 };
 
 function messageFor(state: PinActionState): string {
@@ -25,7 +26,7 @@ function messageFor(state: PinActionState): string {
     case "WRONG":
       return t("privateSpace.pin.attemptsLeft", { count: state.attemptsLeft ?? 0 });
     case "LOCKED":
-      return t("privateSpace.pin.locked", { minutes: state.minutes ?? 1 });
+      return "";
     case "NO_PIN":
       return t("privateSpace.pin.noPin");
     default:
@@ -33,12 +34,16 @@ function messageFor(state: PinActionState): string {
   }
 }
 
-export function PinPad({ mode, action }: Props) {
-  const [state, formAction, pending] = useActionState(action, INITIAL);
+export function PinPad({ mode, action, initialLockout }: Props) {
+  const [state, formAction, pending] = useActionState(action, initialLockout ?? INITIAL);
   const [digits, setDigits] = useState("");
   const [shakeKey, setShakeKey] = useState(0);
-  const [seen, setSeen] = useState<PinActionState>(INITIAL);
+  const [seen, setSeen] = useState<PinActionState>(state);
+  const [secondsLeft, setSecondsLeft] = useState(initialLockout?.secondsLeft ?? 0);
   const [, startTransition] = useTransition();
+  const lockedUntil =
+    state.status === "error" && state.code === "LOCKED" ? state.lockedUntil : null;
+  const locked = lockedUntil !== null && secondsLeft > 0;
 
   // Derived during render: clear the entry and shake once for each new error.
   if (state !== seen) {
@@ -47,7 +52,20 @@ export function PinPad({ mode, action }: Props) {
       setDigits("");
       setShakeKey((n) => n + 1);
     }
+    setSecondsLeft(state.status === "error" && state.code === "LOCKED" ? state.secondsLeft : 0);
   }
+
+  useEffect(() => {
+    if (lockedUntil === null) return;
+    const update = () => {
+      const remaining = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining === 0) clearInterval(interval);
+    };
+    const interval = setInterval(update, 1000);
+    update();
+    return () => clearInterval(interval);
+  }, [lockedUntil]);
 
   const submit = (pin: string) => {
     const payload = new FormData();
@@ -56,7 +74,7 @@ export function PinPad({ mode, action }: Props) {
   };
 
   const press = (key: Key) => {
-    if (pending || key === "") return;
+    if (pending || locked || key === "") return;
 
     if (key === "back") {
       setDigits((current) => current.slice(0, -1));
@@ -81,9 +99,10 @@ export function PinPad({ mode, action }: Props) {
   });
 
   const message = pending ? t("privateSpace.pin.checking") : messageFor(state);
+  const countdown = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`;
 
   return (
-    <div className="flex flex-col items-center gap-7">
+    <div className="flex flex-col items-center gap-6">
       <div className="space-y-2 text-center">
         <h2 id="pin-title" className="text-[22px] font-semibold tracking-[-0.02em]">
           {mode === "setup" ? t("privateSpace.setup.title") : t("privateSpace.unlock.title")}
@@ -97,23 +116,32 @@ export function PinPad({ mode, action }: Props) {
         key={shakeKey}
         role="status"
         aria-label={t("privateSpace.pin.entered", { count: digits.length, total: PIN_LENGTH })}
-        className={`flex gap-3.5 ${shakeKey > 0 ? "animate-pin-shake" : ""}`}
+        className={`flex gap-4 ${shakeKey > 0 ? "animate-pin-shake" : ""}`}
       >
         {Array.from({ length: PIN_LENGTH }, (_, index) => (
           <span
             key={index}
-            className={`border-accent ease-spring size-3.5 rounded-full border-2 transition-all duration-300 ${
+            className={`border-accent size-3.5 rounded-full border-2 motion-safe:transition-transform ${
               index < digits.length ? "bg-accent scale-110" : "scale-100 bg-transparent"
             }`}
           />
         ))}
       </div>
 
-      <p role="alert" aria-live="polite" className="text-negative min-h-5 text-center text-sm">
-        {message}
-      </p>
+      <div className="text-negative min-h-5 text-center text-sm">
+        <p role="status">{locked ? t("privateSpace.pin.locked") : message}</p>
+        {locked && (
+          <p
+            role="timer"
+            aria-label={t("privateSpace.pin.timer")}
+            className="mt-1 font-medium tabular-nums"
+          >
+            {countdown}
+          </p>
+        )}
+      </div>
 
-      <div className="grid grid-cols-3 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {KEYPAD.map((key, index) =>
           key === "" ? (
             <span key={index} aria-hidden />
@@ -122,13 +150,13 @@ export function PinPad({ mode, action }: Props) {
               key={index}
               type="button"
               onClick={() => press(key)}
-              disabled={pending}
+              disabled={pending || locked}
               aria-label={
                 key === "back"
                   ? t("privateSpace.pin.delete")
                   : t("privateSpace.pin.digit", { digit: key })
               }
-              className="bg-ink/5 text-ink ease-spring hover:bg-line grid size-16 place-items-center rounded-full text-2xl font-medium transition-all duration-200 active:scale-90 disabled:opacity-50 sm:size-18"
+              className="press-feedback bg-ink/5 text-ink hover:bg-line grid size-16 touch-manipulation place-items-center rounded-full text-2xl font-medium disabled:opacity-50 sm:size-18"
             >
               {key === "back" ? <Delete aria-hidden className="size-5" strokeWidth={1.75} /> : key}
             </button>

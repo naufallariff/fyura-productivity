@@ -27,7 +27,7 @@ export type BlockDraft =
   | { readonly mode: "edit"; readonly block: CalendarBlock };
 
 const SELECT =
-  "min-h-11 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 sm:text-sm";
 
 function messageFor(error: unknown): string {
   const code = error instanceof Error ? error.message : "";

@@ -1,8 +1,6 @@
 import "server-only";
 import { z } from "zod";
 
-const hexKey64 = /^[0-9a-f]{64}$/i;
-
 const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
@@ -36,10 +34,8 @@ const EnvSchema = z.object({
 
   // Private space
   PRIVATE_PIN_PEPPER: z.string().min(32, "PRIVATE_PIN_PEPPER must be at least 32 characters"),
-  // AES-256 key for private columns: 64 hexadecimal characters (32 bytes)
-  ENCRYPTION_KEY: z
-    .string()
-    .regex(hexKey64, "ENCRYPTION_KEY must be exactly 64 hexadecimal characters"),
+  // The column cipher validates the key when private column encryption is used.
+  ENCRYPTION_KEY: z.string().optional(),
   ENCRYPTION_KEY_VERSION: z.coerce.number().int().positive().default(1),
 
   // Cron

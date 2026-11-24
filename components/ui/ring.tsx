@@ -5,7 +5,7 @@ export function Ring({
   label,
   size = 72,
   stroke = 8,
-  color = "var(--accent)",
+  color = "var(--color-accent)",
   children,
 }: {
   /** 0 to 1. */
@@ -35,7 +35,7 @@ export function Ring({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--ink-muted)"
+          stroke="var(--color-ink-muted)"
           strokeOpacity={0.18}
           strokeWidth={stroke}
         />

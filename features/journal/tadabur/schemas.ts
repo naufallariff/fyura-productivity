@@ -8,6 +8,7 @@ export const TadaburItemSchema = z.object({
   ayatFrom: z.number().int(),
   ayatTo: z.number().int(),
   reflection: z.string(),
+  reflectionIsHtml: z.boolean().default(false),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

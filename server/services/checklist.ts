@@ -10,8 +10,9 @@ import {
 } from "@/server/db/repositories/checklist";
 import { listPlanItems, type PlanItemRow } from "@/server/db/repositories/weekly-plan";
 import { doneState, itemsForWeekday } from "@/domain/checklist/rules";
+import { toCategory } from "@/domain/categories";
 import { scoreChecklistDay, type ChecklistEntry } from "@/domain/scoring/checklist";
-import { DAY_STATUSES, type DayScore, type DayStatus } from "@/domain/scoring/types";
+import { DAY_STATUSES, type Category, type DayScore, type DayStatus } from "@/domain/scoring/types";
 import { addDays, isoWeekday } from "@/domain/time/logical-date";
 import { DomainError } from "@/server/services/errors";
 import { parse } from "@/server/services/parse";
@@ -23,7 +24,7 @@ export interface ChecklistItemView {
   /** Plan item id. Null when the source item was deleted after the day was frozen. */
   readonly sourceItemId: string | null;
   readonly title: string;
-  readonly category: string;
+  readonly category: Category;
   readonly isRequired: boolean;
   readonly isCore: boolean;
   readonly plannedMinutes: number | null;
@@ -44,7 +45,7 @@ function fromPlan(row: PlanItemRow): ChecklistItemView {
     id: row.id,
     sourceItemId: row.id,
     title: row.title,
-    category: row.category,
+    category: toCategory(row.category),
     isRequired: row.isRequired,
     isCore: row.isCore,
     plannedMinutes: row.plannedMinutes,
@@ -58,7 +59,7 @@ function fromEntry(row: ChecklistRow): ChecklistItemView {
     id: row.id,
     sourceItemId: row.sourceItemId,
     title: row.title,
-    category: row.category,
+    category: toCategory(row.category),
     isRequired: row.isRequired,
     isCore: row.isCore,
     plannedMinutes: row.plannedMinutes,

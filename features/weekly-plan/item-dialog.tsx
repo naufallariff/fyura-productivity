@@ -10,7 +10,7 @@ import { t } from "@/lib/i18n";
 import { useCreateItem, useDeleteItem, useUpdateItem } from "./use-weekly-plan";
 
 const SELECT =
-  "min-h-11 w-full rounded-control border border-line bg-[var(--glass-solid)] px-3.5 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
+  "min-h-11 w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-sm";
 
 export function ItemDialog({
   userId,

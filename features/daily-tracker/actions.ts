@@ -1,6 +1,7 @@
 "use server";
 
 import { runAction, type ActionResult } from "@/server/api/action";
+import { consumeRateLimit } from "@/server/api/rate-limit";
 import { requireUser } from "@/server/auth/session";
 import {
   createTimeBlock,
@@ -43,6 +44,7 @@ export async function deleteBlockAction(blockId: string): Promise<ActionResult<n
 export async function setDayStatusAction(input: unknown): Promise<ActionResult<null>> {
   const user = await requireUser();
   return runAction(async () => {
+    await consumeRateLimit(user.id, "write");
     await setDayStatus(user.id, input);
     return null;
   });
@@ -51,6 +53,7 @@ export async function setDayStatusAction(input: unknown): Promise<ActionResult<n
 export async function setChecklistItemAction(input: unknown): Promise<ActionResult<null>> {
   const user = await requireUser();
   return runAction(async () => {
+    await consumeRateLimit(user.id, "write");
     await setChecklistItem(user.id, input);
     return null;
   });

@@ -27,9 +27,11 @@ import {
   createListAction,
   deleteChecklistItemAction,
   deleteLabelAction,
+  deleteListAction,
   moveCardAction,
   moveListAction,
   setCardLabelAction,
+  sortListByDueDateAction,
   updateBoardAction,
   updateCardAction,
   updateChecklistItemAction,
@@ -195,6 +197,28 @@ export function useUpdateList(userId: string, boardId: string) {
     mutationFn: async (input: { listId: string; title?: string; archived?: boolean }) =>
       unwrap(await updateListAction(input)),
     onSettled: () => client.invalidateQueries({ queryKey: boardKey(userId, boardId) }),
+  });
+}
+
+export function useDeleteList(userId: string, boardId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    scope: WRITE_SCOPE,
+    mutationFn: async (listId: string) => unwrap(await deleteListAction({ listId })),
+    onSuccess: async (_data, listId) => {
+      await client.invalidateQueries({ queryKey: boardKey(userId, boardId) });
+      client.removeQueries({ queryKey: scopedKey(userId, "cards", listId) });
+      await client.invalidateQueries({ queryKey: scopedKey(userId, "card") });
+    },
+  });
+}
+
+export function useSortListByDueDate(userId: string, listId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    scope: WRITE_SCOPE,
+    mutationFn: async () => unwrap(await sortListByDueDateAction({ listId })),
+    onSuccess: () => client.invalidateQueries({ queryKey: scopedKey(userId, "cards", listId) }),
   });
 }
 
