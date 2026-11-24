@@ -22,25 +22,26 @@ The [PRD](PRD.md) and [SRS](SRS.md) define the v2 baseline. This tracker records
 - The owner applied migration `0009_typical_warpath.sql` and reported that all 79 database and RLS tests across 12 files passed.
 - The final Windows gate on 2026-11-24 passed `pnpm.cmd typecheck`, `pnpm.cmd lint`, `pnpm.cmd vitest run`, and `pnpm.cmd build`. Vitest reported 235 passed tests in 50 files and skipped 75 opt-in tests in 11 files. The production build emitted both metadata icon routes.
 - On 2026-11-24, Playwright MCP verified the sign-in wordmark and both PNG metadata icons on `http://localhost:3000` at 1280×800 and 390×844. Both icons returned HTTP 200 and decoded at 32×32 and 180×180 respectively. Both viewports had zero console and page errors.
-- The Playwright session was redirected to sign-in for the dashboard. By release decision, authenticated checks remain pending. Future evidence should cover the sidebar brand, Light and Dark `data-mode`, the 0 ms Cmd+K palette, Dashboard KPIs, mobile Tracker drawer, BoardDock, Journal formatting persistence, and Private Space lockout and CRUD on a disposable account at both viewports.
+- Authenticated Playwright checks at 1280×800 and 390×844 covered Dashboard KPIs, MiniMonth and Pomodoro, the 0 ms Cmd+K palette, the immediate theme preview, Tracker controls, BoardDock, Journal formatting, and the empty Private Space keypad. The multiline composer used browser-only fixture columns on an otherwise empty board. Theme saves were intercepted, Journal drafts were unsaved, and the PIN check was render-only.
+- On 2026-11-24, authenticated Playwright rechecked `/dashboard` and `/private` on `http://localhost:3000` at both viewports after the static viewport and development CSP fixes. Both returned HTTP 200 with the two media-specific theme colors and zero console or page errors. No PIN digits were entered or submitted.
 
 ## Requirements follow-ups
 
-| Item | Status   | Outcome or completion condition                                                                                                                        |
-| ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| U1   | Complete | Removed the unused `HABIT_ARCHIVED` code and HTTP mapping.                                                                                             |
-| U2   | Complete | Tracker grid, mini-month, and mobile drawer use the `today` prop.                                                                                      |
-| U3   | Complete | Board index uses cursor pagination with a load-more control.                                                                                           |
-| U4   | Deferred | Preserve the lifetime best streak and late-day totals before bounding the history read. A 366-day cap changes both metrics.                            |
-| U5   | Complete | Balance score stays out of the UI. Its pure function is unit-tested.                                                                                   |
-| U6   | Complete | Journal renders the shared level-aware `Fire` component.                                                                                               |
-| U7   | Complete | Review creation can select a subject and a paginated material or save a standalone card.                                                               |
-| U8   | Pending  | Public browser checks passed. Run signed-in browser flows at both viewports and establish a repeatable E2E configuration before marking this complete. |
-| U9   | Complete | Private column cipher authenticates the version and uses fresh IVs.                                                                                    |
-| U10  | Complete | Both cron routes validate a timing-safe bearer secret. Scheduled processing is deferred.                                                               |
-| U11  | Complete | Proxy emits request-specific CSP nonces and security headers.                                                                                          |
-| U12  | Deferred | Account export and erasure are outside the single-owner v2 baseline.                                                                                   |
-| U13  | Deferred | Notification settings depend on the future notification workflow.                                                                                      |
-| U15  | Deferred | Legacy redirects stay temporary until their destinations stabilize.                                                                                    |
+| Item | Status   | Outcome or completion condition                                                                                                                       |
+| ---- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| U1   | Complete | Removed the unused `HABIT_ARCHIVED` code and HTTP mapping.                                                                                            |
+| U2   | Complete | Tracker grid, mini-month, and mobile drawer use the `today` prop.                                                                                     |
+| U3   | Complete | Board index uses cursor pagination with a load-more control.                                                                                          |
+| U4   | Deferred | Preserve the lifetime best streak and late-day totals before bounding the history read. A 366-day cap changes both metrics.                           |
+| U5   | Complete | Balance score stays out of the UI. Its pure function is unit-tested.                                                                                  |
+| U6   | Complete | Journal renders the shared level-aware `Fire` component.                                                                                              |
+| U7   | Complete | Review creation can select a subject and a paginated material or save a standalone card.                                                              |
+| U8   | Complete | Public and read-only authenticated Playwright verification passed at desktop and mobile sizes. The two affected routes passed the zero-error recheck. |
+| U9   | Complete | Private column cipher authenticates the version and uses fresh IVs.                                                                                   |
+| U10  | Complete | Both cron routes validate a timing-safe bearer secret. Scheduled processing is deferred.                                                              |
+| U11  | Complete | Proxy emits request-specific CSP nonces and security headers.                                                                                         |
+| U12  | Deferred | Account export and erasure are outside the single-owner v2 baseline.                                                                                  |
+| U13  | Deferred | Notification settings depend on the future notification workflow.                                                                                     |
+| U15  | Deferred | Legacy redirects stay temporary until their destinations stabilize.                                                                                   |
 
 T1 and T2 shipped the career jobs endpoint and sign-out restoration. T3 and T4 established build and browser audit evidence. T5, T6, U14, and U16 were closed during the previous redesign merge at `1ab2bef`.

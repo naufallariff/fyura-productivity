@@ -18,7 +18,7 @@ function contentSecurityPolicy(nonce: string): string {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     "script-src-attr 'none'",
-    `style-src 'self' 'nonce-${nonce}'`,
+    `style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`}`,
     // Calendar geometry and drag previews use React style attributes.
     "style-src-attr 'unsafe-inline'",
     `connect-src 'self'${sentry ? ` ${sentry}` : ""}`,

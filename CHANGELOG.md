@@ -29,4 +29,4 @@
 ### Verification
 
 - The owner applied migration `0009` and reported 79 passing database and RLS tests across 12 files.
-- Public Playwright checks passed at 1280×800 and 390×844. Authenticated browser verification remains open under [U8](docs/REFACTOR-STATE.md#requirements-follow-ups).
+- Public and read-only authenticated Playwright checks passed at 1280×800 and 390×844. The static viewport and development CSP fixes closed [U8](docs/REFACTOR-STATE.md#requirements-follow-ups).

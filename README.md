@@ -65,7 +65,7 @@ Keep environment files and real credentials out of version control. Apply migrat
 pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build
 ```
 
-Use PowerShell 7 or a Windows shell that supports `&&`. In Windows PowerShell 5, run the four commands in order and stop on failure. CI runs these checks on pushes and pull requests. Run the opt-in PostgreSQL and RLS suite with `pnpm.cmd test:db` against a migration-applied test database. Browser evidence and the remaining authenticated checks are tracked separately.
+Use PowerShell 7 or a Windows shell that supports `&&`. In Windows PowerShell 5, run the four commands in order and stop on failure. CI runs these checks on pushes and pull requests. Run the opt-in PostgreSQL and RLS suite with `pnpm.cmd test:db` against a migration-applied test database. The refactor tracker records browser verification and its scope.
 
 ## Living documentation
 
