@@ -1,13 +1,14 @@
 ---
 trigger: glob
-globs: "app/**/*.tsx, components/**/*.tsx, features/**/*.tsx, app/globals.css"
+globs: "app/**/*.tsx, components/**/*.tsx, features/**/*.tsx, app/globals.css, lib/theme/**/*.ts"
 ---
 
-# Visual Design, Tailwind v4 & Motion Craft Guardrails
+# UI design and motion
 
-- Follow `@.agents/skills/design-architect/SKILL.md` and `@.agents/skills/ui-motion-craft/SKILL.md`.
-- **Anti-Slop & Glass Cap:** Limit `backdrop-filter: blur()` to at most 2 focal layers per view (navigation shell and active modal/popover). Use solid tinted elevation surfaces for cards so text contrast exceeds 4.5:1 (WCAG 2.2 AA).
-- **Color & Tokens:** Use OKLCH semantic CSS variables from `app/globals.css` supporting both `[data-mode="light"]` and `[data-mode="dark"]`. Zero raw hex literals in `.tsx` files.
-- **Tailwind CSS v4 Canonical Classes:** Use `bg-linear-to-r`, `shadow-xs`, `outline-hidden`, `ring-3`, `shrink-0` (never legacy v3 `bg-gradient-*`, `shadow-sm`, `outline-none`, `flex-shrink-0`).
-- **60fps Motion:** Animate strictly `transform`, `opacity`, and `clip-path`. Never use `transition-all`. Use `--ease-out-snappy: cubic-bezier(0.23, 1, 0.32, 1)` (`140ms-220ms`), tactile press `active:scale-[0.97]`, and `0ms` duration on keyboard-triggered actions (`Cmd+K`).
-- **Accessibility & Mobile:** Minimum `44x44px` touch targets, `tabular-nums` on all metrics/timers, `16px` base input font size on mobile (`>=390px`), and full support for `prefers-reduced-motion`.
+Use the design-architect and ui-motion-craft skills and the visual requirements in @docs/SRS.md.
+
+- Use three-layer OKLCH tokens. Derive semantic tokens from primitives and consume semantic or component roles in UI. Check all three palettes in both `data-mode` values. Aim for 60% tinted canvas, 30% stepped surfaces, and 10% accents.
+- Limit backdrop blur to two visible glass surfaces per view. Use solid data cards and a reduced-transparency fallback. Align elements to a 4 px grid and use an 8 px layout rhythm.
+- Follow canonical Tailwind v4 and existing semantic controls. Provide keyboard alternatives, visible focus, readable inputs, and 44 px primary touch targets. Use `tabular-nums` for metrics. Check contrast, long content, and 390 px layouts.
+- Keep motion on composited transform and opacity. Use clip-path only when verified to stay composited. Avoid `transition-all` and animated layout, shadows, or blur. Honor reduced motion. Use shared easing for press feedback, and apply theme changes and keyboard palette activation immediately.
+- Reuse the shared brand mark where the identity is needed. Use the shared TipTap editor and server `sanitizeHtml()` contract for rich text.

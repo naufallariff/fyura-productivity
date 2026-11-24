@@ -48,7 +48,7 @@ type Gesture =
 export interface TimeGridProps {
   readonly days: readonly string[];
   readonly blocks: readonly CalendarBlock[];
-  readonly todayIso: string;
+  readonly today: string;
   readonly timeZone: string;
   readonly blockDialogOpen?: boolean;
   /** Empty set shows every category. A non-empty set dims the rest. */
@@ -86,7 +86,7 @@ export function TimeGrid(props: TimeGridProps) {
   const {
     days,
     blocks,
-    todayIso,
+    today,
     timeZone,
     blockDialogOpen,
     activeCategories,
@@ -122,7 +122,7 @@ export function TimeGrid(props: TimeGridProps) {
         >
           <span aria-hidden />
           {days.map((day) => (
-            <DayHeader key={day} logDate={day} isToday={day === todayIso} />
+            <DayHeader key={day} logDate={day} isToday={day === today} />
           ))}
         </div>
 
@@ -133,7 +133,7 @@ export function TimeGrid(props: TimeGridProps) {
               key={day}
               logDate={day}
               blocks={byDay.get(day) ?? EMPTY}
-              isToday={day === todayIso}
+              isToday={day === today}
               nowMinute={nowMinute}
               activeCategories={activeCategories}
               onCreate={onCreate}

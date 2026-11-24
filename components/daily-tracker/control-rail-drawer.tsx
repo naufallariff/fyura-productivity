@@ -11,14 +11,14 @@ import styles from "./control-rail-drawer.module.css";
 
 export function ControlRailDrawer({
   selectedDate,
-  todayIso,
+  today,
   onSelectDate,
   activeCategories,
   onToggleCategory,
   dayStatus,
 }: {
   readonly selectedDate: string;
-  readonly todayIso: string;
+  readonly today: string;
   readonly onSelectDate: (date: string) => void;
   readonly activeCategories: ReadonlySet<Category>;
   readonly onToggleCategory: (category: Category) => void;
@@ -69,7 +69,7 @@ export function ControlRailDrawer({
           </header>
           <MiniMonth
             selectedDate={selectedDate}
-            todayIso={todayIso}
+            today={today}
             onSelect={(date) => {
               dialog.current?.close();
               onSelectDate(date);

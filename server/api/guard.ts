@@ -9,7 +9,6 @@ const STATUS: Record<Exclude<DomainErrorCode, "INTERNAL">, number> = {
   VALIDATION_FAILED: 400,
   NOT_FOUND: 404,
   CONFLICT: 409,
-  HABIT_ARCHIVED: 409,
   RATE_LIMITED: 429,
   PRIVATE_LOCKED: 403,
 };

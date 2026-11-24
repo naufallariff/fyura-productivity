@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { BrandLogo, BrandMark } from "@/components/brand/brand-logo";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { isActivePath, NAV_SECTIONS, WORKSPACE_VIEWS, type NavItem } from "@/lib/nav/sections";
 import { SIDEBAR_COOKIE, type SidebarState } from "@/lib/shell/sidebar-cookie";
@@ -35,11 +36,15 @@ export function Sidebar({ initial, email }: { initial: SidebarState; email: stri
         <div data-glass-permitted className="glass sidebar-panel h-full w-full rounded-r-2xl" />
       </div>
       <div className="relative flex h-full w-full min-w-0 flex-col gap-3 p-2">
-        <div className="flex h-11 shrink-0 items-center gap-2">
-          <span className="bg-accent text-on-accent mx-1.5 grid size-9 shrink-0 place-items-center rounded-lg text-sm font-semibold">
-            F
-          </span>
-          {!collapsed && <span className="truncate text-sm font-semibold">{t("app.short")}</span>}
+        <div className="flex h-11 shrink-0 items-center px-1.5">
+          {collapsed ? (
+            <>
+              <BrandMark className="bg-accent text-on-accent size-9 shrink-0 rounded-lg p-1.5" />
+              <span className="sr-only">{t("app.short")}</span>
+            </>
+          ) : (
+            <BrandLogo className="text-sm font-semibold">{t("app.short")}</BrandLogo>
+          )}
         </div>
 
         <button

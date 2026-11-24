@@ -2,21 +2,11 @@
 trigger: always_on
 ---
 
-# Token & Context Governance (Mandatory)
+# Repository context and verification
 
-0. **Read-Only Codebase Lock (Active Phase):**
-   - NEVER modify, create, or delete files inside `app/`, `features/`, `components/`, `server/`, `domain/`, `client/`, `lib/`, `proxy.ts`, or `next.config.ts`.
-   - Your ONLY writable outputs are `docs/REFACTOR-STATE.md`, `docs/AUDIT-FINDINGS.md`, and `docs/MASTER-REFACTOR-PLAN.md`.
-1. **Hard Blacklist (NEVER read, search, or open these files/directories):**
-   - `node_modules/**`, `.next/**`, `.husky/**`, `.git/**`
-   - `pnpm-lock.yaml`, `pnpm-workspace.yaml`
-   - `drizzle/meta/**` (Massive JSON snapshots; read `server/db/schema.ts` instead)
-   - `drizzle/000*.sql` (Historical migrations; never read unless auditing a specific RLS policy)
-   - `README.md` (19.5 KB marketing/setup doc; rely on `AGENTS.md` and `docs/PRD-SRS.md`)
-2. **Large File Slicing (`lib/i18n/messages/*.json` & `server/db/schema.ts`):**
-   - `en.json` and `id.json` are >26 KB each. NEVER read the full file. Use `grep_search` or read specific line ranges (max 120 lines per tool call).
-3. **Scoped Exploration Only:**
-   - When reviewing or editing a module (e.g., `projects`), inspect ONLY `features/<module>/`, `server/services/<module>.ts`, `server/db/repositories/<module>.ts`, and `server/validation/<module>.ts`. Do not scan unrelated modules.
-4. **Output Efficiency:**
-   - During audit/review tasks, report findings in a compact Markdown table (`Severity | File:Line | Issue | Concrete Fix`).
-   - During code generation, output complete runnable code without `// ...` placeholders, and keep explanations under 5 bullet points.
+- Read @AGENTS.md and the relevant sections of @docs/PRD.md, @docs/SRS.md, and @docs/REFACTOR-STATE.md. Start with codebase-memory for symbols and dependencies, then read owning source and focused tests.
+- Never inspect or search any `.env*` file, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, or `drizzle/meta/**`. Normal app and package commands can load their configuration internally. Use the server environment schema and package manifest for names and declared versions.
+- Exclude `.next/**`, `.husky/**`, `.git/**`, and `node_modules/**` from source searches. Read the relevant installed Next.js guide under `node_modules/next/dist/docs/` as required by @AGENTS.md. Use Git commands for history and diffs.
+- Read only targeted matches or ranges of at most 120 lines from the English and Indonesian catalogs and `server/db/schema.ts`. Open historical migration SQL only for a specific migration or policy investigation.
+- On Windows run `pnpm.cmd typecheck`, `pnpm.cmd lint`, `pnpm.cmd vitest run`, and `pnpm.cmd build` in order. Use `pnpm` elsewhere. Run focused Playwright and database checks where applicable and record gaps.
+- Follow the Conventional Commit and co-author trailer protocol in @AGENTS.md. Run codebase-memory `index_repository` immediately after each commit and verify success.

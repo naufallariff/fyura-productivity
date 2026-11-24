@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"];
 const PASS_THROUGH = ["/login", "/api/auth", "/api/cron"];
+const PUBLIC_ICONS = ["/icon", "/apple-icon"];
 
 function sentryOrigin(): string | undefined {
   const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
@@ -41,9 +42,9 @@ export function proxy(request: NextRequest) {
   headers.set("Content-Security-Policy", policy);
 
   const { pathname } = request.nextUrl;
-  const isPassThrough = PASS_THROUGH.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
+  const isPassThrough =
+    PUBLIC_ICONS.includes(pathname) ||
+    PASS_THROUGH.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
   const hasSession = SESSION_COOKIES.some((name) => request.cookies.has(name));
 
   const response =
@@ -61,5 +62,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image).*)"],
 };

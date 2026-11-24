@@ -1,12 +1,15 @@
 ---
 trigger: glob
-globs: "server/**/*.ts, domain/**/*.ts, app/api/**/*.ts, proxy.ts, next.config.ts"
+globs: "server/**/*.ts, domain/**/*.ts, app/api/**/*.ts, features/**/actions.ts, proxy.ts, next.config.ts"
 ---
 
-# Backend, Database & Cybersecurity Guardrails
+# Architecture and security
 
-- Follow `@.agents/skills/software-architecture-lead/SKILL.md` and `@.agents/skills/fullstack-web-playbook/SKILL.md`.
-- **Database & RLS:** Every user-owned table requires `ENABLE ROW LEVEL SECURITY` and `FORCE ROW LEVEL SECURITY` (`user_id = app_current_user_id()`). Keep `prepare: false` on the Supabase pooler client.
-- **Input & Query Safety:** Validate every boundary with Zod v4 `.strict()`. Escape `%` and `_` in `LIKE` queries. Enforce `https://` on user-submitted URLs.
-- **Private Space:** PIN uses Argon2id + `PRIVATE_PIN_PEPPER`. Sensitive columns in `private` tables must use AES-256-GCM authenticated encryption (`server/crypto/column-cipher.ts`). Responses carry `Cache-Control: no-store`.
-- **HTTP Hardening:** Enforce per-request CSP nonces in `proxy.ts`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and constant-time comparison (`crypto.timingSafeEqual`) for cron secrets.
+Use the software-architecture-lead and fullstack-web-playbook skills and the contracts in @docs/SRS.md.
+
+- Keep domain functions pure. Services orchestrate use cases and raise stable `DomainError` codes. Authenticate actions and handlers, validate input with strict Zod v4 schemas, and apply the shared `consumeRateLimit()` budget. Return `ActionResult<T>` from feature actions.
+- Scope user-owned Drizzle operations to `withUser()` and transaction-local `app.user_id`. Apply `ENABLE ROW LEVEL SECURITY` and `FORCE ROW LEVEL SECURITY` to new user-owned tables. Keep owner-aware foreign keys, restricted runtime privileges, and `prepare: false` on the transaction pooler. Preserve the narrow sign-in bootstrap.
+- Parameterize SQL, escape literal `LIKE` wildcards, and validate user-entered URLs as HTTPS. Preserve per-request CSP nonces, defensive headers, and the timing-safe cron authorization path.
+- Use the shared TipTap editor with server-side `sanitizeHtml()`. Sanitize before storage and render, enforce the shared HTML whitelist, and preserve legacy text handling. Keep the editor compatible with the nonce policy.
+- Use the existing AES-256-GCM column cipher for new sensitive columns requiring application-layer encryption. Plan backward-readable key changes. Keep Private Space behind its PIN session guard, exclude its contents from shared caches and logs, and mark sensitive responses `no-store`.
+- Use append-only migrations. Test new constraints, transaction failures, RLS, and access boundaries with the database test helpers.

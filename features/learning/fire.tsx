@@ -13,7 +13,7 @@ export function Fire({ level, streak }: { level: FireLevel; streak: number }) {
   return (
     <div className="flex items-center gap-4">
       <div style={{ transform: `scale(${SCALE[level]})`, transformOrigin: "50% 100%" }}>
-        <svg viewBox="0 0 48 56" className="fire-flicker size-12" aria-hidden>
+        <svg viewBox="0 0 48 56" className="size-12" aria-hidden>
           <path
             d="M24 2C30 14 42 22 42 36a18 18 0 0 1-36 0c0-8 4-13 8-18 1 6 3 9 6 10C18 19 19 10 24 2Z"
             style={{ fill: "var(--color-accent)" }}
@@ -31,10 +31,10 @@ export function Fire({ level, streak }: { level: FireLevel; streak: number }) {
         </svg>
       </div>
       <div>
-        <p className="text-sm font-semibold">{t(`streak.level.${level}`)}</p>
-        <p className="text-ink-muted text-sm">
+        <p className="text-3xl font-semibold tracking-tight tabular-nums">
           {streak === 0 ? t("streak.none") : tPlural("streak.days", streak)}
         </p>
+        <p className="text-ink-muted text-xs">{t(`streak.level.${level}`)}</p>
       </div>
     </div>
   );

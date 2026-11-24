@@ -1,46 +1,29 @@
-# Fyura Productivity — Repository Context & Engineering Contract
+# Fyura Productivity Engineering Guide
 
-Single-user personal productivity web app (`github.com/naufallariff/fyura-productivity`, branch `refactor/v2-ui-architecture`).
-Stack: Next.js 16.4.5 (App Router, Cache Components, `proxy.ts`), React 19.3, TypeScript strict, Tailwind CSS v4, Drizzle ORM, Supabase PostgreSQL (`FORCE RLS`), Auth.js v5, TanStack Query v5, `dnd-kit`, Zod v4.
+Fyura is a single-user productivity workspace built with Next.js 16 App Router, Cache Components, React 19, TypeScript strict mode, Tailwind CSS v4, Drizzle, Supabase PostgreSQL, Auth.js v5, TanStack Query v5, dnd-kit, and Zod v4.
 
-## ACTIVE EXECUTION MODE: BATCH EXECUTION (v2 UI & Security Overhaul)
+## Living documentation
 
-- Source code, tests, and documentation may be updated within the active batch on `refactor/v2-ui-architecture`. Follow the architectural boundaries below and keep the execution tracker current.
-- This mode supersedes the phase-specific write lock in `.agents/rules/00-token-governance.md`. Its file exclusions and scoped exploration rules still apply.
-- Run `pnpm typecheck`, `pnpm lint`, `pnpm vitest run`, and `pnpm build` before marking a batch complete. Use `pnpm.cmd` on Windows. Use the local dev server for browser UI inspection as needed.
+- Read @docs/PRD.md for product workflows, functional requirements, and acceptance criteria.
+- Read @docs/SRS.md for architecture, security, design, motion, and performance contracts.
+- Consult @docs/REFACTOR-STATE.md for verification evidence and outstanding work.
+- Use @server/db/schema.ts as the database schema reference.
 
-## Git Commit Protocol
+## Engineering boundaries
 
-- Use Conventional Commits for every batch commit with a `type(scope): summary` subject.
-- Append a blank line and the following trailer at the bottom of every batch commit message.
+1. Keep `domain/` pure TypeScript with no framework, I/O, or higher-layer imports.
+2. Scope user-owned queries in `server/db/` with `withUser()` and transaction-local `app.user_id`. Apply and force RLS on owned tables. Preserve the narrow sign-in identity bootstrap.
+3. Use `server/services/` for use cases and stable `DomainError` codes.
+4. In `features/`, authenticate, strictly validate with Zod v4, and enforce `consumeRateLimit()` for server actions. Return `ActionResult<T>`. Use the shared TipTap editor and server-side `sanitizeHtml()` for rich text. Use the AES-256-GCM column cipher for sensitive private fields.
+5. In `app/`, use `connection()`, `requireUser()`, and Suspense for request-time work. Pass derived dates into render.
 
-  `Co-authored-by: OpenAI Codex <codex@openai.com>`
+Use the three-layer OKLCH system with Light and Dark modes, a two-surface glass cap, a 4 px and 8 px spacing grid, and compositor-friendly motion. Keep the command palette and theme toggle immediate. Follow @.agents/rules/00-token-governance.md for file exclusions and scoped inspection.
 
-- Immediately after every batch commit, run `index_repository` on the `codebase-memory` MCP for this repository to keep the symbol graph synchronized across threads.
+## Verification and commits
 
-## Living Documentation (Read On-Demand Only)
-
-- Full Specification & Formulas: @docs/PRD-SRS.md
-- Target Visual, Spatial & Copywriting Brief: @docs/DESIGN-BRIEF.md
-- Active Audit & Refactor Tracker: @docs/REFACTOR-STATE.md
-- Database Source of Truth: @server/db/schema.ts
-
-## Architectural Boundaries (Audit Benchmark)
-
-1. `domain/`: Pure TypeScript business rules. Zero imports from `next`, `react`, `server/`, `client/`, or `features/`.
-2. `server/db/`: Drizzle repositories. Every query MUST run inside `withUser()` transaction context (`app.user_id`).
-3. `server/services/`: Business use cases throwing `DomainError`.
-4. `features/`: Client/Server UI and Server Actions returning `ActionResult<T>` with Zod v4 strict validation and `consumeRateLimit()`.
-5. `app/`: Routing, `connection()`, `requireUser()`, and `<Suspense>` boundaries. Never call `new Date()` during render.
-
-## Target Visual & UX Direction
-
-- **Aesthetic Fusion**: Apple HIG clarity & tactile motion + Notion modular workspace cleanliness.
-- **Color Discipline (60-30-10 Anti-Slop)**: Dual-theme (`light` and `dark` via `data-mode`) using perceptual OKLCH tokens in `app/globals.css`. 60% tinted neutral canvas, 30% stepped elevation cards, 10% calibrated categorical accents—colorful yet calm, never garish rainbow AI slop.
-- **Dashboard (`/dashboard`)**: Colorful Bento Command Center with `tabular-nums`, honest baselines, and embedded Pomodoro/mini-calendar.
-- **Projects (`/projects/[boardId]`)**: Trello-exact Kanban (horizontal columns, inline `+ Add a card`, checklist badges, floating bottom dock).
-- **Daily Tracker (`/daily-tracker`)**: Google Calendar-exact time-blocking grid (15-min snap drag-to-create, bottom resize handle, mini-month, category dim filter).
-- **Workspace & Journal (`/journal`, shell)**: Notion-style collapsible shell, `0ms` `Cmd+K` palette, and rich-text formatting toolbar.
+- On Windows run `pnpm.cmd typecheck`, `pnpm.cmd lint`, `pnpm.cmd vitest run`, and `pnpm.cmd build` in that order. Use `pnpm` on other platforms. Run focused browser or database checks as applicable and log gaps in the tracker.
+- Use Conventional Commits. Add a blank line followed by `Co-authored-by: OpenAI Codex <codex@openai.com>` to each commit message.
+- Immediately after each commit, run `index_repository` on the codebase-memory MCP for this repository.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

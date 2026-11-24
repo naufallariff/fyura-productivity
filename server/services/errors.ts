@@ -1,12 +1,6 @@
 // server/services/errors.ts
 export type DomainErrorCode =
-  | "VALIDATION_FAILED"
-  | "NOT_FOUND"
-  | "CONFLICT"
-  | "HABIT_ARCHIVED"
-  | "RATE_LIMITED"
-  | "PRIVATE_LOCKED"
-  | "INTERNAL";
+  "VALIDATION_FAILED" | "NOT_FOUND" | "CONFLICT" | "RATE_LIMITED" | "PRIVATE_LOCKED" | "INTERNAL";
 
 export class DomainError extends Error {
   readonly code: DomainErrorCode;

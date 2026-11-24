@@ -132,7 +132,7 @@ export function DailyTrackerWorkspace({
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)_20rem]">
         <aside className="hidden space-y-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) lg:block lg:self-start">
-          <MiniMonth selectedDate={logDate} todayIso={today} onSelect={(date) => go(date)} />
+          <MiniMonth selectedDate={logDate} today={today} onSelect={(date) => go(date)} />
           {statusControl}
         </aside>
 
@@ -162,7 +162,7 @@ export function DailyTrackerWorkspace({
                 <p className="text-sm font-semibold">{monthLabel(logDate)}</p>
                 <ControlRailDrawer
                   selectedDate={logDate}
-                  todayIso={today}
+                  today={today}
                   onSelectDate={go}
                   activeCategories={activeCategories}
                   onToggleCategory={toggleCategory}
@@ -244,7 +244,7 @@ export function DailyTrackerWorkspace({
             <TimeGrid
               days={days}
               blocks={blocks.data}
-              todayIso={today}
+              today={today}
               timeZone={timeZone}
               blockDialogOpen={draft !== null}
               activeCategories={activeCategories}
