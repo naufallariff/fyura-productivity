@@ -1,7 +1,7 @@
 // features/projects/list-column.tsx
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -145,9 +145,33 @@ export function ListColumn({
 
 function AddCard({ userId, listId }: { userId: string; listId: string }) {
   const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" icon={Plus} onClick={() => setOpen(true)}>
+        {t("projects.card.add")}
+      </Button>
+    );
+  }
+
+  return <AddCardForm userId={userId} listId={listId} onCancel={() => setOpen(false)} />;
+}
+
+export function AddCardForm({
+  userId,
+  listId,
+  onCancel,
+  onCreated,
+}: {
+  userId: string;
+  listId: string;
+  onCancel: () => void;
+  onCreated?: () => void;
+}) {
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const create = useCreateCard(userId);
+  const fieldId = useId();
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -159,24 +183,17 @@ function AddCard({ userId, listId }: { userId: string; listId: string }) {
       // including cards that are not loaded yet.
       await create.mutateAsync({ listId, title: value, beforeId: null, afterId: null });
       setTitle("");
+      onCreated?.();
     } catch (failure) {
       setError(errorText(failureCode(failure)));
     }
   };
 
-  if (!open) {
-    return (
-      <Button variant="ghost" size="sm" icon={Plus} onClick={() => setOpen(true)}>
-        {t("projects.card.add")}
-      </Button>
-    );
-  }
-
   return (
     <form onSubmit={onSubmit} className="space-y-2">
-      <Field id={`new-card-${listId}`} label={t("projects.card.titleLabel")}>
+      <Field id={fieldId} label={t("projects.card.titleLabel")}>
         <Input
-          id={`new-card-${listId}`}
+          id={fieldId}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           maxLength={200}
@@ -194,16 +211,7 @@ function AddCard({ userId, listId }: { userId: string; listId: string }) {
         <Button type="submit" size="sm" pending={create.isPending}>
           {t("projects.card.add")}
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setOpen(false);
-            setTitle("");
-            setError(null);
-          }}
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           {t("common.cancel")}
         </Button>
       </div>

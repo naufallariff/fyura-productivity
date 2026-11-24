@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useShellCommand } from "@/client/hooks/use-shell-command";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Segmented, type SegmentedOption } from "@/components/ui/segmented";
@@ -86,6 +87,8 @@ export function DailyTrackerWorkspace({
   };
 
   const openEdit = (block: CalendarBlock) => setDraft({ mode: "edit", block });
+
+  useShellCommand("createBlock", () => openCreate(logDate));
 
   const moveBlock = (block: CalendarBlock, startMinute: number, endMinute: number) => {
     move.mutate({ blockId: block.id, startMinute, endMinute });

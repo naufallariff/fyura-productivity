@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Sidebar } from "@/components/shell/sidebar";
 import { MobileNav } from "@/components/shell/mobile-nav";
+import { CommandPalette } from "@/components/shell/command-palette";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { t } from "@/lib/i18n";
 import { parseSidebarState, SIDEBAR_COOKIE } from "@/lib/shell/sidebar-cookie";
@@ -30,6 +31,7 @@ async function ShellFrame({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <MobileNav />
+      <CommandPalette />
     </div>
   );
 }

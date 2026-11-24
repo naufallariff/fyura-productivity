@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { t } from "@/lib/i18n";
-import { isActivePath, NAV_SECTIONS, type NavItem } from "@/lib/nav/sections";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { isActivePath, NAV_SECTIONS, WORKSPACE_VIEWS, type NavItem } from "@/lib/nav/sections";
 import { SIDEBAR_COOKIE, type SidebarState } from "@/lib/shell/sidebar-cookie";
 import { cn } from "@/lib/ui/cn";
 import { SidebarProfile } from "./sidebar-profile";
+import { openCommandPalette } from "./command-palette";
 
 export function Sidebar({ initial, email }: { initial: SidebarState; email: string | null }) {
   const pathname = usePathname();
@@ -25,44 +27,64 @@ export function Sidebar({ initial, email }: { initial: SidebarState; email: stri
     <aside
       data-collapsed={collapsed}
       className={cn(
-        "ease-spring sticky top-0 hidden h-dvh shrink-0 p-3 transition-[width] duration-300 md:flex",
-        collapsed ? "w-22" : "w-68",
+        "sticky top-0 z-30 hidden h-dvh shrink-0 py-3 md:flex",
+        collapsed ? "w-16" : "w-64",
       )}
     >
-      <div data-glass-permitted className="glass flex h-full w-full flex-col gap-4 rounded-2xl p-3">
-        <div
-          className={cn("flex h-11 items-center gap-3 px-2", collapsed && "justify-center px-0")}
-        >
-          <span className="bg-accent text-on-accent grid size-9 shrink-0 place-items-center rounded-lg text-sm font-semibold">
+      <div aria-hidden className="pointer-events-none absolute inset-y-3 left-0 w-64 overflow-clip">
+        <div data-glass-permitted className="glass sidebar-panel h-full w-full rounded-r-2xl" />
+      </div>
+      <div className="relative flex h-full w-full min-w-0 flex-col gap-3 p-2">
+        <div className="flex h-11 shrink-0 items-center gap-2">
+          <span className="bg-accent text-on-accent mx-1.5 grid size-9 shrink-0 place-items-center rounded-lg text-sm font-semibold">
             F
           </span>
           {!collapsed && <span className="truncate text-sm font-semibold">{t("app.short")}</span>}
         </div>
 
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-label={t("shell.palette.title")}
+          aria-keyshortcuts="Meta+K Control+K"
+          onClick={openCommandPalette}
+          className="text-ink-muted hover:bg-accent-soft hover:text-ink flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg pr-2 text-sm font-medium"
+        >
+          <span className="grid h-11 w-12 shrink-0 place-items-center">
+            <Search aria-hidden className="size-4.5" />
+          </span>
+          {!collapsed && <span className="truncate">{t("shell.palette.title")}</span>}
+        </button>
+
         <nav
           aria-label={t("nav.primaryLabel")}
-          className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto"
+          className="sidebar-nav flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
         >
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.id} className="space-y-1">
-              {!collapsed && (
-                <p className="text-ink-muted px-3 text-[11px] font-medium tracking-widest uppercase">
+          <TooltipProvider>
+            {NAV_SECTIONS.map((section) => (
+              <div key={section.id} className="space-y-1">
+                <p
+                  className={cn(
+                    "text-ink-muted h-4 truncate px-3 text-xs font-medium uppercase",
+                    collapsed && "invisible",
+                  )}
+                >
                   {t(section.labelKey)}
                 </p>
-              )}
-              <ul className="space-y-1">
-                {section.items.map((item) => (
-                  <li key={item.href}>
-                    <NavLink
-                      item={item}
-                      active={isActivePath(pathname, item.href)}
-                      collapsed={collapsed}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                <ul className="space-y-1">
+                  {section.items.map((item) => (
+                    <li key={item.href}>
+                      <NavLink
+                        item={item}
+                        active={isActivePath(pathname, item.href)}
+                        collapsed={collapsed}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </TooltipProvider>
         </nav>
 
         <div className="border-line space-y-2 border-t pt-3">
@@ -99,19 +121,32 @@ function NavLink({
   const Icon = item.icon;
   const label = t(item.labelKey);
 
-  return (
+  const shortcut = WORKSPACE_VIEWS.find((view) => view.href === item.href)?.shortcut;
+  const link = (
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      title={collapsed ? label : undefined}
+      aria-keyshortcuts={shortcut ? `Alt+Shift+${shortcut}` : undefined}
       className={cn(
-        "focus-visible:ring-accent flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-200 focus-visible:ring-2",
+        "focus-visible:ring-accent flex min-h-11 items-center gap-2 rounded-lg text-sm font-medium focus-visible:ring-2 focus-visible:ring-inset",
         active ? "bg-accent text-on-accent" : "text-ink-muted hover:bg-accent-soft hover:text-ink",
-        collapsed && "justify-center px-0",
       )}
     >
-      <Icon aria-hidden className="size-4.5 shrink-0" strokeWidth={1.75} />
+      <span className="grid h-11 w-12 shrink-0 place-items-center">
+        <Icon aria-hidden className="size-4.5" strokeWidth={1.75} />
+      </span>
       <span className={cn("truncate", collapsed && "sr-only")}>{label}</span>
     </Link>
+  );
+
+  return collapsed ? (
+    <Tooltip
+      text={label}
+      shortcut={shortcut ? t("shell.navShortcut", { key: shortcut }) : undefined}
+    >
+      {link}
+    </Tooltip>
+  ) : (
+    link
   );
 }

@@ -1,7 +1,7 @@
 # Fyura Productivity — Audit & Refactor State
 
 - **Branch:** `refactor/v2-ui-architecture` (branched from `main` / `refactor/redesign` @ `1ab2bef`)
-- **Current Phase:** Batch 1 complete
+- **Current Phase:** Batch 2 complete
 - **ACTIVE EXECUTION MODE: BATCH EXECUTION (v2 UI & Security Overhaul)**
 - **Session 1 Status:** Completed on 2026-11-24 (Quality Gates, Security & Isolation Audit, Design Token Readiness)
 - **Session 2 Status:** Completed on 2026-11-24 (Shell, Dashboard Bento, Daily Tracker Audit & Dev Server Startup)
@@ -47,7 +47,7 @@
 | Batch | Scope                                               | Status     | Verification Gate                                                              |
 | :---- | :-------------------------------------------------- | :--------- | :----------------------------------------------------------------------------- |
 | **1** | Security Hardening & Design Token Foundation        | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
-| **2** | App Shell, Command Palette & Theme Infrastructure   | ⬜ Pending | Same                                                                           |
+| **2** | App Shell, Command Palette & Theme Infrastructure   | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
 | **3** | Dashboard Bento Command Center                      | ⬜ Pending | Same                                                                           |
 | **4** | Daily Tracker — Google Calendar Grid                | ⬜ Pending | Same                                                                           |
 | **5** | Projects Kanban & Secondary Module Polish           | ⬜ Pending | Same                                                                           |
@@ -59,3 +59,10 @@
 - `pnpm.cmd vitest run` passed all 228 enabled tests in 48 files, including cipher, cron, and WCAG 2.2 AA contrast coverage for all six bundle and mode combinations. The 73 opt-in database integration tests were skipped by the standard gate.
 - Production HTTP checks confirmed unique request nonces on rendered script and style tags, all required headers on protected redirects, and both cron routes returning 401 without credentials and 501 with valid credentials. The compiled stylesheet includes solid cards, scoped glass, and a reduced-transparency fallback.
 - The production script policy requires nonces and permits the configured Sentry ingest origin for connections. The style policy permits the inline style attributes used by calendar and drag interactions while requiring nonces on inline style tags.
+
+### Batch 2 Verification (2026-11-24)
+
+- `pnpm.cmd typecheck`, `pnpm.cmd lint`, and `pnpm.cmd build` passed. The production build used Next.js 16.4.5 with Cache Components and Partial Prefetching enabled.
+- `pnpm.cmd vitest run` passed all 228 enabled tests in 48 files. The 73 opt-in database integration tests were skipped by the standard gate.
+- The shell provides an animation-free command palette with ten views and four quick actions. The sidebar applies one layout update when changing between the expanded width and the 64px rail, then animates its panel using a transform. Theme mode applies immediately and saves in the background.
+- Authenticated browser interactions were outside this verification run.

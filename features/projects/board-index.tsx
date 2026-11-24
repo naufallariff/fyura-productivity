@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { KanbanSquare, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Segmented, type SegmentedOption } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
 import { t } from "@/lib/i18n";
+import { SHELL_COMMAND_PARAM } from "@/lib/shell/commands";
 import { cn } from "@/lib/ui/cn";
 import { hueVar } from "@/lib/ui/hue";
 import { NewBoardDialog } from "./board-dialogs";
@@ -24,6 +26,7 @@ const VIEW_OPTIONS: SegmentedOption<View>[] = [
 ];
 
 export function BoardIndex({ userId }: { userId: string }) {
+  const choosingBoard = useSearchParams().get(SHELL_COMMAND_PARAM) === "addCard";
   const [view, setView] = useState<View>("active");
   const [creating, setCreating] = useState(false);
   const boards = useBoardsIndex(userId, view === "archived");
@@ -46,6 +49,12 @@ export function BoardIndex({ userId }: { userId: string }) {
           {t("projects.index.new")}
         </Button>
       </div>
+
+      {choosingBoard && (
+        <p role="status" className="text-ink-muted text-sm">
+          {t("shell.palette.chooseBoard")}
+        </p>
+      )}
 
       {boards.isPending && (
         <div aria-busy="true" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -81,6 +90,7 @@ export function BoardIndex({ userId }: { userId: string }) {
             <BoardTile
               key={board.id}
               board={board}
+              addCard={choosingBoard}
               onStar={() => update.mutate({ boardId: board.id, starred: !board.starred })}
             />
           ))}
@@ -104,11 +114,19 @@ export function BoardIndex({ userId }: { userId: string }) {
   );
 }
 
-function BoardTile({ board, onStar }: { board: Board; onStar: () => void }) {
+function BoardTile({
+  board,
+  addCard,
+  onStar,
+}: {
+  board: Board;
+  addCard: boolean;
+  onStar: () => void;
+}) {
   return (
     <li className="relative rounded-2xl border border-(--border-subtle) bg-(--bg-surface) shadow-(--shadow-card)">
       <Link
-        href={`/projects/${board.id}`}
+        href={`/projects/${board.id}${addCard ? `?${SHELL_COMMAND_PARAM}=addCard` : ""}`}
         className="focus-visible:ring-accent ease-spring block h-full rounded-2xl p-4 transition-transform duration-200 focus-visible:ring-2 motion-safe:active:scale-[0.98]"
       >
         <span

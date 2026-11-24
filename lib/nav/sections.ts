@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   Lock,
+  Settings,
   StickyNote,
 } from "lucide-react";
 
@@ -62,6 +63,11 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 
 export const NAV_ITEMS: readonly NavItem[] = NAV_SECTIONS.flatMap((section) => section.items);
 export const MOBILE_PRIMARY: readonly NavItem[] = NAV_ITEMS.filter((item) => item.mobilePrimary);
+
+export const WORKSPACE_VIEWS = [
+  ...NAV_ITEMS,
+  { href: "/settings", labelKey: "shell.settings", icon: Settings, mobilePrimary: false },
+].map((item, index) => ({ ...item, shortcut: String((index + 1) % 10) }));
 
 /** Active when the pathname equals the href or sits under it at a path boundary. */
 export function isActivePath(pathname: string, href: string): boolean {

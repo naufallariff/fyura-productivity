@@ -22,7 +22,9 @@ import {
 } from "@dnd-kit/sortable";
 import { ArrowLeft, KanbanSquare, Plus, Settings2, Tags } from "lucide-react";
 import { useDebouncedValue } from "@/client/hooks/use-debounce";
+import { useShellCommand } from "@/client/hooks/use-shell-command";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field, Input } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,7 +37,7 @@ import { CardDialog } from "./card-dialog";
 import { CardFace } from "./card-item";
 import type { DragData } from "./drag-types";
 import { CONTROL_CLASS, errorText, failureCode } from "./format";
-import { ListColumn } from "./list-column";
+import { AddCardForm, ListColumn } from "./list-column";
 import type { Card, List } from "./schemas";
 import {
   NO_FILTERS,
@@ -46,7 +48,7 @@ import {
   type CardFilters,
 } from "./use-projects";
 
-type DialogState = "settings" | "labels" | "newList" | "editList" | null;
+type DialogState = "settings" | "labels" | "newList" | "editList" | "addCard" | null;
 
 function setOrDelete(params: URLSearchParams, key: string, value: string): void {
   if (value) params.set(key, value);
@@ -90,6 +92,16 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [editing, setEditing] = useState<List | null>(null);
+  const [cardListId, setCardListId] = useState("");
+
+  useShellCommand(
+    "addCard",
+    () => {
+      setCardListId("");
+      setDialog(snapshot.data?.lists.length ? "addCard" : "newList");
+    },
+    snapshot.isSuccess,
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -114,6 +126,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   }
 
   const { board, lists, labels } = snapshot.data;
+  const cardList = lists.find((list) => list.id === cardListId) ?? lists[0];
 
   const onDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current as DragData | undefined;
@@ -331,6 +344,37 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
         labels={labels}
         onClose={() => setOpenCardId(null)}
       />
+      <Dialog
+        open={dialog === "addCard"}
+        onClose={() => setDialog(null)}
+        title={t("projects.card.add")}
+        closeLabel={t("shell.close")}
+      >
+        {dialog === "addCard" && cardList && (
+          <div className="space-y-4">
+            <label className="block space-y-2 text-sm font-medium">
+              <span>{t("shell.palette.cardList")}</span>
+              <select
+                className={CONTROL_CLASS}
+                value={cardList.id}
+                onChange={(event) => setCardListId(event.target.value)}
+              >
+                {lists.map((list) => (
+                  <option key={list.id} value={list.id}>
+                    {list.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <AddCardForm
+              userId={userId}
+              listId={cardList.id}
+              onCancel={() => setDialog(null)}
+              onCreated={() => setDialog(null)}
+            />
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

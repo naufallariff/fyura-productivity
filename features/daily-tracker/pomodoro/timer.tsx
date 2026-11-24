@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useShellCommand } from "@/client/hooks/use-shell-command";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/segmented";
@@ -118,7 +119,7 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
   }, []);
 
   const start = () => {
-    if (!valid) return;
+    if (!valid || phase !== "idle") return;
     const startedAt = Date.now();
     run.current = {
       kind,
@@ -131,6 +132,11 @@ export function FocusTimer({ logDate, timeZone }: { logDate: string; timeZone: s
     setShownMs(minutes * MS_PER_MINUTE);
     setPhase("running");
   };
+
+  useShellCommand("startFocus", () => {
+    document.getElementById("focus-title")?.scrollIntoView({ block: "center" });
+    start();
+  });
 
   const stop = () => {
     const current = run.current;

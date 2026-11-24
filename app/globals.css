@@ -22,6 +22,10 @@
     ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
 }
 
+:root {
+  --ease-out-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);
@@ -41,6 +45,77 @@
 }
 
 @layer components {
+  .palette-group [cmdk-group-heading] {
+    padding: 0.5rem 0.75rem;
+    color: var(--color-ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .sidebar-panel {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    transition: transform 200ms var(--ease-out-snappy);
+  }
+
+  .floating-tooltip {
+    visibility: hidden;
+    pointer-events: none;
+    transition: visibility 160ms;
+  }
+
+  .floating-tooltip[data-open] {
+    visibility: visible;
+    pointer-events: auto;
+    transition: none;
+  }
+
+  .floating-tooltip-content {
+    --transform-origin: left center;
+    transform-origin: var(--transform-origin);
+    transform: scale(0.97);
+    opacity: 0;
+    transition:
+      transform 160ms var(--ease-out-snappy),
+      opacity 160ms var(--ease-out-snappy);
+  }
+
+  .floating-tooltip[data-open] .floating-tooltip-content {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  @starting-style {
+    .floating-tooltip[data-open] .floating-tooltip-content {
+      transform: scale(0.97);
+      opacity: 0;
+    }
+  }
+
+  .floating-tooltip[data-instant] {
+    transition: none;
+  }
+
+  .floating-tooltip[data-instant] .floating-tooltip-content {
+    transition: none;
+  }
+
+  [data-collapsed="true"] .sidebar-panel {
+    transform: translate3d(-75%, 0, 0);
+  }
+
+  [data-collapsed="true"] .sidebar-nav {
+    scrollbar-width: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-panel,
+    .floating-tooltip,
+    .floating-tooltip-content {
+      transition: none;
+    }
+  }
+
   .glass[data-glass-permitted] {
     background: var(--bg-surface-elevated);
     border: 1px solid var(--border-subtle);
@@ -57,7 +132,7 @@
 
   @media (prefers-reduced-transparency: reduce) {
     .glass[data-glass-permitted] {
-      background: var(--bg-surface-elevated);
+      background: var(--bg-surface);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }

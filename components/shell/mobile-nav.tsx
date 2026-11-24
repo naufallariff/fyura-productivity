@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, Search } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { t } from "@/lib/i18n";
 import { isActivePath, MOBILE_PRIMARY, NAV_SECTIONS } from "@/lib/nav/sections";
 import { cn } from "@/lib/ui/cn";
 import { SignOutButton } from "./sign-out-button";
+import { openCommandPalette } from "./command-palette";
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -32,12 +33,12 @@ export function MobileNav() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "ease-spring flex min-h-12 min-w-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-medium transition-transform duration-200 motion-safe:active:scale-95",
+                "ease-spring flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-xs font-medium transition-transform duration-200 motion-safe:active:scale-95",
                 active ? "text-accent" : "text-ink-muted",
               )}
             >
               <Icon aria-hidden className="size-5" strokeWidth={1.75} />
-              <span className="truncate">{t(item.labelKey)}</span>
+              <span className="w-full truncate text-center">{t(item.labelKey)}</span>
             </Link>
           );
         })}
@@ -45,7 +46,7 @@ export function MobileNav() {
           type="button"
           aria-haspopup="dialog"
           onClick={() => setMoreOpen(true)}
-          className="text-ink-muted ease-spring flex min-h-12 min-w-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-medium transition-transform duration-200 motion-safe:active:scale-95"
+          className="text-ink-muted ease-spring flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-xs font-medium transition-transform duration-200 motion-safe:active:scale-95"
         >
           <Ellipsis aria-hidden className="size-5" strokeWidth={1.75} />
           <span>{t("shell.more")}</span>
@@ -59,6 +60,19 @@ export function MobileNav() {
         closeLabel={t("shell.close")}
       >
         <div className="space-y-6">
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={(event) => {
+              event.currentTarget.closest("dialog")?.close();
+              setMoreOpen(false);
+              openCommandPalette();
+            }}
+            className="text-ink-muted hover:bg-accent-soft hover:text-ink flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium"
+          >
+            <Search aria-hidden className="size-4.5" />
+            {t("shell.palette.title")}
+          </button>
           {secondary.map((section) => (
             <section key={section.id} className="space-y-2">
               <h3 className="text-ink-muted text-xs font-medium tracking-widest uppercase">
