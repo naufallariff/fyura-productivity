@@ -1,19 +1,20 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiGet } from "@/client/api/fetch";
 import { useCursorList } from "@/client/hooks/use-cursor-list";
 import { scopedKey } from "@/client/query/keys";
 import { CACHE_POLICY } from "@/client/query/policy";
 import { BLOCK_CATEGORIES } from "@/domain/categories";
-import { DAY_STATUSES } from "@/domain/scoring/types";
+import { DAY_STATUSES, type DayStatus } from "@/domain/scoring/types";
 import type { ActionResult } from "@/server/api/action";
-import { setChecklistItemAction } from "./actions";
+import { setChecklistItemAction, setDayStatusAction } from "./actions";
 
 const CHECKLIST = "checklist";
 const SCORES = "checklist-scores";
 const HISTORY = "history";
+const CHECKLIST_WRITE = "checklist-write";
 
 const ChecklistItemSchema = z.object({
   id: z.string(),
@@ -82,6 +83,55 @@ export function useChecklistScores(userId: string, from: string, to: string) {
   });
 }
 
+function refreshChecklistAfterWrite(client: QueryClient, userId: string, logDate: string) {
+  // Keep any newer optimistic update in place until all writes for this day settle.
+  const writesForDay = client.isMutating({
+    mutationKey: scopedKey(userId, CHECKLIST_WRITE),
+    predicate: ({ state: { variables } }) =>
+      typeof variables === "object" &&
+      variables !== null &&
+      "logDate" in variables &&
+      variables.logDate === logDate,
+  });
+  if (writesForDay > 1) return;
+  void client.invalidateQueries({ queryKey: scopedKey(userId, CHECKLIST, logDate) });
+  void client.invalidateQueries({ queryKey: scopedKey(userId, SCORES) });
+}
+
+export function useSetDayStatus(userId: string, logDate: string) {
+  const client = useQueryClient();
+  const key = scopedKey(userId, CHECKLIST, logDate);
+  const mutationKey = scopedKey(userId, CHECKLIST_WRITE, logDate, "status");
+  const mutation = useMutation({
+    mutationKey,
+    scope: { id: CHECKLIST_WRITE },
+    mutationFn: async ({ logDate, status }: { logDate: string; status: DayStatus }) => {
+      const result = await setDayStatusAction({ logDate, status });
+      if (!result.ok) throw new Error(result.code);
+    },
+    onMutate: async ({ status }) => {
+      await client.cancelQueries({ queryKey: key });
+      const previous = client.getQueryData<ChecklistView>(key)?.status;
+      client.setQueryData<ChecklistView>(key, (view) => view && { ...view, status });
+      return { key, previous };
+    },
+    onError: (_error, _input, context) => {
+      if (!context?.previous) return;
+      const { key, previous } = context;
+      client.setQueryData<ChecklistView>(key, (view) => view && { ...view, status: previous });
+    },
+    onSettled: (_data, _error, input) => refreshChecklistAfterWrite(client, userId, input.logDate),
+  });
+
+  return {
+    saving: mutation.isPending && mutation.variables?.logDate === logDate,
+    failed: mutation.isError && mutation.variables?.logDate === logDate,
+    change: (status: DayStatus) => {
+      if (client.isMutating({ mutationKey }) === 0) mutation.mutate({ logDate, status });
+    },
+  };
+}
+
 /**
  * Writes checklist state. The scope makes writes run one after another, so the last tap
  * is always the last request the server receives.
@@ -90,7 +140,8 @@ export function useSetChecklistItem(userId: string) {
   const client = useQueryClient();
 
   return useMutation({
-    scope: { id: "checklist-write" },
+    mutationKey: scopedKey(userId, CHECKLIST_WRITE, "item"),
+    scope: { id: CHECKLIST_WRITE },
     mutationFn: async (input: { logDate: string; sourceItemId: string; done: boolean }) => {
       const result: ActionResult<null> = await setChecklistItemAction(input);
       if (!result.ok) throw new Error(result.code);
@@ -117,14 +168,24 @@ export function useSetChecklistItem(userId: string) {
       return { key, previous };
     },
 
-    onError: (_error, _input, context) => {
-      if (context) client.setQueryData(context.key, context.previous);
+    onError: (_error, { sourceItemId }, context) => {
+      if (!context?.previous) return;
+      const { key, previous } = context;
+      const previousItem = previous.items.find((item) => item.sourceItemId === sourceItemId);
+      if (!previousItem) return;
+      client.setQueryData<ChecklistView>(
+        key,
+        (view) =>
+          view && {
+            ...view,
+            items: view.items.map((item) =>
+              item.sourceItemId === sourceItemId ? previousItem : item,
+            ),
+          },
+      );
     },
 
-    onSettled: (_data, _error, input) => {
-      void client.invalidateQueries({ queryKey: scopedKey(userId, CHECKLIST, input.logDate) });
-      void client.invalidateQueries({ queryKey: scopedKey(userId, SCORES) });
-    },
+    onSettled: (_data, _error, input) => refreshChecklistAfterWrite(client, userId, input.logDate),
   });
 }
 

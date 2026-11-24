@@ -50,6 +50,7 @@ export interface TimeGridProps {
   readonly blocks: readonly CalendarBlock[];
   readonly todayIso: string;
   readonly timeZone: string;
+  readonly blockDialogOpen?: boolean;
   /** Empty set shows every category. A non-empty set dims the rest. */
   readonly activeCategories: ReadonlySet<Category>;
   readonly onCreate: (logDate: string, startMinute: number, durationMinutes: number) => void;
@@ -82,7 +83,17 @@ function groupByDay(blocks: readonly CalendarBlock[]): Map<string, CalendarBlock
 }
 
 export function TimeGrid(props: TimeGridProps) {
-  const { days, blocks, todayIso, timeZone, activeCategories, onCreate, onOpen, onMove } = props;
+  const {
+    days,
+    blocks,
+    todayIso,
+    timeZone,
+    blockDialogOpen,
+    activeCategories,
+    onCreate,
+    onOpen,
+    onMove,
+  } = props;
   const scroller = useRef<HTMLDivElement>(null);
   const nowMinute = useNowMinute(timeZone);
   const byDay = useMemo(() => groupByDay(blocks), [blocks]);
@@ -102,7 +113,11 @@ export function TimeGrid(props: TimeGridProps) {
     >
       <div className="relative" style={{ minWidth: GUTTER_PX + days.length * COLUMN_MIN_PX }}>
         <div
-          className="border-line sticky top-0 z-20 grid border-b bg-(--bg-surface)"
+          data-glass-permitted={blockDialogOpen ? undefined : true}
+          className={cn(
+            "border-line sticky top-0 z-20 grid border-b bg-(--bg-surface)",
+            !blockDialogOpen && "glass",
+          )}
           style={{ gridTemplateColumns: template }}
         >
           <span aria-hidden />
@@ -389,7 +404,7 @@ function BlockCard({
     <div
       data-block-id={block.id}
       className={cn(
-        "text-ink absolute overflow-hidden rounded-lg py-1 pr-2 pl-3 text-xs transition-opacity duration-200",
+        "text-ink absolute rounded-lg text-xs transition-opacity duration-200",
         dimmed && "opacity-30",
       )}
       style={{
@@ -402,21 +417,26 @@ function BlockCard({
         cursor: editable ? "grab" : "pointer",
       }}
     >
-      <p className="truncate font-semibold">{block.activity}</p>
-      <p className="text-ink-muted truncate tabular-nums">
-        {t("dailyTracker.range", {
-          start: formatMinute(block.startMinute),
-          end: formatMinute(block.endMinute),
-        })}
-      </p>
+      <div className="absolute inset-0 overflow-hidden rounded-lg py-1 pr-2 pl-3">
+        <p className="truncate font-semibold">{block.activity}</p>
+        <p className="text-ink-muted truncate tabular-nums">
+          {t("dailyTracker.range", {
+            start: formatMinute(block.startMinute),
+            end: formatMinute(block.endMinute),
+          })}
+        </p>
+      </div>
       {editable && (
         <span
-          data-block-id={block.id}
           data-handle="resize"
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize"
-          style={{ touchAction: "none" }}
-        />
+          className="absolute inset-x-0 bottom-0 z-1 h-0.5 cursor-s-resize touch-none before:absolute before:inset-x-0 before:-bottom-2 before:h-5 before:cursor-s-resize"
+        >
+          <span
+            className="pointer-events-none mx-auto block h-full w-6 rounded-full"
+            style={{ background: color }}
+          />
+        </span>
       )}
     </div>
   );

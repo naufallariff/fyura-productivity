@@ -4,12 +4,14 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useShellCommand } from "@/client/hooks/use-shell-command";
+import { ControlRailDrawer } from "@/components/daily-tracker/control-rail-drawer";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Segmented, type SegmentedOption } from "@/components/ui/segmented";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BLOCK_CATEGORIES, categoryLabelKey } from "@/domain/categories";
-import type { Category } from "@/domain/scoring/types";
+import { DAY_STATUSES, type Category } from "@/domain/scoring/types";
 import { addDays } from "@/domain/time/logical-date";
 import { weekOf } from "@/domain/time/week";
 import { t } from "@/lib/i18n";
@@ -22,6 +24,7 @@ import { TimeGrid } from "./calendar/time-grid";
 import { CATEGORY_HUE } from "./category-hue";
 import { FocusTimer } from "./pomodoro/timer";
 import { useCalendarBlocks, useMoveBlock, type CalendarBlock } from "./use-daily-data";
+import { useChecklist, useSetDayStatus } from "./use-daily-tracker";
 
 export type TrackerView = "day" | "week";
 
@@ -59,6 +62,8 @@ export function DailyTrackerWorkspace({
 
   const blocks = useCalendarBlocks(userId, firstDay, lastDay);
   const move = useMoveBlock(userId);
+  const checklist = useChecklist(userId, logDate);
+  const dayStatus = useSetDayStatus(userId, logDate);
 
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(() => new Set());
   const [draft, setDraft] = useState<BlockDraft | null>(null);
@@ -94,16 +99,46 @@ export function DailyTrackerWorkspace({
     move.mutate({ blockId: block.id, startMinute, endMinute });
   };
 
+  const statusLabel = t("dailyTracker.status.label");
+  const statusControl = (
+    <div className="space-y-2" aria-busy={checklist.isPending || dayStatus.saving}>
+      <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">{statusLabel}</p>
+      {checklist.data ? (
+        <SegmentedControl
+          label={statusLabel}
+          options={DAY_STATUSES.map((value) => ({
+            value,
+            label: t(`dailyTracker.status.${value}`),
+          }))}
+          value={checklist.data.status}
+          onChange={dayStatus.change}
+        />
+      ) : checklist.isPending ? (
+        <Skeleton className="h-13 rounded-full" />
+      ) : (
+        <Button variant="secondary" onClick={() => checklist.refetch()}>
+          {t("dailyTracker.status.retry")}
+        </Button>
+      )}
+      {dayStatus.failed && (
+        <p role="alert" className="text-negative text-xs">
+          {t("dailyTracker.status.error")}
+        </p>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)_20rem]">
-        <aside className="hidden rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) lg:block lg:self-start">
+        <aside className="hidden space-y-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) lg:block lg:self-start">
           <MiniMonth selectedDate={logDate} todayIso={today} onSelect={(date) => go(date)} />
+          {statusControl}
         </aside>
 
         <section className="min-w-0 space-y-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <Button
                 variant="secondary"
                 size="sm"
@@ -123,7 +158,17 @@ export function DailyTrackerWorkspace({
                 className="size-10 p-0"
                 onClick={() => go(addDays(logDate, step))}
               />
-              <p className="ml-2 text-sm font-semibold">{monthLabel(logDate)}</p>
+              <div className="ml-2 flex items-center gap-2">
+                <p className="text-sm font-semibold">{monthLabel(logDate)}</p>
+                <ControlRailDrawer
+                  selectedDate={logDate}
+                  todayIso={today}
+                  onSelectDate={go}
+                  activeCategories={activeCategories}
+                  onToggleCategory={toggleCategory}
+                  dayStatus={statusControl}
+                />
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -143,7 +188,7 @@ export function DailyTrackerWorkspace({
             <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">
               {t("dailyTracker.filter.label")}
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex snap-x snap-mandatory scrollbar-none flex-nowrap gap-2 overflow-x-auto overflow-y-hidden p-0.5 sm:snap-none sm:flex-wrap sm:overflow-visible">
               {BLOCK_CATEGORIES.map((category) => {
                 const active = activeCategories.has(category);
                 return (
@@ -153,7 +198,7 @@ export function DailyTrackerWorkspace({
                     aria-pressed={active}
                     onClick={() => toggleCategory(category)}
                     className={cn(
-                      "focus-visible:ring-accent inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-xs font-medium transition-colors duration-150 focus-visible:ring-2",
+                      "focus-visible:ring-accent inline-flex min-h-11 shrink-0 snap-start items-center gap-2 rounded-full border px-3 text-xs font-medium whitespace-nowrap transition-colors duration-150 focus-visible:ring-2 sm:min-h-9",
                       active
                         ? "border-accent bg-accent-soft"
                         : "border-line text-ink-muted hover:text-ink",
@@ -169,7 +214,12 @@ export function DailyTrackerWorkspace({
                 );
               })}
               {activeCategories.size > 0 && (
-                <Button variant="ghost" size="sm" onClick={() => setActiveCategories(new Set())}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 snap-start whitespace-nowrap"
+                  onClick={() => setActiveCategories(new Set())}
+                >
                   {t("dailyTracker.filter.clear")}
                 </Button>
               )}
@@ -196,6 +246,7 @@ export function DailyTrackerWorkspace({
               blocks={blocks.data}
               todayIso={today}
               timeZone={timeZone}
+              blockDialogOpen={draft !== null}
               activeCategories={activeCategories}
               onCreate={(date, start, duration) => openCreate(date, start, duration)}
               onOpen={openEdit}

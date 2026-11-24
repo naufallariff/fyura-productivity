@@ -6,23 +6,19 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/pill";
 import { Ring } from "@/components/ui/ring";
-import { Segmented, type SegmentedOption } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
 import { categoryLabelKey } from "@/domain/categories";
 import { scoreChecklistDay, weeklyChecklistRatio } from "@/domain/scoring/checklist";
-import { DAY_STATUSES, type DayStatus } from "@/domain/scoring/types";
 import { weekOf } from "@/domain/time/week";
 import { t } from "@/lib/i18n";
 import { formatPercent } from "@/lib/i18n/format";
 import { cn } from "@/lib/ui/cn";
 import { CATEGORY_HUE } from "../category-hue";
-import { useSetDayStatus } from "../use-daily-data";
 import { useChecklist, useChecklistScores, useSetChecklistItem } from "../use-daily-tracker";
 
 export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: string }) {
   const checklist = useChecklist(userId, logDate);
   const toggle = useSetChecklistItem(userId);
-  const status = useSetDayStatus(userId);
 
   const week = weekOf(logDate);
   const weekStart = week[0] ?? logDate;
@@ -53,12 +49,9 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
   }
 
   const view = checklist.data;
-  const shownStatus: DayStatus =
-    status.isPending && status.variables ? status.variables.status : view.status;
-
   const score = scoreChecklistDay(
     logDate,
-    shownStatus,
+    view.status,
     view.items.map((item) => ({
       required: item.isRequired,
       core: item.isCore,
@@ -67,11 +60,6 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
   );
 
   const weekly = weeklyChecklistRatio(weekScores.data ?? []);
-
-  const statusOptions: SegmentedOption<DayStatus>[] = DAY_STATUSES.map((value) => ({
-    value,
-    label: t(`dailyTracker.status.${value}`),
-  }));
 
   return (
     <section aria-labelledby="checklist-title" className="space-y-4">
@@ -101,18 +89,6 @@ export function ChecklistPanel({ userId, logDate }: { userId: string; logDate: s
               : t("checklist.week", { percent: formatPercent(weekly) })}
           </p>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">
-          {t("dailyTracker.status.label")}
-        </p>
-        <Segmented
-          label={t("dailyTracker.status.label")}
-          options={statusOptions}
-          value={shownStatus}
-          onChange={(next) => status.mutate({ logDate, status: next })}
-        />
       </div>
 
       <p className="text-ink-muted text-xs leading-relaxed">

@@ -44,6 +44,7 @@ export async function deleteBlockAction(blockId: string): Promise<ActionResult<n
 export async function setDayStatusAction(input: unknown): Promise<ActionResult<null>> {
   const user = await requireUser();
   return runAction(async () => {
+    await consumeRateLimit(user.id, "write");
     await setDayStatus(user.id, input);
     return null;
   });
