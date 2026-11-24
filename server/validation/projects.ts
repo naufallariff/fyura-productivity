@@ -42,6 +42,8 @@ export const UpdateBoardInput = z
 
 export const CreateListInput = z.object({ boardId: Uuid, title: title(80) }).strict();
 
+export const ListIdInput = z.strictObject({ listId: Uuid });
+
 export const UpdateListInput = z
   .object({ listId: Uuid, title: title(80).optional(), archived: z.boolean().optional() })
   .strict();

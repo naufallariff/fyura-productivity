@@ -68,8 +68,7 @@ export function WeekBoard({ userId }: { userId: string }) {
         </p>
       )}
 
-      {/* Horizontal scroll with snap on phones, a seven-column grid from md up. */}
-      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-7 md:overflow-visible">
+      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 xl:grid xl:grid-cols-7 xl:overflow-visible">
         {WEEKDAYS.map((weekday) => (
           <DayNote
             key={weekday}
@@ -134,7 +133,7 @@ function DayNote({
   return (
     <section
       aria-labelledby={`day-${weekday}`}
-      className="flex min-h-80 min-w-72 snap-start flex-col gap-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) md:min-w-0"
+      className="flex min-h-80 min-w-[220px] flex-1 snap-start flex-col gap-3 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card) xl:min-w-0"
     >
       <header className="flex items-center justify-between gap-2">
         <h2 id={`day-${weekday}`} className="text-sm font-semibold">
@@ -229,9 +228,9 @@ function SortableItem({ item, onEdit }: { item: PlanItem; onEdit: (item: PlanIte
 
 function BoardSkeleton() {
   return (
-    <div aria-busy="true" className="grid gap-4 md:grid-cols-7">
+    <div aria-busy="true" className="flex gap-4 overflow-hidden xl:grid xl:grid-cols-7">
       {WEEKDAYS.map((day) => (
-        <Skeleton key={day} className="h-80" />
+        <Skeleton key={day} className="h-80 min-w-[220px] flex-1 xl:min-w-0" />
       ))}
     </div>
   );

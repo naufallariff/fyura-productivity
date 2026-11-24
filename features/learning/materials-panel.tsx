@@ -92,7 +92,7 @@ export function MaterialsPanel({
                     "focus-visible:ring-accent inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-xs font-medium focus-visible:ring-2",
                     selected?.id === subject.id
                       ? "border-accent bg-accent-soft"
-                      : "border-line text-ink-muted",
+                      : "text-ink-muted border-(--border-subtle) bg-(--bg-surface)",
                   )}
                 >
                   {subject.name}
@@ -143,7 +143,10 @@ function ItemsPanel({
   const [progressFor, setProgressFor] = useState<Item | null>(null);
 
   return (
-    <section aria-labelledby="items-title" className="space-y-4">
+    <section
+      aria-labelledby="items-title"
+      className="space-y-4 rounded-2xl border border-(--border-subtle) bg-(--bg-surface) p-4"
+    >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <h3 id="items-title" className="text-sm font-semibold">
           {t("learning.items.title")}
@@ -261,7 +264,7 @@ function ItemRow({
   };
 
   return (
-    <article className="space-y-3 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-4 shadow-(--shadow-card)">
+    <article className="space-y-3 rounded-xl border border-(--border-subtle) bg-(--bg-surface-elevated) p-4 shadow-(--shadow-card)">
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-sm font-semibold">{item.title}</p>
         <Pill>{t(`learning.itemKind.${item.kind}`)}</Pill>

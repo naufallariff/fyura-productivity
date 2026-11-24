@@ -35,7 +35,7 @@ export function CardFace({ card, labels }: { card: Card; labels: readonly Label[
       )}
       <span
         className={cn(
-          "block text-sm font-medium",
+          "block text-sm font-medium wrap-break-word whitespace-pre-wrap",
           card.dueComplete && card.dueOn !== null && "text-ink-muted",
         )}
       >
@@ -90,8 +90,8 @@ export function CardItem({
         transition: sortable.transition,
       }}
       className={cn(
-        "border-line flex items-start gap-1 rounded-xl border bg-(--bg-surface-elevated) p-2",
-        sortable.isDragging && "opacity-60 shadow-lg",
+        "flex items-start gap-1 rounded-xl border border-(--border-subtle) bg-(--bg-surface-elevated) p-2 shadow-(--shadow-card)",
+        sortable.isDragging && "opacity-60",
       )}
     >
       <button
@@ -102,8 +102,8 @@ export function CardItem({
         disabled={!dragEnabled}
         aria-label={t("projects.card.drag", { title: card.title })}
         className={cn(
-          "text-ink-muted focus-visible:ring-accent grid size-8 shrink-0 place-items-center rounded-lg focus-visible:ring-2",
-          dragEnabled ? "hover:bg-accent-soft cursor-grab touch-none" : "opacity-40",
+          "text-ink-muted focus-visible:ring-accent grid min-h-11 min-w-11 shrink-0 place-items-center rounded-lg p-2 focus-visible:ring-2",
+          dragEnabled ? "hover:bg-accent-soft cursor-grab" : "opacity-40",
         )}
       >
         <GripVertical aria-hidden className="size-4" strokeWidth={1.75} />

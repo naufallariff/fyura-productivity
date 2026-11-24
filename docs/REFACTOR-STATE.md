@@ -1,7 +1,7 @@
 # Fyura Productivity — Audit & Refactor State
 
 - **Branch:** `refactor/v2-ui-architecture` (branched from `main` / `refactor/redesign` @ `1ab2bef`)
-- **Current Phase:** Batch 4 complete
+- **Current Phase:** Batch 5 complete
 - **ACTIVE EXECUTION MODE: BATCH EXECUTION (v2 UI & Security Overhaul)**
 - **Session 1 Status:** Completed on 2026-11-24 (Quality Gates, Security & Isolation Audit, Design Token Readiness)
 - **Session 2 Status:** Completed on 2026-11-24 (Shell, Dashboard Bento, Daily Tracker Audit & Dev Server Startup)
@@ -50,7 +50,7 @@
 | **2** | App Shell, Command Palette & Theme Infrastructure   | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
 | **3** | Dashboard Bento Command Center                      | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
 | **4** | Daily Tracker — Google Calendar Grid                | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
-| **5** | Projects Kanban & Secondary Module Polish           | ⬜ Pending | Same                                                                           |
+| **5** | Projects Kanban & Secondary Module Polish           | Complete   | `pnpm.cmd typecheck && pnpm.cmd lint && pnpm.cmd vitest run && pnpm.cmd build` |
 | **6** | Journal Rich-Text Editor & Private Space Encryption | ⬜ Pending | Same                                                                           |
 
 ### Batch 1 Verification (2026-11-24)
@@ -79,3 +79,10 @@
 - `pnpm.cmd typecheck`, `pnpm.cmd lint`, and `pnpm.cmd build` passed. The production build used Cache Components and Partial Prefetching.
 - `pnpm.cmd vitest run` passed all 228 enabled tests in 48 files. The standard gate skipped 73 opt-in database integration tests.
 - Chrome fixtures at 390px and 1280px verified the mobile drawer, Escape and focus return, keyboard status selection and rollback, shared category filters, the 20px resize target, reduced motion, and the blur handoff from the sticky header to the block dialog. The fixture used mocked API responses and rejected writes.
+
+### Batch 5 Verification (2026-11-24)
+
+- `pnpm.cmd typecheck`, `pnpm.cmd lint`, and `pnpm.cmd build` passed. The production build used Cache Components and Partial Prefetching. It required permission to create Windows dependency junctions.
+- `pnpm.cmd vitest run` passed all 228 enabled tests in 48 files. The standard gate skipped 75 opt-in database integration tests, including the new due-date sort and list deletion cases.
+- Chrome fixtures at 390px and 1280px verified the dock shortcuts, popover focus and placement, 44px targets, multiline composer growth and submission, and instant theme changes with `SameSite=Lax` cookies. The fixture covered queued saves and rollback using mocked writes.
+- Due-date sorting persists the order of the full active column and puts undated cards last. Confirmed list deletion removes the list and its cards.

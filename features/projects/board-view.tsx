@@ -3,12 +3,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCenter,
   useSensor,
   useSensors,
@@ -23,6 +24,7 @@ import {
 import { ArrowLeft, KanbanSquare, Plus, Settings2, Tags } from "lucide-react";
 import { useDebouncedValue } from "@/client/hooks/use-debounce";
 import { useShellCommand } from "@/client/hooks/use-shell-command";
+import { BoardDock } from "@/components/projects/board-dock";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -32,7 +34,7 @@ import { dropNeighbours, moveIndex, neighboursAt } from "@/domain/projects/place
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/ui/cn";
 import { hueVar } from "@/lib/ui/hue";
-import { BoardSettingsDialog, LabelsDialog, ListDialog } from "./board-dialogs";
+import { BoardSettingsDialog, LabelsDialog, ListActionDialog, ListDialog } from "./board-dialogs";
 import { CardDialog } from "./card-dialog";
 import { CardFace } from "./card-item";
 import type { DragData } from "./drag-types";
@@ -48,7 +50,8 @@ import {
   type CardFilters,
 } from "./use-projects";
 
-type DialogState = "settings" | "labels" | "newList" | "editList" | "addCard" | null;
+type DialogState =
+  "settings" | "labels" | "newList" | "editList" | "moveList" | "deleteList" | "addCard" | null;
 
 function setOrDelete(params: URLSearchParams, key: string, value: string): void {
   if (value) params.set(key, value);
@@ -60,6 +63,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   const pathname = usePathname();
   const params = useSearchParams();
   const snapshot = useBoardSnapshot(userId, boardId);
+  const boardTop = useRef<HTMLElement>(null);
 
   // Raw input updates at once. The debounced value drives queries and the URL.
   const [raw, setRaw] = useState<CardFilters>(() => ({
@@ -104,7 +108,8 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
   );
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
@@ -167,14 +172,14 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
     if (neighbours) moveCard.mutate({ cardId: from.card.id, listId: to.listId, ...neighbours });
   };
 
-  const openEditList = (list: List) => {
+  const openListDialog = (next: "editList" | "moveList" | "deleteList", list: List) => {
     setEditing(list);
-    setDialog("editList");
+    setDialog(next);
   };
 
   return (
-    <div className="space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4 pb-16 max-md:pb-28">
+      <header ref={boardTop} className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/projects"
@@ -298,7 +303,9 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
                   filters={filters}
                   dragEnabled={dragEnabled}
                   onOpenCard={setOpenCardId}
-                  onEditList={openEditList}
+                  onEditList={(list) => openListDialog("editList", list)}
+                  onMoveList={(list) => openListDialog("moveList", list)}
+                  onDeleteList={(list) => openListDialog("deleteList", list)}
                 />
               ))}
             </div>
@@ -306,7 +313,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
 
           <DragOverlay>
             {activeCard && (
-              <div className="border-line w-72 rounded-xl border bg-(--bg-surface-elevated) p-2 shadow-(--shadow-raised)">
+              <div className="w-72 rounded-xl border border-(--border-subtle) bg-(--bg-surface-elevated) p-2 shadow-(--shadow-card)">
                 <CardFace card={activeCard} labels={labels} />
               </div>
             )}
@@ -314,6 +321,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
         </DndContext>
       )}
 
+      <BoardDock userId={userId} boardId={boardId} boardTop={boardTop} />
       <BoardSettingsDialog
         userId={userId}
         open={dialog === "settings"}
@@ -337,6 +345,20 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
           setEditing(null);
         }}
       />
+      {editing && (dialog === "moveList" || dialog === "deleteList") && (
+        <ListActionDialog
+          key={`${dialog}:${editing.id}`}
+          action={dialog}
+          list={editing}
+          lists={lists}
+          moveList={moveList.mutateAsync}
+          userId={userId}
+          onClose={() => {
+            setDialog(null);
+            setEditing(null);
+          }}
+        />
+      )}
       <CardDialog
         userId={userId}
         cardId={openCardId}
@@ -345,6 +367,7 @@ export function BoardView({ userId, boardId }: { userId: string; boardId: string
         onClose={() => setOpenCardId(null)}
       />
       <Dialog
+        solid
         open={dialog === "addCard"}
         onClose={() => setDialog(null)}
         title={t("projects.card.add")}

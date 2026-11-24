@@ -7,6 +7,7 @@ import {
   checklistForCards,
   deleteChecklistRow,
   deleteLabelRow,
+  deleteListRow,
   findBoard,
   findCard,
   findChecklistItem,
@@ -27,6 +28,7 @@ import {
   setCardPlacement,
   setCardPositions,
   setListPositions,
+  sortActiveCardsByDueDate,
   updateBoardRow,
   updateCardRow,
   updateChecklistRow,
@@ -48,6 +50,7 @@ import {
   CreateListInput,
   DeleteChecklistItemInput,
   DeleteLabelInput,
+  ListIdInput,
   MoveCardInput,
   MoveListInput,
   SetCardLabelInput,
@@ -391,6 +394,24 @@ export async function moveList(userId: string, input: unknown): Promise<void> {
     });
 
     await updateListRow(tx, userId, list.id, { position });
+  });
+}
+
+export async function deleteList(userId: string, input: unknown): Promise<void> {
+  const { listId } = parse(ListIdInput, input);
+  await withUser(userId, async (tx) => {
+    if (!(await deleteListRow(tx, userId, listId))) {
+      throw new DomainError("NOT_FOUND", "List not found");
+    }
+  });
+}
+
+export async function sortListByDueDate(userId: string, input: unknown): Promise<void> {
+  const { listId } = parse(ListIdInput, input);
+  await withUser(userId, async (tx) => {
+    const list = await findList(tx, userId, listId);
+    if (!list || list.archivedAt) throw new DomainError("NOT_FOUND", "List not found");
+    await sortActiveCardsByDueDate(tx, userId, listId, POSITION_STEP);
   });
 }
 

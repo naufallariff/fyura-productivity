@@ -1,17 +1,17 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { saveThemeModeAction } from "@/features/settings/actions";
-import type { Mode } from "@/lib/theme/bundles";
+import { saveThemeAction } from "@/features/settings/actions";
+import { DEFAULT_SELECTION, parseSelection, type ThemeSelection } from "@/lib/theme/resolve";
 
-const THEME_CHANGE = "fyura:theme-mode";
+const THEME_CHANGE = "fyura:theme";
 let pending: Promise<void> | undefined;
-let savedMode: Mode = "light";
-let failed = false;
+let savedSelection = DEFAULT_SELECTION;
+let status: "idle" | "saving" | "saved" | "error" = "idle";
 
 function subscribe(notify: () => void) {
   const observer = new MutationObserver(notify);
-  observer.observe(document.documentElement, { attributeFilter: ["data-mode"] });
+  observer.observe(document.documentElement, { attributeFilter: ["data-theme", "data-mode"] });
   window.addEventListener(THEME_CHANGE, notify);
   return () => {
     observer.disconnect();
@@ -19,53 +19,89 @@ function subscribe(notify: () => void) {
   };
 }
 
-function getMode(): Mode {
-  return document.documentElement.getAttribute("data-mode") === "dark" ? "dark" : "light";
+function readSelection(): ThemeSelection {
+  const { theme: bundle, mode } = document.documentElement.dataset;
+  return parseSelection({ bundle, mode });
 }
 
-function applyMode(mode: Mode) {
-  document.documentElement.setAttribute("data-mode", mode);
-  document.cookie = `theme-mode=${mode}; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
+function selectionKey({ bundle, mode }: ThemeSelection): string {
+  return `${bundle}:${mode}`;
+}
+
+function getSelectionKey(): string {
+  return selectionKey(readSelection());
+}
+
+function writeSelection({ bundle, mode }: ThemeSelection) {
+  const root = document.documentElement;
+  root.dataset.theme = bundle;
+  root.dataset.mode = mode;
+  const cookieOptions = `Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
+  document.cookie = `theme-bundle=${bundle}; ${cookieOptions}`;
+  document.cookie = `theme-mode=${mode}; ${cookieOptions}`;
+}
+
+function notifyChange() {
   window.dispatchEvent(new Event(THEME_CHANGE));
 }
 
-function toggleMode() {
-  const current = getMode();
-  if (!pending) savedMode = current;
-  const mode = current === "dark" ? "light" : "dark";
-  failed = false;
-  applyMode(mode);
+function selectTheme(change: Partial<ThemeSelection>) {
+  const current = readSelection();
+  const next = { ...current, ...change };
+  if (selectionKey(next) === selectionKey(current)) return;
+  if (!pending) savedSelection = current;
+  status = "saving";
+  writeSelection(next);
+  notifyChange();
 
-  // Keep writes in click order even when both shell controls are used rapidly.
+  // Settings and shell controls share a queue, so a slower save cannot overtake a later choice.
   const previous = pending ?? Promise.resolve();
   const write = previous
     .then(async () => {
       try {
-        const result = await saveThemeModeAction({ mode });
+        const result = await saveThemeAction({
+          ...change,
+          ...(savedSelection.bundle !== next.bundle && { bundle: next.bundle }),
+          ...(savedSelection.mode !== next.mode && { mode: next.mode }),
+        });
         if (result.ok) {
-          savedMode = mode;
+          savedSelection = next;
+          if (pending === write) status = "saved";
           return;
         }
       } catch {
         // A transport failure follows the same recovery path as an action error.
       }
       if (pending === write) {
-        failed = true;
-        applyMode(savedMode);
+        status = "error";
+        writeSelection(savedSelection);
       }
     })
     .finally(() => {
-      if (pending === write) pending = undefined;
+      if (pending === write) {
+        pending = undefined;
+        notifyChange();
+      }
     });
   pending = write;
 }
 
-export function useThemeMode() {
-  const mode = useSyncExternalStore(subscribe, getMode, () => "light" as const);
-  const saveFailed = useSyncExternalStore(
+function toggleMode() {
+  selectTheme({ mode: readSelection().mode === "dark" ? "light" : "dark" });
+}
+
+export function useThemeSelection(current: ThemeSelection = DEFAULT_SELECTION) {
+  const key = useSyncExternalStore(subscribe, getSelectionKey, () => selectionKey(current));
+  const [bundle, mode] = key.split(":");
+  const saveStatus = useSyncExternalStore(
     subscribe,
-    () => failed,
-    () => false,
+    () => status,
+    () => "idle" as const,
   );
-  return { mode, toggleMode, saveFailed };
+  return { selection: parseSelection({ bundle, mode }), selectTheme, saveStatus };
+}
+
+export function useThemeMode() {
+  const { selection, saveStatus } = useThemeSelection();
+  return { mode: selection.mode, toggleMode, saveFailed: saveStatus === "error" };
 }

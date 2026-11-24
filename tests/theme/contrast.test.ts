@@ -15,7 +15,7 @@ const INKS = ["--color-ink", "--color-ink-muted", "--color-ink-subtle"];
 const STATUSES = ["--color-positive", "--color-negative", "--color-warning", "--color-info"];
 
 function resolveColors(bundle: string, mode: string) {
-  const selector = `[data-bundle="${bundle}"][data-mode="${mode}"]`;
+  const selector = `[data-theme="${bundle}"][data-mode="${mode}"]`;
   const rule = THEME_CSS.split("\n").find((line) => line.startsWith(selector + "{"));
   if (!rule) throw new Error(`Missing theme rule for ${selector}`);
 

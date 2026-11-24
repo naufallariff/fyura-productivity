@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
+import type { ComponentPropsWithRef, InputHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 
 const CONTROL =
@@ -64,7 +64,7 @@ export function Textarea({
   invalid,
   className,
   ...rest
-}: TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: boolean }) {
+}: ComponentPropsWithRef<"textarea"> & { invalid?: boolean }) {
   return (
     <textarea
       aria-invalid={invalid || undefined}

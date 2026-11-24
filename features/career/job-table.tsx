@@ -93,7 +93,48 @@ export function JobTable({ userId, today }: { readonly userId: string; readonly 
       )}
 
       {items.length > 0 && (
-        <div className="overflow-x-auto">
+        <ul className="block space-y-3 sm:hidden">
+          {items.map((job) => (
+            <li
+              key={job.id}
+              className="space-y-3 rounded-xl border border-(--border-subtle) bg-(--bg-surface-elevated) p-4 shadow-(--shadow-card)"
+            >
+              <div className="wrap-break-word">
+                <h3 className="text-sm font-semibold">{job.company}</h3>
+                <p className="text-ink-muted text-sm">{job.role}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Pill>{t(`career.status.${job.status}`)}</Pill>
+                {job.needsFollowUp && <Pill tone="warning">{t("career.followUp")}</Pill>}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {job.nextActionDate ? (
+                  <dl className="text-ink-muted text-xs">
+                    <dt>{t("career.field.nextAction")}</dt>
+                    <dd>
+                      <time dateTime={job.nextActionDate} className="tabular-nums">
+                        {job.nextActionDate}
+                      </time>
+                    </dd>
+                  </dl>
+                ) : (
+                  <span />
+                )}
+                <Button
+                  variant="ghost"
+                  className="min-h-11 min-w-11"
+                  onClick={() => setOpenId(job.id)}
+                >
+                  {t("career.table.open")}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {items.length > 0 && (
+        <div className="hidden overflow-x-auto sm:block">
           <table className="w-full min-w-lg text-left text-sm">
             <caption className="sr-only">{t("career.table.title")}</caption>
             <thead className="text-ink-muted text-xs tracking-wide uppercase">
@@ -126,11 +167,19 @@ export function JobTable({ userId, today }: { readonly userId: string; readonly 
                       {job.needsFollowUp && <Pill tone="warning">{t("career.followUp")}</Pill>}
                     </span>
                   </td>
-                  <td className="text-ink-muted hidden py-3 pr-3 md:table-cell">
-                    {job.nextActionDate ?? "-"}
+                  <td className="text-ink-muted hidden py-3 pr-3 tabular-nums md:table-cell">
+                    {job.nextActionDate ? (
+                      <time dateTime={job.nextActionDate}>{job.nextActionDate}</time>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                   <td className="py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => setOpenId(job.id)}>
+                    <Button
+                      variant="ghost"
+                      className="min-h-11 min-w-11"
+                      onClick={() => setOpenId(job.id)}
+                    >
                       {t("career.table.open")}
                     </Button>
                   </td>

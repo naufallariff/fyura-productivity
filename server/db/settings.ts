@@ -1,6 +1,5 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import type { Mode } from "@/lib/theme/bundles";
 import { DEFAULT_SELECTION, parseSelection, type ThemeSelection } from "@/lib/theme/resolve";
 import { userSettings } from "./schema";
 import { withUser } from "./tx";
@@ -16,33 +15,18 @@ export async function getThemeSelection(userId: string): Promise<ThemeSelection>
   });
 }
 
-export async function saveThemeSelection(userId: string, selection: ThemeSelection): Promise<void> {
-  const now = new Date();
+export async function saveThemeSelection(
+  userId: string,
+  change: Partial<ThemeSelection>,
+): Promise<void> {
+  const patch = { themeBundle: change.bundle, themeMode: change.mode, updatedAt: new Date() };
   await withUser(userId, (tx) =>
     tx
       .insert(userSettings)
-      .values({
-        userId,
-        themeBundle: selection.bundle,
-        themeMode: selection.mode,
-        updatedAt: now,
-      })
+      .values({ userId, ...patch })
       .onConflictDoUpdate({
         target: userSettings.userId,
-        set: { themeBundle: selection.bundle, themeMode: selection.mode, updatedAt: now },
-      }),
-  );
-}
-
-export async function saveThemeMode(userId: string, mode: Mode): Promise<void> {
-  const updatedAt = new Date();
-  await withUser(userId, (tx) =>
-    tx
-      .insert(userSettings)
-      .values({ userId, themeMode: mode, updatedAt })
-      .onConflictDoUpdate({
-        target: userSettings.userId,
-        set: { themeMode: mode, updatedAt },
+        set: patch,
       }),
   );
 }

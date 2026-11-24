@@ -129,7 +129,7 @@
 
   .glass[data-glass-permitted] {
     background: var(--bg-surface-elevated);
-    border: 1px solid var(--border-subtle);
+    border: 1px solid var(--glass-border, var(--border-subtle));
     box-shadow: var(--shadow-raised);
   }
 

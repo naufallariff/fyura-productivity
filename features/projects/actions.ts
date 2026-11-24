@@ -45,6 +45,14 @@ export async function moveListAction(input: unknown) {
   return mutate((userId) => projects.moveList(userId, input));
 }
 
+export async function deleteListAction(input: unknown) {
+  return mutate((userId) => projects.deleteList(userId, input));
+}
+
+export async function sortListByDueDateAction(input: unknown) {
+  return mutate((userId) => projects.sortListByDueDate(userId, input));
+}
+
 export async function createCardAction(input: unknown) {
   return write((userId) => projects.createCard(userId, input));
 }

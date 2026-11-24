@@ -77,9 +77,9 @@ export function CapturePanel({ userId }: { readonly userId: string }) {
 
       {cloud.data && cloud.data.length > 0 && (
         <nav aria-label={t("capture.tags.label")}>
-          <ul className="flex flex-wrap gap-2">
+          <ul className="flex snap-x snap-mandatory scrollbar-none flex-nowrap gap-2 overflow-x-auto p-1 sm:flex-wrap sm:overflow-visible">
             {cloud.data.map((entry) => (
-              <li key={entry.tag}>
+              <li key={entry.tag} className="shrink-0 snap-start">
                 <button
                   type="button"
                   aria-pressed={tag === entry.tag}

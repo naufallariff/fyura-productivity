@@ -23,7 +23,7 @@ describe("bundles", () => {
 
   it("emits one css block per bundle and mode", () => {
     const css = buildThemeCss();
-    const blocks = css.match(/data-bundle=/g) ?? [];
+    const blocks = css.match(/data-theme=/g) ?? [];
     expect(blocks).toHaveLength(BUNDLE_IDS.length * MODES.length);
     expect(css).toContain("--bg-surface-elevated");
     expect(css).toContain("--cat-rest-soft");

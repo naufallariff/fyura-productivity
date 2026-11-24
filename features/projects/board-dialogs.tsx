@@ -2,10 +2,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/field";
+import { neighboursAt, type Neighbours } from "@/domain/projects/placement";
 import { t } from "@/lib/i18n";
 import { CONTROL_CLASS, errorText, failureCode } from "./format";
 import { BOARD_HUES, type Board, type BoardHueName, type Label, type List } from "./schemas";
@@ -14,6 +15,7 @@ import {
   useCreateLabel,
   useCreateList,
   useDeleteLabel,
+  useDeleteList,
   useUpdateBoard,
   useUpdateLabel,
   useUpdateList,
@@ -81,6 +83,7 @@ export function NewBoardDialog({
 
   return (
     <Dialog
+      solid
       open={open}
       onClose={onClose}
       title={t("projects.board.new")}
@@ -134,6 +137,7 @@ export function BoardSettingsDialog({
 }) {
   return (
     <Dialog
+      solid
       open={open}
       onClose={onClose}
       title={t("projects.board.settings")}
@@ -250,6 +254,7 @@ export function ListDialog({
 }) {
   return (
     <Dialog
+      solid
       open={open}
       onClose={onClose}
       title={list ? t("projects.list.dialogEdit") : t("projects.list.dialogNew")}
@@ -264,6 +269,105 @@ export function ListDialog({
           onClose={onClose}
         />
       )}
+    </Dialog>
+  );
+}
+
+export function ListActionDialog({
+  action,
+  list,
+  lists,
+  moveList,
+  userId,
+  onClose,
+}: {
+  action: "moveList" | "deleteList";
+  list: List;
+  lists: readonly List[];
+  moveList: (input: { listId: string } & Neighbours) => Promise<unknown>;
+  userId: string;
+  onClose: () => void;
+}) {
+  const positionId = useId();
+  const currentIndex = lists.findIndex((item) => item.id === list.id);
+  const [position, setPosition] = useState(currentIndex);
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const remove = useDeleteList(userId, list.boardId);
+  const deleting = action === "deleteList";
+  const title = t(deleting ? "projects.list.delete" : "projects.list.moveAction");
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (working) return;
+    const dialog = event.currentTarget.closest("dialog");
+    setError(null);
+    setWorking(true);
+    try {
+      if (deleting) {
+        await remove.mutateAsync(list.id);
+      } else {
+        const rest = lists.filter((item) => item.id !== list.id).map((item) => item.id);
+        await moveList({ listId: list.id, ...neighboursAt(rest, position) });
+      }
+      dialog?.close();
+    } catch (failure) {
+      setError(errorText(failureCode(failure)));
+      setWorking(false);
+    }
+  };
+
+  return (
+    <Dialog
+      solid
+      open
+      onClose={onClose}
+      title={title}
+      description={deleting ? t("projects.list.confirmDelete", { title: list.title }) : undefined}
+      closeLabel={t("shell.close")}
+    >
+      <form onSubmit={submit} className="space-y-4">
+        {!deleting && (
+          <Field id={positionId} label={t("projects.list.position")}>
+            <select
+              id={positionId}
+              className={CONTROL_CLASS}
+              value={position}
+              onChange={(event) => setPosition(Number(event.target.value))}
+            >
+              {lists.map((item, index) => (
+                <option key={item.id} value={index}>
+                  {index + 1}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+        {error && (
+          <p role="alert" className="text-negative text-sm">
+            {error}
+          </p>
+        )}
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="secondary"
+            onClick={(event) => event.currentTarget.closest("dialog")?.close()}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="submit"
+            variant={deleting ? "danger" : "primary"}
+            disabled={
+              !deleting &&
+              (position === currentIndex || position >= lists.length || currentIndex < 0)
+            }
+            pending={working}
+          >
+            {title}
+          </Button>
+        </div>
+      </form>
     </Dialog>
   );
 }
@@ -359,6 +463,7 @@ export function LabelsDialog({
 }) {
   return (
     <Dialog
+      solid
       open={open}
       onClose={onClose}
       title={t("projects.labels.title")}

@@ -46,6 +46,7 @@ function themeVariables(t: ThemeTokens): Record<string, string> {
     "--color-warning": "var(--mode-warning)",
     "--color-info": "var(--mode-info)",
     "--glass-bg": t.glassBg,
+    "--glass-border": "var(--border-subtle)",
   };
   for (const hue of HUE_NAMES) {
     const category = CATEGORY_BY_HUE[hue];
@@ -74,7 +75,7 @@ export function buildThemeCss(): string {
   const schemes = BUNDLE_IDS.flatMap((bundleId) =>
     MODES.map((mode) => {
       const tokens = deriveTokens(BUNDLES[bundleId], mode);
-      return `[data-bundle="${bundleId}"][data-mode="${mode}"]{color-scheme:${mode};${declarations(themeVariables(tokens))}}`;
+      return `[data-theme="${bundleId}"][data-mode="${mode}"]{color-scheme:${mode};${declarations(themeVariables(tokens))}}`;
     }),
   );
   return [`:root{${declarations(palette)}}`, ...schemes].join("\n");

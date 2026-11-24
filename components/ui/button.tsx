@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ComponentPropsWithRef } from "react";
 import type { LucideIcon } from "lucide-react";
 import { LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/ui/cn";
@@ -6,7 +6,7 @@ import { cn } from "@/lib/ui/cn";
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ComponentPropsWithRef<"button"> {
   variant?: Variant;
   size?: Size;
   /** Locks the button while a request runs. Pair with a pending label in children. */

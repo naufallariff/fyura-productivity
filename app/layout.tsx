@@ -28,7 +28,7 @@ async function ThemedDocument({ children }: { children: ReactNode }) {
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
-    <html lang="en" data-bundle={theme.bundle} data-mode={theme.mode}>
+    <html lang="en" data-theme={theme.bundle} data-mode={theme.mode}>
       <head>
         {/* Generated from code constants only, never from user input. */}
         <style nonce={nonce} dangerouslySetInnerHTML={{ __html: themeCss }} />

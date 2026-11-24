@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { cn } from "@/lib/ui/cn";
 import { Button } from "./button";
 
 /**
@@ -16,6 +17,7 @@ export function Dialog({
   closeLabel,
   children,
   footer,
+  solid = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -24,6 +26,7 @@ export function Dialog({
   closeLabel: string;
   children: ReactNode;
   footer?: ReactNode;
+  solid?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -43,8 +46,13 @@ export function Dialog({
       onClose={onClose}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
-      data-glass-permitted
-      className="glass text-ink backdrop:bg-ink/30 m-auto w-[min(92vw,520px)] max-w-none rounded-2xl p-0 max-sm:mx-0 max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:rounded-t-[28px] max-sm:rounded-b-none"
+      data-glass-permitted={solid ? undefined : true}
+      className={cn(
+        "text-ink backdrop:bg-ink/30 m-auto w-[min(92vw,520px)] max-w-none rounded-2xl p-0 max-sm:mx-0 max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:rounded-t-[28px] max-sm:rounded-b-none",
+        solid
+          ? "border border-(--border-subtle) bg-(--bg-surface-elevated) shadow-(--shadow-raised)"
+          : "glass",
+      )}
     >
       <div className="flex items-start justify-between gap-4 p-4 pb-3 sm:p-6 sm:pb-3">
         <div className="min-w-0">

@@ -56,6 +56,36 @@ describe.skipIf(!RUN_DB_TESTS)("projects services (requires database)", () => {
     expect(await allCardIds(todo.id)).toEqual([a.id, b.id]);
   }, 30_000);
 
+  it("sorts the full active list by due date and keeps equal dates in their existing order", async () => {
+    const { todo, a, b } = await fixture();
+    const first = await svc.createCard(userId, { listId: todo.id, title: "Earlier" });
+    const tied = await svc.createCard(userId, { listId: todo.id, title: "Same date" });
+    await svc.updateCard(userId, { cardId: b.id, dueOn: "2026-12-02" });
+    await svc.updateCard(userId, { cardId: first.id, dueOn: "2026-12-01" });
+    await svc.updateCard(userId, { cardId: tied.id, dueOn: "2026-12-02" });
+
+    await svc.sortListByDueDate(userId, { listId: todo.id });
+
+    const page = await svc.listCards(userId, todo.id, { limit: 2 });
+    expect(page.items.map(({ id }) => id)).toEqual([first.id, b.id]);
+    const next = await svc.listCards(userId, todo.id, {
+      limit: 2,
+      cursor: page.nextCursor ?? undefined,
+    });
+    expect(next.items.map(({ id }) => id)).toEqual([tied.id, a.id]);
+  });
+
+  it("deletes the selected list and its cards while keeping other lists", async () => {
+    const { board, todo, done, a } = await fixture();
+
+    await svc.deleteList(userId, { listId: todo.id });
+
+    expect((await svc.getBoardSnapshot(userId, board.id)).lists.map(({ id }) => id)).toEqual([
+      done.id,
+    ]);
+    await expect(svc.getCard(userId, a.id)).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
   it("moves a card to another list between two neighbours", async () => {
     const { done, a } = await fixture();
     const finished = await svc.createCard(userId, {

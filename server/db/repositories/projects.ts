@@ -171,6 +171,14 @@ export async function setListPositions(
   }
 }
 
+export async function deleteListRow(tx: Tx, userId: string, listId: string): Promise<boolean> {
+  const [row] = await tx
+    .delete(boardLists)
+    .where(and(eq(boardLists.userId, userId), eq(boardLists.id, listId)))
+    .returning({ id: boardLists.id });
+  return row !== undefined;
+}
+
 /* ---------- Cards ---------- */
 
 export async function findCard(tx: Tx, userId: string, cardId: string): Promise<CardRow | null> {
@@ -228,6 +236,33 @@ export async function setCardPositions(
       .set({ position: pair.position })
       .where(and(eq(boardCards.userId, userId), eq(boardCards.id, pair.id)));
   }
+}
+
+/** Keep existing order for equal dates and put cards with no date last. */
+export async function sortActiveCardsByDueDate(
+  tx: Tx,
+  userId: string,
+  listId: string,
+  positionStep: number,
+): Promise<void> {
+  const activeListCards = sql`
+    ${boardCards.userId} = ${userId} and ${boardCards.listId} = ${listId}
+    and ${boardCards.archivedAt} is null
+  `;
+  await tx.execute(sql`
+    with sorted_cards as (
+      select ${boardCards.id} as id,
+        row_number() over (
+          order by ${boardCards.dueOn} asc nulls last, ${boardCards.position}, ${boardCards.id}
+        ) * ${positionStep}::double precision as position
+      from ${boardCards}
+      where ${activeListCards}
+    )
+    update ${boardCards}
+    set position = sorted_cards.position
+    from sorted_cards
+    where ${boardCards.id} = sorted_cards.id and ${activeListCards}
+  `);
 }
 
 export async function setCardPlacement(
