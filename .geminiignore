@@ -1,5 +1,22 @@
+# --- Proteksi Rahasia & Environment ---
+.env
+.env*
+.env.*
+!.env.example
+
+# --- Penghematan Token (File Besar & Riwayat Lama) ---
 pnpm-lock.yaml
 drizzle/meta/
 drizzle/000*.sql
 .husky/
 tests/
+
+# --- Artefak Build, Cache & Sistem ---
+node_modules/
+.next/
+.git/
+coverage/
+test-results/
+playwright-report/
+*.log
+*.tsbuildinfo
