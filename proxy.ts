@@ -1,9 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"];
-const PASS_THROUGH = ["/login", "/api/auth", "/api/cron"];
-const PUBLIC_ICONS = ["/icon", "/apple-icon"];
-
 function sentryOrigin(): string | undefined {
   const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
   if (!dsn) return undefined;
@@ -41,23 +37,13 @@ export function proxy(request: NextRequest) {
   headers.set("x-nonce", nonce);
   headers.set("Content-Security-Policy", policy);
 
-  const { pathname } = request.nextUrl;
-  const isPassThrough =
-    PUBLIC_ICONS.includes(pathname) ||
-    PASS_THROUGH.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-  const hasSession = SESSION_COOKIES.some((name) => request.cookies.has(name));
-
-  const response =
-    isPassThrough || hasSession
-      ? NextResponse.next({ request: { headers } })
-      : NextResponse.redirect(new URL("/login", request.url));
+  const response = NextResponse.next({ request: { headers } });
   response.headers.set("x-request-id", requestId);
   response.headers.set("Content-Security-Policy", policy);
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  if (pathname === "/private") response.headers.set("Cache-Control", "no-store");
   return response;
 }
 

@@ -35,3 +35,5 @@ next-env.d.ts
 *.log
 .DS_Store
 *.pem
+# Local backup of the retired UI and disconnected route handlers.
+/archieve/ui-before-reset/
