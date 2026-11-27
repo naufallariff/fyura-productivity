@@ -143,7 +143,7 @@ export function Tooltip({
             }}
             className="floating-tooltip fixed z-50 -translate-y-1/2 pl-3"
           >
-            <span className="floating-tooltip-content text-ink flex items-center gap-3 rounded-lg border border-(--border-subtle) bg-(--bg-surface) px-3 py-2 text-xs whitespace-nowrap shadow-(--shadow-raised)">
+            <span className="fyura-tooltip floating-tooltip-content text-ink flex items-center gap-3 px-3 py-2 text-xs whitespace-nowrap">
               {text}
               {shortcut && <kbd className="text-ink-muted font-sans">{shortcut}</kbd>}
             </span>

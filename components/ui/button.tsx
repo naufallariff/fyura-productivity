@@ -2,6 +2,7 @@ import type { ComponentPropsWithRef } from "react";
 import type { LucideIcon } from "lucide-react";
 import { LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/ui/cn";
+import type { NeonTone } from "@/lib/theme/foundation";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
@@ -9,6 +10,7 @@ type Size = "sm" | "md";
 export interface ButtonProps extends ComponentPropsWithRef<"button"> {
   variant?: Variant;
   size?: Size;
+  tone?: NeonTone;
   /** Locks the button while a request runs. Pair with a pending label in children. */
   pending?: boolean;
   icon?: LucideIcon;
@@ -16,7 +18,7 @@ export interface ButtonProps extends ComponentPropsWithRef<"button"> {
 
 // Touch targets are at least 44 px on phones and 36 px on larger screens.
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-[transform,background-color,opacity] duration-200 ease-spring motion-safe:active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-50";
+  "fyura-button inline-flex items-center justify-center gap-2 font-medium transition-[transform,background-color,opacity] duration-180 ease-spring motion-safe:active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-50";
 
 const SIZE = {
   sm: "min-h-11 px-3 text-sm sm:min-h-9",
@@ -24,15 +26,16 @@ const SIZE = {
 } as const;
 
 const VARIANT = {
-  primary: "bg-accent text-on-accent shadow-xs hover:bg-accent-hover",
-  secondary: "border border-(--border-control) text-ink bg-(--bg-surface) hover:bg-accent-soft",
+  primary: "fyura-button-primary",
+  secondary: "fyura-button-secondary",
   ghost: "text-ink-muted hover:bg-accent-soft hover:text-ink",
-  danger: "border border-negative text-negative hover:bg-(--color-negative-soft)",
+  danger: "fyura-button-danger",
 } as const;
 
 export function Button({
   variant = "primary",
   size = "md",
+  tone,
   pending = false,
   icon: Icon,
   className,
@@ -46,6 +49,7 @@ export function Button({
       type={type}
       disabled={disabled || pending}
       aria-busy={pending || undefined}
+      data-tone={tone}
       className={cn(BASE, SIZE[size], VARIANT[variant], className)}
       {...rest}
     >

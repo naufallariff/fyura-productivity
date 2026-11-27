@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MOBILE_PRIMARY, NAV_ITEMS, NAV_SECTIONS, isActivePath } from "@/lib/nav/sections";
 import { parseSidebarState } from "@/lib/shell/sidebar-cookie";
+import { parseFoldedGroups, serializeFoldedGroups } from "@/lib/shell/navigation-state";
 
 describe("navigation model", () => {
   it("orders sections as main, workspace, then private", () => {
@@ -40,5 +41,20 @@ describe("sidebar cookie", () => {
     expect(parseSidebarState(undefined)).toBe("expanded");
     expect(parseSidebarState("garbage")).toBe("expanded");
     expect(parseSidebarState("collapsed")).toBe("collapsed");
+  });
+
+  it("ignores unknown and repeated group IDs in persisted preferences", () => {
+    expect(parseFoldedGroups(undefined)).toEqual([]);
+    expect(parseFoldedGroups("workspace.unknown.workspace.private")).toEqual([
+      "workspace",
+      "private",
+    ]);
+  });
+
+  it("round trips folded groups in a stable navigation order", () => {
+    const cookie = serializeFoldedGroups(["private", "main", "private"]);
+    expect(cookie).toBe("main.private");
+    expect(parseFoldedGroups(cookie)).toEqual(["main", "private"]);
+    expect(serializeFoldedGroups([])).toBe("");
   });
 });

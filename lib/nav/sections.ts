@@ -3,13 +3,13 @@ import {
   BookText,
   BriefcaseBusiness,
   CalendarDays,
+  Clock3,
+  Columns3,
   GraduationCap,
-  KanbanSquare,
   LayoutDashboard,
   Lightbulb,
   Lock,
   Settings,
-  StickyNote,
 } from "lucide-react";
 
 export type NavSectionId = "main" | "workspace" | "private";
@@ -37,11 +37,11 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       {
         href: "/daily-tracker",
         labelKey: "nav.dailyTracker",
-        icon: CalendarDays,
+        icon: Clock3,
         mobilePrimary: true,
       },
-      { href: "/projects", labelKey: "nav.projects", icon: KanbanSquare, mobilePrimary: true },
-      { href: "/weekly-plan", labelKey: "nav.weeklyPlan", icon: StickyNote, mobilePrimary: true },
+      { href: "/projects", labelKey: "nav.projects", icon: Columns3, mobilePrimary: true },
+      { href: "/weekly-plan", labelKey: "nav.weeklyPlan", icon: CalendarDays, mobilePrimary: true },
     ],
   },
   {

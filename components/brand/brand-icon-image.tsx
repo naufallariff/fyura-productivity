@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { BrandMark } from "./brand-logo";
+import { BRAND_PRIMITIVES } from "@/lib/theme/foundation";
 
 export function brandIconImage(size: { width: number; height: number }, borderRadius: number) {
   const markSize = Math.round(size.width * 0.75);
@@ -13,11 +14,11 @@ export function brandIconImage(size: { width: number; height: number }, borderRa
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "rgb(22, 86, 119)",
+        backgroundColor: BRAND_PRIMITIVES.canvas,
         borderRadius,
       }}
     >
-      <BrandMark width={markSize} height={markSize} fill="white" />
+      <BrandMark width={markSize} height={markSize} />
     </div>,
     size,
   );

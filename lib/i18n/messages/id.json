@@ -1,4 +1,12 @@
 {
+  "shell.ambient.pause": "Jeda gerakan latar",
+  "shell.ambient.resume": "Lanjutkan gerakan latar",
+  "shell.sidebar": "Bilah samping",
+  "shell.navigation": "Navigasi",
+  "shell.openNavigation": "Buka navigasi",
+  "shell.home": "Beranda",
+  "shell.daily": "Harian",
+  "shell.weekly": "Mingguan",
   "app.short": "Fyura",
   "capture.lead": "Tulis ide dengan cepat. Atur nanti.",
   "capture.title": "Catatan Ide",

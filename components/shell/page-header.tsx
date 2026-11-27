@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 /** Page width and padding. Every page starts with this. */
 export function PageFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-350 px-4 pt-6 pb-10 sm:px-6 lg:px-8 lg:pt-8">
+    <div className="mx-auto w-full max-w-450 px-4 pt-6 pb-10 sm:px-6 lg:px-8 lg:pt-8">
       {children}
     </div>
   );

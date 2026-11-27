@@ -18,6 +18,7 @@ export function Dialog({
   children,
   footer,
   solid = false,
+  placement = "center",
 }: {
   open: boolean;
   onClose: () => void;
@@ -27,6 +28,7 @@ export function Dialog({
   children: ReactNode;
   footer?: ReactNode;
   solid?: boolean;
+  placement?: "center" | "drawer";
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -47,8 +49,9 @@ export function Dialog({
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       data-glass-permitted={solid ? undefined : true}
+      data-placement={placement}
       className={cn(
-        "text-ink backdrop:bg-ink/30 m-auto w-[min(92vw,520px)] max-w-none rounded-2xl p-0 max-sm:mx-0 max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:rounded-t-[28px] max-sm:rounded-b-none",
+        "fyura-dialog text-ink p-0",
         solid
           ? "border border-(--border-subtle) bg-(--bg-surface-elevated) shadow-(--shadow-raised)"
           : "glass",

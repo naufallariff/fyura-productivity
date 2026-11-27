@@ -1,6 +1,7 @@
 import { BUNDLE_IDS, BUNDLES, MODES, PALETTE } from "./bundles";
 import { deriveTokens, type ThemeTokens } from "./derive";
 import { CATEGORY_BY_HUE, HUE_NAMES, type Hue } from "./hues";
+import { BRAND_PRIMITIVES } from "./foundation";
 
 const KPI_HUES = {
   consistency: "indigo",
@@ -75,8 +76,12 @@ export function buildThemeCss(): string {
   const schemes = BUNDLE_IDS.flatMap((bundleId) =>
     MODES.map((mode) => {
       const tokens = deriveTokens(BUNDLES[bundleId], mode);
-      return `[data-theme="${bundleId}"][data-mode="${mode}"]{color-scheme:${mode};${declarations(themeVariables(tokens))}}`;
+      const action = { ocean: "aqua", sage: "lime", dusk: "violet" }[bundleId];
+      return `[data-theme="${bundleId}"][data-mode="${mode}"]{color-scheme:${mode};--action-color:var(--prism-${action});${declarations(themeVariables(tokens))}}`;
     }),
   );
-  return [`:root{${declarations(palette)}}`, ...schemes].join("\n");
+  const brand = Object.fromEntries(
+    Object.entries(BRAND_PRIMITIVES).map(([name, value]) => [`--prism-${name}`, value]),
+  );
+  return [`:root{${declarations({ ...palette, ...brand })}}`, ...schemes].join("\n");
 }

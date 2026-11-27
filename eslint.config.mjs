@@ -24,6 +24,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Imported agent guides and archived design examples are not application code.
+    ".agents/**",
+    "archieve/**",
+    "dashborad-ideas/**",
+    "test-results/**",
   ]),
 ]);
 

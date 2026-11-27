@@ -13,7 +13,15 @@ import { useThemeMode } from "./theme-mode";
  * Account area at the bottom of the sidebar. The menu is a disclosure, not a
  * role=menu, so every item is reachable with Tab and no custom arrow keys are needed.
  */
-export function SidebarProfile({ email, collapsed }: { email: string | null; collapsed: boolean }) {
+export function SidebarProfile({
+  email,
+  collapsed,
+  placement = "above",
+}: {
+  email: string | null;
+  collapsed: boolean;
+  placement?: "above" | "below";
+}) {
   const [open, setOpen] = useState(false);
   const { mode, toggleMode } = useThemeMode();
   const dark = mode === "dark";
@@ -66,7 +74,10 @@ export function SidebarProfile({ email, collapsed }: { email: string | null; col
       {open && (
         <div
           id={menuId}
-          className="absolute bottom-full left-0 z-50 mb-2 w-64 space-y-1 rounded-xl border border-(--border-subtle) bg-(--bg-surface) p-2 shadow-(--shadow-card)"
+          className={cn(
+            "account-popover w-64 space-y-1 p-2",
+            placement === "below" ? "top-full right-0 mt-2" : "bottom-full left-0 mb-2",
+          )}
         >
           <p className="text-ink-muted truncate px-3 pt-1 pb-2 text-xs">{label}</p>
 

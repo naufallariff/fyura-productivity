@@ -3,11 +3,14 @@ import type { LucideIcon } from "lucide-react";
 import type { Hue } from "@/lib/theme/hues";
 import { cn } from "@/lib/ui/cn";
 import { hueVar, tintStyle } from "@/lib/ui/hue";
+import type { NeonTone } from "@/lib/theme/foundation";
 
 type CardProps = HTMLAttributes<HTMLElement> & {
   as?: "section" | "article" | "div";
   padding?: "none" | "md" | "lg";
   interactive?: boolean;
+  material?: "reading" | "frosted" | "tinted" | "luminous";
+  tone?: NeonTone;
 };
 
 const PADDING = {
@@ -20,13 +23,17 @@ export function Card({
   as: Tag = "div",
   padding = "md",
   interactive = false,
+  material = "reading",
+  tone = "aqua",
   className,
   ...rest
 }: CardProps) {
   return (
     <Tag
+      data-material={material}
+      data-tone={tone}
       className={cn(
-        "rounded-2xl border border-(--border-subtle) bg-(--bg-surface) shadow-(--shadow-card)",
+        "fyura-card",
         PADDING[padding],
         interactive &&
           "ease-spring transition-transform duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-[0.99]",

@@ -1,7 +1,7 @@
 import type { Hue } from "@/lib/theme/hues";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/ui/cn";
 import { initials } from "@/lib/ui/initials";
-import { hueVar, tintStyle } from "@/lib/ui/hue";
 
 const SIZE = {
   sm: "size-7 text-[11px]",
@@ -20,15 +20,25 @@ export function Avatar({
   size?: keyof typeof SIZE;
   className?: string;
 }) {
+  const tone =
+    hue === "emerald"
+      ? "aqua"
+      : hue === "amber"
+        ? "lime"
+        : hue === "rose"
+          ? "pink"
+          : hue === "sky"
+            ? "blue"
+            : "violet";
   return (
     <span
       aria-hidden
       className={cn(
-        "text-ink inline-grid shrink-0 place-items-center rounded-full font-semibold",
+        "account-avatar inline-grid shrink-0 place-items-center font-semibold",
         SIZE[size],
         className,
       )}
-      style={tintStyle(hueVar(hue), 22)}
+      style={{ "--avatar-tone": `var(--prism-${tone})` } as CSSProperties}
     >
       {initials(name)}
     </span>

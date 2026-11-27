@@ -1,4 +1,5 @@
 import type { Mode } from "./bundles";
+import { NATIVE_TOKENS } from "./foundation";
 
 interface ModeConstants {
   readonly page: string;
@@ -18,12 +19,12 @@ interface ModeConstants {
 
 export const MODE_CONSTANTS: Readonly<Record<Mode, ModeConstants>> = {
   light: {
-    page: "oklch(0.99 0.003 240)",
-    surface: "oklch(1 0 0)",
-    elevated: "oklch(0.995 0.002 240)",
-    ink: "oklch(0.15 0.01 240)",
-    inkMuted: "oklch(0.42 0.012 240)",
-    inkSubtle: "oklch(0.51 0.01 240)",
+    page: NATIVE_TOKENS.canvas,
+    surface: NATIVE_TOKENS.reading,
+    elevated: NATIVE_TOKENS.reading,
+    ink: NATIVE_TOKENS.ink,
+    inkMuted: NATIVE_TOKENS.muted,
+    inkSubtle: NATIVE_TOKENS.muted,
     onAccent: "oklch(1 0 0)",
     positive: "oklch(0.52 0.15 155)",
     negative: "oklch(0.52 0.2 25)",

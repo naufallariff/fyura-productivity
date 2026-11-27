@@ -1,4 +1,12 @@
 {
+  "shell.ambient.pause": "Pause ambient motion",
+  "shell.ambient.resume": "Resume ambient motion",
+  "shell.sidebar": "Sidebar",
+  "shell.navigation": "Navigation",
+  "shell.openNavigation": "Open navigation",
+  "shell.home": "Home",
+  "shell.daily": "Daily",
+  "shell.weekly": "Weekly",
   "app.short": "Fyura",
   "capture.lead": "Write down an idea quickly. Organize it later.",
   "capture.title": "Capture Idea",

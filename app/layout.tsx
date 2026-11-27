@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
+import localFont from "next/font/local";
 import "./globals.css";
 import { QueryProvider } from "@/client/query/provider";
 import { BUNDLES, DEFAULT_BUNDLE } from "@/lib/theme/bundles";
@@ -9,6 +10,12 @@ import { buildThemeCss } from "@/lib/theme/css";
 import { getRequestTheme } from "@/lib/theme/server";
 
 const themeCss = buildThemeCss();
+const inter = localFont({
+  src: "../public/fonts/InterVariable.woff2",
+  variable: "--font-inter",
+  display: "swap",
+  weight: "100 900",
+});
 
 export const metadata: Metadata = {
   title: { default: "Fyura Productivity", template: "%s, Fyura Productivity" },
@@ -33,7 +40,7 @@ async function ThemedDocument({ children }: { children: ReactNode }) {
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
-    <html lang="en" data-theme={theme.bundle} data-mode={theme.mode}>
+    <html lang="en" data-theme={theme.bundle} data-mode={theme.mode} className={inter.variable}>
       <head>
         {/* Generated from code constants only, never from user input. */}
         <style nonce={nonce} dangerouslySetInnerHTML={{ __html: themeCss }} />

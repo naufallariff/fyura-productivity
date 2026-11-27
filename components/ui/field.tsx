@@ -2,7 +2,7 @@ import type { ComponentPropsWithRef, InputHTMLAttributes, ReactNode } from "reac
 import { cn } from "@/lib/ui/cn";
 
 const CONTROL =
-  "w-full rounded-lg border border-(--border-control) bg-(--bg-surface) px-4 text-base text-ink outline-none transition-colors duration-150 placeholder:text-ink-muted focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-negative disabled:opacity-50 sm:text-sm";
+  "fyura-control w-full px-4 text-base text-ink outline-none transition-colors duration-150 placeholder:text-ink-muted focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-negative disabled:opacity-50 sm:text-sm";
 
 /** Text size is 16 px on phones so the browser does not zoom on focus. */
 export function Field({

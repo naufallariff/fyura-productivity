@@ -1,11 +1,10 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
-import { Sidebar } from "@/components/shell/sidebar";
-import { MobileNav } from "@/components/shell/mobile-nav";
+import { WorkspaceShell } from "@/components/shell/workspace-shell";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { PageSkeleton } from "@/components/ui/skeleton";
-import { t } from "@/lib/i18n";
+import { NAV_GROUPS_COOKIE, parseFoldedGroups } from "@/lib/shell/navigation-state";
 import { parseSidebarState, SIDEBAR_COOKIE } from "@/lib/shell/sidebar-cookie";
 import { requireUser } from "@/server/auth/session";
 
@@ -17,22 +16,14 @@ async function ShellFrame({ children }: { children: React.ReactNode }) {
   const sidebar = parseSidebarState(jar.get(SIDEBAR_COOKIE)?.value);
 
   return (
-    <div className="flex min-h-dvh gap-0">
-      <a
-        href="#main"
-        className="focus:bg-accent focus:text-on-accent sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2"
-      >
-        {t("shell.skipToContent")}
-      </a>
-      <Sidebar initial={sidebar} email={user.email} />
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
-        <main id="main" className="flex-1 pb-28 md:pb-10">
-          {children}
-        </main>
-      </div>
-      <MobileNav />
+    <WorkspaceShell
+      initial={sidebar}
+      initialFolded={parseFoldedGroups(jar.get(NAV_GROUPS_COOKIE)?.value)}
+      email={user.email}
+    >
+      {children}
       <CommandPalette />
-    </div>
+    </WorkspaceShell>
   );
 }
 

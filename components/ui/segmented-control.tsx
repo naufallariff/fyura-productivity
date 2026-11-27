@@ -18,11 +18,7 @@ export function SegmentedControl<T extends string>({
   const activeIndex = options.findIndex((option) => option.value === value);
 
   return (
-    <div
-      role="radiogroup"
-      aria-label={label}
-      className="rounded-full border border-(--border-subtle) bg-(--bg-canvas) p-1"
-    >
+    <div role="radiogroup" aria-label={label} className="fyura-segments">
       <div
         className="relative isolate grid"
         style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
@@ -30,7 +26,7 @@ export function SegmentedControl<T extends string>({
         {activeIndex >= 0 && (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-(--bg-surface-elevated) shadow-(--shadow-card) motion-safe:transition-[transform] motion-safe:duration-160 motion-safe:ease-(--ease-out-snappy) motion-safe:will-change-transform"
+            className="fyura-segment-active pointer-events-none absolute inset-y-0 left-0 motion-safe:transition-transform motion-safe:duration-180 motion-safe:ease-(--ease-liquid)"
             style={{
               width: `${100 / options.length}%`,
               transform: `translateX(${activeIndex * 100}%)`,

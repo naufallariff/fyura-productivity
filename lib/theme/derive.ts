@@ -2,6 +2,7 @@ import type { Bundle, Mode } from "./bundles";
 import { fitSrgb, formatOklch, parseOklch, type Oklch } from "./color";
 import { HUE_NAMES, HUE_PRIMITIVES, type Hue } from "./hues";
 import { MODE_CONSTANTS } from "./tokens";
+import { NATIVE_TOKENS } from "./foundation";
 
 function gamutColor(color: Oklch): string {
   return formatOklch(fitSrgb(color));
@@ -41,18 +42,22 @@ export function deriveTokens(bundle: Bundle, mode: Mode) {
     ...fixed,
     ...statuses,
     mode,
-    canvas: seed.canvas,
-    accent: gamutColor({ ...base, lightness: isLight ? 0.52 : base.lightness }),
-    accentHover: gamutColor({
-      ...base,
-      lightness: isLight ? 0.48 : 0.75,
-      chroma: isLight ? base.chroma * (13 / 14) : base.chroma + 0.02,
-    }),
-    accentSoft: gamutColor({
-      lightness: isLight ? 0.95 : 0.25,
-      chroma: isLight ? 0.025 : 0.04,
-      hue,
-    }),
+    canvas: isLight ? NATIVE_TOKENS.canvas : seed.canvas,
+    accent: isLight ? NATIVE_TOKENS.focus : gamutColor(base),
+    accentHover: isLight
+      ? NATIVE_TOKENS.focus
+      : gamutColor({
+          ...base,
+          lightness: isLight ? 0.48 : 0.75,
+          chroma: isLight ? base.chroma * (13 / 14) : base.chroma + 0.02,
+        }),
+    accentSoft: isLight
+      ? NATIVE_TOKENS.control
+      : gamutColor({
+          lightness: isLight ? 0.95 : 0.25,
+          chroma: isLight ? 0.025 : 0.04,
+          hue,
+        }),
     borderSubtle: isLight ? bundleTone(0.9, 0.01, 0.6) : bundleTone(0.3, 0.012, 0.5),
     borderDefault: isLight ? bundleTone(0.85, 0.012, 0.8) : bundleTone(0.35, 0.014, 0.6),
     borderControl: isLight ? bundleTone(0.64, 0.014) : bundleTone(0.54, 0.014),
